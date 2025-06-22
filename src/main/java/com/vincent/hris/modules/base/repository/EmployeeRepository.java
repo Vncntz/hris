@@ -7,5 +7,6 @@ import com.vincent.hris.modules.base.model.Employee;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
-	// ✅ You can add custom queries here if needed
+
+	Employee findById(long id);
 }

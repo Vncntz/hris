@@ -11,7 +11,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vincent.hris.modules.base.model.Employee;
 import com.vincent.hris.modules.base.service.EmployeeService;
-import com.vincent.hris.modules.base.window.AddEmployeeDialog;
 import com.vincent.hris.util.NotificationUtil;
 
 import jakarta.annotation.PostConstruct;
@@ -48,31 +47,27 @@ public class EmployeeListView extends BaseGridView<Employee> {
 
 	@Override
 	protected void onAdd() {
-		AddEmployeeDialog dialog = new AddEmployeeDialog(employeeService);
-		dialog.addDetachListener(e -> onLoad()); 
-		dialog.open();
+		Employee employee = new Employee();
+		getUI().ifPresent(ui -> ui.navigate("employee/" + employee.getId()));
 
 	}
 
 	@Override
 	protected void onEdit(Employee employee) {
-		AddEmployeeDialog dialog = new AddEmployeeDialog(employeeService, employee);
-		dialog.addDetachListener(e -> onLoad()); 
-		dialog.open();
+		getUI().ifPresent(ui -> ui.navigate("employee/" + employee.getId()));
 	}
 
 	@Override
 	protected void onDelete(Employee employee) {
-		
 		employeeService.delete(employee);
 	}
 
-	private void onView(Employee employee) {
-		if (employee == null) {
-			NotificationUtil.error("Please select an item to view.");
+	private void onView(Employee employee) { 
+		if (employee == null || employee.getId() == null) {
+			NotificationUtil.error("Invalid employee selected.");
 			return;
 		}
-		NotificationUtil.info("View: " + employee.getFullName());
+		getUI().ifPresent(ui -> ui.navigate("employee/" + employee.getId() + "?tab=personal"));
 	}
 
 	@PostConstruct

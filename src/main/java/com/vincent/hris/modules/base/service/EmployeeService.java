@@ -1,12 +1,13 @@
 package com.vincent.hris.modules.base.service;
 
-import com.vincent.hris.modules.base.model.Employee;
-import com.vincent.hris.modules.base.repository.EmployeeRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+
+import com.vincent.hris.modules.base.model.Employee;
+import com.vincent.hris.modules.base.repository.EmployeeRepository;
 
 @Service
 public class EmployeeService extends BaseService<Employee, Long> {
@@ -28,10 +29,15 @@ public class EmployeeService extends BaseService<Employee, Long> {
 
 	public void save(Employee employee) {
 		employeeRepository.save(employee);
-		
+
 	}
 
 	public void delete(Employee employee) {
 		employeeRepository.delete(employee);
 	}
+
+	public Employee findById(long id) {
+		return employeeRepository.findById(id);
+	}
+	
 }
