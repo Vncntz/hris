@@ -18,7 +18,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 @PageTitle("Employee List")
-@Route("employee")
+@Route("employee-list")
 @Slf4j
 public class EmployeeListView extends BaseGridView<Employee> {
 
@@ -63,7 +63,8 @@ public class EmployeeListView extends BaseGridView<Employee> {
 
 	@Override
 	protected void onDelete(Employee employee) {
-		NotificationUtil.info("Delete functionality to be implemented for: " + employee.getFullName());
+		
+		employeeService.delete(employee);
 	}
 
 	private void onView(Employee employee) {

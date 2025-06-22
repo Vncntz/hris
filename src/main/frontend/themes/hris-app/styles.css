@@ -1,2 +1,12 @@
 @import url('./main-layout.css');
 @import url('./views/employee-list-view.css');
+
+.login-background::part(overlay) {
+	background-image: url('/images/loginbg.png');
+	background-size: cover;
+	background-position: center;
+}
+
+.login-background::part(backdrop) {
+	background-color: rgba(0, 0, 0, 0.5);
+}
