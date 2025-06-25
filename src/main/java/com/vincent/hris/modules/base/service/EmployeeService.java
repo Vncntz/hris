@@ -1,7 +1,6 @@
 package com.vincent.hris.modules.base.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -27,8 +26,8 @@ public class EmployeeService extends BaseService<Employee, Long> {
 		return employeeRepository.findAll();
 	}
 
-	public void save(Employee employee) {
-		employeeRepository.save(employee);
+	public Employee save(Employee employee) {
+		return employeeRepository.save(employee);
 
 	}
 
@@ -39,5 +38,5 @@ public class EmployeeService extends BaseService<Employee, Long> {
 	public Employee findById(long id) {
 		return employeeRepository.findById(id);
 	}
-	
+
 }

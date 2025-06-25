@@ -47,9 +47,8 @@ public class EmployeeListView extends BaseGridView<Employee> {
 
 	@Override
 	protected void onAdd() {
-		Employee employee = new Employee();
+		Employee employee = employeeService.save(new Employee()); 
 		getUI().ifPresent(ui -> ui.navigate("employee/" + employee.getId()));
-
 	}
 
 	@Override
@@ -62,7 +61,7 @@ public class EmployeeListView extends BaseGridView<Employee> {
 		employeeService.delete(employee);
 	}
 
-	private void onView(Employee employee) { 
+	private void onView(Employee employee) {
 		if (employee == null || employee.getId() == null) {
 			NotificationUtil.error("Invalid employee selected.");
 			return;

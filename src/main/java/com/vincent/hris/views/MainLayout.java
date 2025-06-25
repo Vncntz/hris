@@ -159,8 +159,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
 	@Override
 	public void beforeEnter(BeforeEnterEvent event) {
-		if (sessionService.getUser() == null) {
-			event.forwardTo("login");
-		}
+//		if (sessionService.getUser() == null) {
+//			event.forwardTo("login");
+//		}
 	}
 }

@@ -1,24 +1,50 @@
 package com.vincent.hris.modules.base.view.tabs;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.spring.annotation.RouteScope;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vincent.hris.master.model.RefBrgy;
+import com.vincent.hris.master.model.RefCityMunicipality;
+import com.vincent.hris.master.model.RefProvince;
+import com.vincent.hris.master.service.RefBrgyService;
+import com.vincent.hris.master.service.RefCityMunicipalityService;
+import com.vincent.hris.master.service.RefProvinceService;
 import com.vincent.hris.modules.base.model.Employee;
 import com.vincent.hris.modules.base.model.PersonalInformation;
 import com.vincent.hris.modules.base.service.PersonalInformationService;
 import com.vincent.hris.util.NotificationUtil;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+
+@SpringComponent
+@RouteScope
+@Slf4j
 public class PersonalInformationTab extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
 
-	private final PersonalInformationService personalInformationService;
+	@Autowired
+	private PersonalInformationService personalInformationService;
+	@Autowired
+	private RefBrgyService refBrgyService;
+	@Autowired
+	private RefProvinceService refProvinceService;
+	@Autowired
+	private RefCityMunicipalityService refCityMunicipalityService;
 
 	// Basic Information Fields
 	private TextField employeeCodeField = new TextField("Employee Code");
@@ -30,7 +56,9 @@ public class PersonalInformationTab extends VerticalLayout {
 
 	// Personal Details Fields
 	private DatePicker birthDateField = new DatePicker("Birth Date");
-	private TextField birthPlaceField = new TextField("Birth Place");
+	private ComboBox<RefCityMunicipality> birthMunicipalityField = new ComboBox<>("City/Municipality");
+	private ComboBox<RefProvince> birthProvinceField = new ComboBox<>("Province");
+	private ComboBox<RefBrgy> birthBarangayField = new ComboBox<>("Barangay");
 	private NumberField ageField = new NumberField("Age");
 	private Select<String> genderField = new Select<>();
 	private Select<String> civilStatusField = new Select<>();
@@ -62,11 +90,15 @@ public class PersonalInformationTab extends VerticalLayout {
 
 	private PersonalInformation personalInformation;
 
-	public PersonalInformationTab(PersonalInformationService personalInformationService) {
-		this.personalInformationService = personalInformationService;
+	public PersonalInformationTab() {
 
+	}
+
+	@PostConstruct
+	public void init() {
 		initializeComponents();
 		setupLayout();
+
 	}
 
 	private void initializeComponents() {
@@ -76,7 +108,7 @@ public class PersonalInformationTab extends VerticalLayout {
 		// Create form sections
 		FormLayout basicInfoLayout = createBasicInfoSection();
 
-		FormLayout personalDetailsLayout = createPersonalDetailsSection();
+		FormLayout personalDetailForm = createPersonalDetailsSection();
 		FormLayout employmentInfoLayout = createEmploymentInfoSection();
 		FormLayout jobInfoLayout = createJobInfoSection();
 		FormLayout additionalInfoLayout = createAdditionalInfoSection();
@@ -84,9 +116,15 @@ public class PersonalInformationTab extends VerticalLayout {
 		// Setup button actions
 		saveButton.addClickListener(e -> saveEmployeeDetails());
 		clearButton.addClickListener(e -> clearFields());
+		
+		VerticalLayout personalDetailsLayouts = new VerticalLayout();
+		personalDetailsLayouts.add(personalDetailForm);
+		
 
+		
+	
 		// Add all sections to the main layout
-		add(basicInfoLayout, personalDetailsLayout, employmentInfoLayout, jobInfoLayout, additionalInfoLayout,
+		add(basicInfoLayout, personalDetailsLayouts, employmentInfoLayout, jobInfoLayout, additionalInfoLayout,
 				createButtonLayout());
 	}
 
@@ -110,6 +148,31 @@ public class PersonalInformationTab extends VerticalLayout {
 		employmentTypeField.setLabel("Employment Type");
 		employmentTypeField.setItems("Full-time", "Part-time", "Contract", "Probationary", "Regular");
 		employmentTypeField.setPlaceholder("Select employment type");
+
+		birthProvinceField.setItems(refProvinceService.findAll());
+		birthProvinceField.setItemLabelGenerator(RefProvince::getProvDesc);
+		birthProvinceField.addValueChangeListener(e -> {
+			if (e.getValue() != null) {
+				birthMunicipalityField.setItems(refCityMunicipalityService.getByProvCode(e.getValue().getProvCode()));
+				birthMunicipalityField.setReadOnly(false);
+			} else {
+				birthMunicipalityField.setReadOnly(true);
+				birthMunicipalityField.clear();
+			}
+		});
+
+		birthMunicipalityField.setItemLabelGenerator(RefCityMunicipality::getCitymunDesc);
+		birthMunicipalityField.addValueChangeListener(e -> {
+			if (e.getValue() != null) {
+				birthBarangayField.setItems(refBrgyService.getByCitymunCode(e.getValue().getCitymunCode()));
+				birthBarangayField.setReadOnly(false);
+			} else {
+				birthBarangayField.setReadOnly(true);
+				birthBarangayField.clear();
+			}
+		});
+
+		birthBarangayField.setItemLabelGenerator(RefBrgy::getBrgyDesc);
 	}
 
 	private void setupNumberFields() {
@@ -128,24 +191,40 @@ public class PersonalInformationTab extends VerticalLayout {
 
 	private FormLayout createBasicInfoSection() {
 		FormLayout layout = new FormLayout();
-		layout.setResponsiveSteps(new ResponsiveStep("0", 1), new ResponsiveStep("500px", 2),
-				new ResponsiveStep("800px", 3), new ResponsiveStep("1100px", 4));
-		layout.add(titleField, firstNameField, middleNameField, lastNameField, employeeCodeField, extField);
+		layout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1), new FormLayout.ResponsiveStep("500px", 2),
+				new FormLayout.ResponsiveStep("800px", 4), new FormLayout.ResponsiveStep("1400px", 8));
+
+		layout.add(titleField, 1);
+		layout.add(firstNameField, 2);
+		layout.add(middleNameField, 1);
+		layout.add(lastNameField, 2);
+		layout.add(extField, employeeCodeField);
 		return layout;
 	}
 
 	private FormLayout createPersonalDetailsSection() {
 		FormLayout layout = new FormLayout();
-		layout.setResponsiveSteps(new ResponsiveStep("0", 1), new ResponsiveStep("500px", 2),
-				new ResponsiveStep("800px", 3), new ResponsiveStep("1100px", 4));
-		layout.add(birthDateField, birthPlaceField, ageField, genderField, civilStatusField);
+
+		layout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1), new FormLayout.ResponsiveStep("500px", 2),
+				new FormLayout.ResponsiveStep("800px", 4), new FormLayout.ResponsiveStep("1400px", 8));
+
+		birthMunicipalityField.setReadOnly(true);
+		birthBarangayField.setReadOnly(true);
+
+		layout.add(birthDateField);
+		layout.add(birthProvinceField, 2);
+		layout.add(birthMunicipalityField, 2);
+		layout.add(birthBarangayField, 2);
+
+		layout.add(ageField, genderField, civilStatusField);
+
 		return layout;
 	}
 
 	private FormLayout createEmploymentInfoSection() {
 		FormLayout layout = new FormLayout();
-		layout.add(dateHiredField, isEmployeeActiveField, contractExpiryField, dateSeparatedField,
-				probationaryDateField, regularizationDateField);
+		layout.add(dateHiredField, contractExpiryField, dateSeparatedField, probationaryDateField,
+				regularizationDateField, isEmployeeActiveField);
 		layout.setResponsiveSteps(new ResponsiveStep("0", 1), new ResponsiveStep("500px", 2),
 				new ResponsiveStep("800px", 3), new ResponsiveStep("1100px", 4));
 		return layout;
@@ -167,8 +246,10 @@ public class PersonalInformationTab extends VerticalLayout {
 		return layout;
 	}
 
-	private VerticalLayout createButtonLayout() {
-		VerticalLayout buttonLayout = new VerticalLayout();
+	private HorizontalLayout createButtonLayout() {
+		HorizontalLayout buttonLayout = new HorizontalLayout();
+		saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+		clearButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
 		buttonLayout.add(saveButton, clearButton);
 		buttonLayout.setSpacing(true);
 		return buttonLayout;
@@ -199,8 +280,8 @@ public class PersonalInformationTab extends VerticalLayout {
 
 		// Load personal details
 		birthDateField.setValue(personalInformation.getBirthDate());
-		birthPlaceField
-				.setValue(personalInformation.getBirthPlace() != null ? personalInformation.getBirthPlace() : "");
+//		birthPlaceField
+//				.setValue(personalInformation.getBirthPlace() != null ? personalInformation.getBirthPlace() : "");
 		ageField.setValue(personalInformation.getAge() != null ? personalInformation.getAge().doubleValue() : null);
 		genderField.setValue(personalInformation.getGender());
 		civilStatusField.setValue(personalInformation.getCivilStatus());
@@ -241,7 +322,7 @@ public class PersonalInformationTab extends VerticalLayout {
 
 			// Save personal details
 			personalInformation.setBirthDate(birthDateField.getValue());
-			personalInformation.setBirthPlace(birthPlaceField.getValue());
+//			personalInformation.setBirthPlace(birthPlaceField.getValue());
 			personalInformation.setAge(ageField.getValue() != null ? ageField.getValue().intValue() : null);
 			personalInformation.setGender(genderField.getValue());
 			personalInformation.setCivilStatus(civilStatusField.getValue());
@@ -285,7 +366,9 @@ public class PersonalInformationTab extends VerticalLayout {
 
 		// Clear personal details
 		birthDateField.clear();
-		birthPlaceField.clear();
+		birthMunicipalityField.clear();
+		birthProvinceField.clear();
+		birthBarangayField.clear();
 		ageField.clear();
 		genderField.clear();
 		civilStatusField.clear();
