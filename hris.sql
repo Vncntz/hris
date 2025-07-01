@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.38, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: hris
 -- ------------------------------------------------------
--- Server version	8.0.39
+-- Server version	8.0.42
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -33,7 +33,7 @@ CREATE TABLE `access` (
   KEY `FK59ync9vys5jj55nr29t0j2w61` (`role_id`),
   CONSTRAINT `FK59ync9vys5jj55nr29t0j2w61` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`),
   CONSTRAINT `FKq03ljhfibqwtcvwfddj8fgfj7` FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,7 +42,7 @@ CREATE TABLE `access` (
 
 LOCK TABLES `access` WRITE;
 /*!40000 ALTER TABLE `access` DISABLE KEYS */;
-INSERT INTO `access` VALUES (1,'2025-06-22 23:24:26.317517','2025-06-22 23:24:26.317517',1,1),(2,'2025-06-22 23:24:26.341461','2025-06-22 23:24:26.341461',2,1);
+INSERT INTO `access` VALUES (1,'2025-06-22 23:24:26.317517','2025-06-22 23:24:26.317517',1,1),(2,'2025-06-22 23:24:26.341461','2025-06-22 23:24:26.341461',2,1),(3,'2025-06-30 10:40:17.177660','2025-06-30 10:40:17.177660',3,1);
 /*!40000 ALTER TABLE `access` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -130,7 +130,7 @@ CREATE TABLE `modules` (
   `name` varchar(255) DEFAULT NULL,
   `sequence` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -139,7 +139,7 @@ CREATE TABLE `modules` (
 
 LOCK TABLES `modules` WRITE;
 /*!40000 ALTER TABLE `modules` DISABLE KEYS */;
-INSERT INTO `modules` VALUES (1,'2025-06-22 23:20:41.439334','2025-06-22 23:20:41.439334',_binary '','','Users','Employee Management',1),(2,'2025-06-22 23:20:54.926324','2025-06-22 23:20:54.926324',_binary '','','wrench','System',2);
+INSERT INTO `modules` VALUES (1,'2025-06-22 23:20:41.439334','2025-06-22 23:20:41.439334',_binary '','','Users','Employee Management',1),(2,'2025-06-22 23:20:54.926324','2025-06-22 23:20:54.926324',_binary '','','wrench','System',2),(3,'2025-06-30 10:40:06.979963','2025-06-30 10:40:06.979963',_binary '','Master Data','book','Master',9);
 /*!40000 ALTER TABLE `modules` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -180,9 +180,12 @@ CREATE TABLE `personal_information` (
   `title` varchar(255) DEFAULT NULL,
   `weight` double DEFAULT NULL,
   `employee_id` bigint DEFAULT NULL,
+  `title_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UK65b2pr5dpo5dd0ms1j9xvgyhn` (`employee_id`),
-  CONSTRAINT `FK28wjayluoffvgp9vnhgkgkxwh` FOREIGN KEY (`employee_id`) REFERENCES `employee` (`id`)
+  UNIQUE KEY `UKplkwu8km11dqqjs7039lay8xs` (`title_id`),
+  CONSTRAINT `FK28wjayluoffvgp9vnhgkgkxwh` FOREIGN KEY (`employee_id`) REFERENCES `employee` (`id`),
+  CONSTRAINT `FKif849tjg6i6w28l6vx5yr7un5` FOREIGN KEY (`title_id`) REFERENCES `title` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -356,7 +359,7 @@ CREATE TABLE `sub_menu` (
   PRIMARY KEY (`id`),
   KEY `FKoey7fqi3id1x21ejoxklybomj` (`module_id`),
   CONSTRAINT `FKoey7fqi3id1x21ejoxklybomj` FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -365,8 +368,33 @@ CREATE TABLE `sub_menu` (
 
 LOCK TABLES `sub_menu` WRITE;
 /*!40000 ALTER TABLE `sub_menu` DISABLE KEYS */;
-INSERT INTO `sub_menu` VALUES (1,'2025-06-22 23:21:34.901679','2025-06-22 23:21:34.901679',_binary '','emmps','book','Employee List','employee-list',1,1),(2,'2025-06-22 23:22:22.174032','2025-06-22 23:29:23.055951',_binary '','Roles','check','Roles','configure-role',1,2),(3,'2025-06-22 23:22:43.834550','2025-06-22 23:22:43.834550',_binary '','Users','Users','User','configure-users',2,2),(4,'2025-06-22 23:23:14.538250','2025-06-22 23:23:14.538250',_binary '','modules','book','Modules','configure-module',3,2),(5,'2025-06-22 23:23:41.924814','2025-06-22 23:26:46.179704',_binary '','submenu','bullets','Sub Menu','configure-submenu',4,2);
+INSERT INTO `sub_menu` VALUES (1,'2025-06-22 23:21:34.901679','2025-06-22 23:21:34.901679',_binary '','emmps','book','Employee List','employee-list',1,1),(2,'2025-06-22 23:22:22.174032','2025-06-22 23:29:23.055951',_binary '','Roles','check','Roles','configure-role',1,2),(3,'2025-06-22 23:22:43.834550','2025-06-22 23:22:43.834550',_binary '','Users','Users','User','configure-users',2,2),(4,'2025-06-22 23:23:14.538250','2025-06-22 23:23:14.538250',_binary '','modules','book','Modules','configure-module',3,2),(5,'2025-06-22 23:23:41.924814','2025-06-22 23:26:46.179704',_binary '','submenu','bullets','Sub Menu','configure-submenu',4,2),(6,'2025-06-30 10:42:35.761388','2025-06-30 10:42:35.761388',_binary '','Title','user','Title','title',1,3);
 /*!40000 ALTER TABLE `sub_menu` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `title`
+--
+
+DROP TABLE IF EXISTS `title`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `title` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `description` varchar(255) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `title`
+--
+
+LOCK TABLES `title` WRITE;
+/*!40000 ALTER TABLE `title` DISABLE KEYS */;
+INSERT INTO `title` VALUES (1,'Mister','Mr.'),(2,'Mistress (Married Woman)','Mrs.'),(3,'Unspecified Marital Status','Ms.'),(4,'Unmarried Woman','Miss'),(5,'Doctor','Dr.'),(6,'Attorney','Atty.'),(7,'Engineer','Engr.'),(8,'Professor','Prof.'),(9,'Reverend','Rev.'),(10,'Father (Religious)','Fr.'),(11,'Sister (Religious)','Sr.'),(12,'Honorable','Hon.'),(13,'Captain','Capt.'),(14,'Colonel','Col.'),(15,'General','Gen.'),(16,'Senator','Sen.'),(17,'Governor','Gov.'),(18,'Ambassador','Amb.'),(19,'Director','Dir.'),(20,'Secretary','Sec.'),(21,'Deputy','Dep.'),(22,'Architect','Arch.'),(23,'Brigadier General','BGen.'),(24,'Manager','Mgr.'),(25,'Chief Executive or Leader','Chief');
+/*!40000 ALTER TABLE `title` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -396,7 +424,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'2025-06-22 23:24:04.148107','2025-06-22 23:24:04.149106',_binary '','$2a$10$V2GLUGVifS1i4apTegC6kedxUZvtfVyMqg2sM092ndkt/vX1xt2O2','admin',1);
+INSERT INTO `user` VALUES (1,'2025-06-22 23:24:04.148107','2025-06-30 10:11:07.487166',_binary '','$2a$10$DOI4b5o/.YVsyjcQYinICOQOl7ehcNJ07f3MYQ6Ct2sVj.Tfi0iKS','admin',1);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -409,4 +437,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-30 18:03:55
+-- Dump completed on 2025-07-01 19:30:02
