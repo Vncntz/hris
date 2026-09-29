@@ -220,7 +220,7 @@ Do not mix unrelated implementation items into the same PR unless explicitly app
 
 Do not commit directly to protected `main` once branch protection is established.
 
-Task-branch commits and pushes and reviewable PR creation are allowed when authorized by the active work order or user. Do not delete branches or change remote governance settings without specific authorization. Only the dedicated Git Integration Agent may merge an eligible PR into protected `main`, following the canonical [Git Integration Agent procedure](GIT_INTEGRATION_AGENT.md). Dependabot PRs require human review and merge and are never eligible for Agent auto-merge.
+Task-branch commits and pushes and reviewable PR creation are allowed when authorized by the active work order or user. Do not delete branches or change remote governance settings without specific authorization. The latest explicit operator authorization permits the dedicated Git Integration Agent to merge eligible IMP-087 and future ordinary PRs into protected `main` only after independently passing every current [integration gate](GIT_INTEGRATION_AGENT.md). A later explicit instruction or task may require human merge. Dependabot PRs require human review and merge unless the owner later explicitly authorizes dependency-update auto-merge.
 
 ## 13. DEVELOPER-AGENT AUTONOMY
 
