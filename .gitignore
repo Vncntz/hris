@@ -1,6 +1,8 @@
 # Maven / Java build output
 target/
 *.class
+__pycache__/
+*.pyc
 
 # Logs
 *.log
@@ -10,6 +12,7 @@ logs/
 .env
 .env.*
 !.env.example
+.agent-state.yaml
 
 # IntelliJ IDEA
 .idea/
