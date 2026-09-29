@@ -45,6 +45,8 @@ User-approved solo-developer governance (2026-09-29): normal changes to `main` r
 
 The user explicitly made the repository public to enable protection, overriding the frozen private-repository baseline for the current repository. The frozen planning files remain unchanged.
 
+User-requested Git integration handoff (2026-09-29): after a development task is verified, the repo-scoped `hris-git-integration` skill manages routine task-branch commits, pushes, PR maintenance, stacked-PR bases, and CI verification. The human owner retains the final `main` merge decision; agents may not change remote governance settings without explicit authorization for that change.
+
 New implementation-specific decisions must be recorded here or through an approved ADR when appropriate.
 
 ## APPROVED ADRS

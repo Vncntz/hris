@@ -9,3 +9,5 @@ Before editing, read in this order: this file; an applicable module `AGENTS.md` 
 - Preserve released migration history and data integrity; validate migrations against the required database when applicable. Do not invent Philippine statutory formulas, rates, deadlines, forms, or legal requirements; verify authoritative sources and mark unresolved items for verification.
 
 See [repository workflow](docs/implementation/REPOSITORY_WORKFLOW.md) for branches, PRs, review, and remote safeguards. Add module `AGENTS.md` only when a concrete module invariant warrants one.
+
+After a development task is verified, use the [Git integration skill](.codex/skills/hris-git-integration/SKILL.md) for the branch, PR, and CI handoff. The human owner retains the final `main` merge decision.
