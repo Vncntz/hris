@@ -6,6 +6,6 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 
 | ID | Parent | Status | Work order |
 | --- | --- | --- | --- |
-| [TASK-0001](TASK-0001.md) | [IMP-002](../implementation/tasks/IMP-002.md) | In progress; review and credential path blocked | Repository governance foundation |
+| [TASK-0001](TASK-0001.md) | [IMP-002](../implementation/tasks/IMP-002.md) | Complete | Repository governance foundation |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. This historical drift is left intact.

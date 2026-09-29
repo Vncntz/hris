@@ -29,4 +29,4 @@
 
 - Blockers, open questions, and review points, or “none”:
 
-CI checks are added under IMP-003; list only checks that actually ran. Human approval is required before an agent merges protected `main`.
+CI checks are added under IMP-003; list only checks that actually ran. The human owner reviews the PR and verification evidence and makes the final merge decision; agents may not merge protected `main`.
