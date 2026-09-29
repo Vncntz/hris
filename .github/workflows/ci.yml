@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - main
-      - 'feat/**'
-      - 'fix/**'
-      - 'chore/**'
   workflow_dispatch:
 
 concurrency:
@@ -18,15 +15,37 @@ permissions:
   contents: read
 
 jobs:
+  policy:
+    name: ci / policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Reject frozen planning source changes
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $changed = @(git diff --name-only --no-renames $env:BASE_SHA $env:HEAD_SHA -- docs/planning/MASTER_SOFTWARE_PLAN.md docs/planning/FINAL_PLANNING_STATE.md)
+          if ($LASTEXITCODE -ne 0) { throw "Cannot compare frozen planning sources" }
+          if ($changed.Count -ne 0) { throw "Frozen planning source changed: $($changed -join ', ')" }
+      - name: Check generated planning index
+        run: python tools/plan-index.py --check
+
   build-linux:
     name: ci / build-linux
+    needs: policy
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: '25'
@@ -36,13 +55,14 @@ jobs:
 
   build-windows:
     name: ci / build-windows
+    needs: policy
     runs-on: windows-2025
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: '25'

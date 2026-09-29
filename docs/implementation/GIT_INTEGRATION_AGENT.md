@@ -25,6 +25,8 @@ If origin or author cannot be verified, automated merge is ineligible. PR-contro
 
 Evaluate the following against repository and GitHub reality for the captured head SHA. A pending, cancelled, skipped, stale, or failed task-required check is not a pass. GitHub protection's required-check list does not replace repository task policy.
 
+Before evaluating a PR, fetch/synchronize current `main` and execute `python tools/pr-gates.py <pr_number>` from a clean, trusted `main` checkout or isolated worktree. Pass only the PR number as data; never execute the copy from the untrusted PR head. Inspect its deterministic JSON and independently complete the non-mechanical scope, local-verification, security, and governance gates below. TASK-0005 introduces this script and is the one bootstrap exception: use the existing independent manual checks for its PR. Trusted-main script execution becomes mandatory for PRs created after TASK-0005 merges.
+
 1. **Task and scope:** Every active IMP/TASK acceptance criterion and required verification passed. The complete PR diff against current `main` contains only this task and preserves completed history.
 2. **Local verification:** Required build, test, migration, link, and whitespace checks actually ran. Use the checked-in Maven Wrapper (`./mvnw` on Unix/Linux, `.\mvnw.cmd` in Windows PowerShell). Do not accept silently skipped tests.
 3. **CI:** Inspect GitHub checks for the exact head SHA and the applicable `ci / build-linux` and `ci / build-windows` jobs, including their tests and conclusions. Distinguish repository-required checks from remote branch-protection settings.
@@ -32,7 +34,7 @@ Evaluate the following against repository and GitHub reality for the captured he
 5. **Planning and governance:** Frozen planning sources are unchanged. No architecture, statutory/compliance, product/business, or governance decision remains unresolved or unapproved.
 6. **Protected main:** Effective protection still requires the normal PR path. Never bypass it, force-push to `main`, or change reviews, required checks, visibility, permissions, or protection settings without a separate explicit user decision.
 
-Record each gate's result and its evidence. Recheck all gates after any PR retarget, base refresh, or new push. If a stacked base changes, verify the resulting diff against current `main` before continuing. Preserve published branch history unless destructive recovery is explicitly authorized.
+Record each gate's result and its evidence. Recheck all gates after any PR retarget, base refresh, or new push. If a stacked base changes, verify the resulting diff against current `main` before continuing. Preserve published branch history unless destructive recovery is explicitly authorized. For pending PR checks, set local advisory stage `WAITING_CI` and use `gh pr checks <pr_number> --watch` instead of rapid manual polling.
 
 ## Correction and escalation
 
@@ -42,7 +44,7 @@ If the same substantive defect persists after three correction cycles, mark inte
 
 ## Merge and post-merge verification
 
-Immediately before merge, independently re-evaluate every applicable gate, recheck PR number, author and repository origin, target `main`, draft state, full diff, CI at the current head, and protection, then capture the exact head SHA. Make a Draft PR ready only after gates pass. If the head moves after verification, abort and re-run all applicable gates. Merge only through the protected PR path with head-SHA match protection where supported. Never disable checks or protection to permit automation. Record the merge SHA and confirm the intended commit reached `main`.
+After every gate other than Draft status passes, make the PR ready and re-evaluate all gates. Immediately before merge, rerun trusted-main gate evaluation (except the TASK-0005 bootstrap), independently recheck PR number, author and repository origin, target `main`, draft state, full diff, CI at the current head, and protection, then capture the exact head SHA. If the head moves after verification, abort and re-run all applicable gates. Merge only through the protected PR path with `gh pr merge <pr_number> --match-head-commit <verified_sha>` and an approved merge mode. Never disable checks or protection to permit automation. Record the merge SHA and confirm the intended commit reached `main`.
 
 Inspect the applicable `push`-to-`main` CI run and both named jobs before calling post-merge verification complete. Pending or failed jobs remain open. If post-merge CI fails, create a corrective branch and PR through the same gates; never patch `main` directly. Keep the next task blocked until its predecessor and required post-merge verification pass.
 

@@ -9,8 +9,8 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0001](TASK-0001.md) | [IMP-002](../implementation/tasks/IMP-002.md) | Complete | Repository governance foundation |
 | [TASK-0002](TASK-0002.md) | [IMP-003](../implementation/tasks/IMP-003.md) | Complete | CI baseline |
 | [TASK-0003](TASK-0003.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Governance and security hardening |
-| [TASK-0004](TASK-0004.md) | [IMP-087](../implementation/tasks/IMP-087.md) | In progress | Lazy context retrieval and local agent state |
-| [TASK-0005](TASK-0005.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Planned; blocked by TASK-0004 | CI deduplication and mechanical gates |
+| [TASK-0004](TASK-0004.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Lazy context retrieval and local agent state |
+| [TASK-0005](TASK-0005.md) | [IMP-087](../implementation/tasks/IMP-087.md) | In progress | CI deduplication and mechanical gates |
 | [TASK-0006](TASK-0006.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Planned; blocked by TASK-0005 | Java codebase polish |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. This historical drift is left intact.
