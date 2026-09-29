@@ -1,13 +1,19 @@
 # Repository agent contract
 
-Before editing, read in this order: this file; an applicable module `AGENTS.md` if one exists; the active [TASK work order](docs/tasks/README.md) and its linked parent IMP control file; referenced ADR, domain, module, and compliance documents; then relevant source and tests. For task selection and current blockers, read [implementation state](docs/implementation/IMPLEMENTATION_STATE.md). Follow the source precedence in [execution rules](docs/implementation/EXECUTION_RULES.md): latest explicit user instruction, verified external facts, approved later ADRs, frozen [Master Plan](docs/planning/MASTER_SOFTWARE_PLAN.md), frozen [planning state](docs/planning/FINAL_PLANNING_STATE.md), implementation state, current task, then AI advice. See the [documentation index](docs/README.md).
+## Read before editing
 
-- Work on one `IMP-###` item and its linked `TASK-####` work order at a time. Stay within the task's scope and the owning module; preserve dependency direction. One Maven modular monolith and one deployable application are the baseline. Keep `shared-kernel` neutral and small.
-- Do not introduce microservices, customer-specific forks, or other architecture shortcuts prohibited by the frozen plan. Do not change frozen planning files or architecture without an approved ADR. Do not bypass protected `main`. Only the dedicated Git Integration Agent may merge a PR into `main` after independently verifying every gate in the [Git Integration Agent specification](docs/implementation/GIT_INTEGRATION_AGENT.md).
-- Use the required tests and relevant regression checks. Review the complete diff and update affected docs and mutable implementation state only with verified evidence. [Definition of Done and testing rules](docs/implementation/EXECUTION_RULES.md) apply.
-- Never commit secrets or put real customer production data in source control, normal fixtures, developer databases, CI artifacts, synthetic datasets, or AI context. Use synthetic or explicitly sanitized data.
-- Preserve released migration history and data integrity; validate migrations against the required database when applicable. Do not invent Philippine statutory formulas, rates, deadlines, forms, or legal requirements; verify authoritative sources and mark unresolved items for verification.
+1. Read this file, then an applicable module `AGENTS.md` if one exists.
+2. Read the active [TASK work order](docs/tasks/README.md) and its linked IMP control file.
+3. Read referenced ADR, domain, module, and compliance documents, then relevant source and tests.
+4. Check [implementation state](docs/implementation/IMPLEMENTATION_STATE.md) for task selection and blockers. Use the source precedence in [execution rules](docs/implementation/EXECUTION_RULES.md) and the [documentation index](docs/README.md) for routing.
 
-See [repository workflow](docs/implementation/REPOSITORY_WORKFLOW.md) for branches, PRs, review, and remote safeguards. Add module `AGENTS.md` only when a concrete module invariant warrants one.
+## Global boundaries
 
-After a development task is verified, use the [Git integration skill](.codex/skills/hris-git-integration/SKILL.md) and the canonical [Git Integration Agent specification](docs/implementation/GIT_INTEGRATION_AGENT.md) for the branch, PR, CI, and protected-`main` integration handoff. Escalate the decisions and blockers specified there to the human owner.
+- Work on one `IMP-###` item and its linked `TASK-####` at a time. Stay within its scope and owning module; preserve dependency direction.
+- Keep one Maven modular monolith and one deployable application. Keep `shared-kernel` small and neutral. Do not introduce microservices, customer-specific forks, or other architecture shortcuts prohibited by the frozen plan without an approved ADR.
+- Do not change the frozen [Master Plan](docs/planning/MASTER_SOFTWARE_PLAN.md) or [Final Planning State](docs/planning/FINAL_PLANNING_STATE.md). Do not bypass protected `main`; follow the [repository workflow](docs/implementation/REPOSITORY_WORKFLOW.md) and [Git Integration Agent procedure](docs/implementation/GIT_INTEGRATION_AGENT.md).
+- Never commit secrets or place real customer production data in source control, developer databases, fixtures, CI artifacts, synthetic datasets, or AI context. Use synthetic or explicitly sanitized data.
+- Preserve released migrations and data integrity. Verify Philippine statutory requirements from authoritative sources; never invent formulas, rates, deadlines, forms, or legal requirements.
+- Run the required tests and relevant regressions, review the full diff, and update mutable state only with verified evidence. Apply the [Definition of Done](docs/implementation/EXECUTION_RULES.md#6-definition-of-done).
+
+Create module `AGENTS.md` files only when a concrete module invariant warrants one.
