@@ -65,6 +65,8 @@ Do not implement later backlog items merely because they are nearby or convenien
 
 Supporting changes are allowed only when they are strictly necessary for the current task.
 
+The next implementation-planning PR may also reconcile the immediately preceding TASK/IMP's verified completion metadata. This predecessor closeout is an explicit exception to the one-task scope rule; it does not authorize predecessor implementation changes or later-task implementation.
+
 If discovered work belongs to another backlog item:
 
 - record it;
@@ -117,8 +119,10 @@ An implementation task is complete only when:
 - audit implications are addressed when applicable;
 - documentation affected by the change is updated;
 - no unrelated backlog scope was introduced;
-- implementation state is updated;
+- implementation state will be reconciled in the next planning PR from verified GitHub evidence;
 - no unresolved blocker prevents completion.
+
+After merge, the task reaches `POST_MERGE_VERIFIED` and is complete when the required `push` CI on the actual `main` merge SHA passes and all applicable criteria above are satisfied. GitHub merge and CI evidence is authoritative for these facts. A standalone closeout-only PR is not required. The next planning PR must reconcile stale tracked completion state before planning the new task, recording the predecessor PR number, merge SHA, post-merge CI evidence, completion status, and resulting next action. `IMPLEMENTATION_STATE.md` remains the tracked execution summary. Pending or failed post-merge CI keeps the predecessor and next task blocked.
 
 A task is not complete merely because the happy path works or the code compiles.
 
@@ -254,7 +258,7 @@ The coding agent must not automatically:
 
 Conversation history is not authoritative implementation state.
 
-When a task is completed, state must record:
+When a task is completed, the next planning PR must reconcile state against verified GitHub evidence and record:
 
 - completed task;
 - current milestone;

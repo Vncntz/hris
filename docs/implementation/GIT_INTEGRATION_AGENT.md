@@ -48,6 +48,8 @@ After every gate other than Draft status passes, make the PR ready and re-evalua
 
 Inspect the applicable `push`-to-`main` CI run and both named jobs before calling post-merge verification complete. Pending or failed jobs remain open. If post-merge CI fails, create a corrective branch and PR through the same gates; never patch `main` directly. Keep the next task blocked until its predecessor and required post-merge verification pass.
 
+Once required post-merge `push` CI passes on the merge SHA, mark the predecessor `POST_MERGE_VERIFIED` / complete from GitHub evidence; no closeout-only PR is needed. In the next implementation-planning PR, reconcile the immediately preceding TASK/IMP's tracked state before defining the next work order. Record the predecessor PR number, merge SHA, post-merge CI run and job results, completion status, and next action. This factual closeout is permitted scope for that planning PR. Keep the new implementation blocked until the planning PR itself merges and passes its required post-merge gates.
+
 ## Human-facing report
 
 Report the IMP/TASK, PR, Linux and Windows CI, post-merge CI, merge SHA if merged, next action, and any specific human action. Never claim a merge or passing gate before independently verifying it.

@@ -12,8 +12,9 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0004](TASK-0004.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Lazy context retrieval and local agent state |
 | [TASK-0005](TASK-0005.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | CI deduplication and mechanical gates |
 | [TASK-0006](TASK-0006.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Java codebase polish |
-| [TASK-0007](TASK-0007.md) | [IMP-004](../implementation/tasks/IMP-004.md) | Local verified; CI pending | Real MySQL integration-test baseline |
+| [TASK-0007](TASK-0007.md) | [IMP-004](../implementation/tasks/IMP-004.md) | Complete | Real MySQL integration-test baseline |
+| [TASK-0008](TASK-0008.md) | [IMP-005](../implementation/tasks/IMP-005.md) | Planned; implementation gated | Flyway foundation and global migration ordering |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. This historical drift is left intact.
 
-The frozen backlog reserves IMP-001 through IMP-086. [IMP-087](../implementation/tasks/IMP-087.md) is the separately authorized completed maintenance parent. Normal implementation has resumed at [IMP-004](../implementation/tasks/IMP-004.md), with TASK-0007 locally verified and awaiting PR CI.
+The frozen backlog reserves IMP-001 through IMP-086. [IMP-087](../implementation/tasks/IMP-087.md) is the separately authorized completed maintenance parent. [IMP-004](../implementation/tasks/IMP-004.md) / TASK-0007 reached `POST_MERGE_VERIFIED` on PR #12's passing post-merge `push` CI. [IMP-005](../implementation/tasks/IMP-005.md) / TASK-0008 is planned; implementation waits for this planning PR to merge and pass its required post-merge gates.
