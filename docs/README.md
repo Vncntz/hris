@@ -1,6 +1,6 @@
 # Documentation index
 
-The frozen [Master Software Plan](planning/MASTER_SOFTWARE_PLAN.md) and [Final Planning State](planning/FINAL_PLANNING_STATE.md) govern architecture. [Execution rules](implementation/EXECUTION_RULES.md), [implementation state](implementation/IMPLEMENTATION_STATE.md), [repository workflow](implementation/REPOSITORY_WORKFLOW.md), and [IMP control files](implementation/tasks/IMP-002.md) govern current work. [TASK work orders](tasks/README.md) map focused execution to IMP items.
+The frozen [Master Software Plan](planning/MASTER_SOFTWARE_PLAN.md) and [Final Planning State](planning/FINAL_PLANNING_STATE.md) govern architecture. [Execution rules](implementation/EXECUTION_RULES.md), [implementation state](implementation/IMPLEMENTATION_STATE.md), [repository workflow](implementation/REPOSITORY_WORKFLOW.md), [Git Integration Agent specification](implementation/GIT_INTEGRATION_AGENT.md), and [IMP control files](implementation/tasks/IMP-002.md) govern current work. [TASK work orders](tasks/README.md) map focused execution to IMP items.
 
 | Area | Entry point |
 | --- | --- |
