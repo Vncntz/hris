@@ -1,11 +1,11 @@
 ---
 name: hris-git-integration
-description: Integrate a completed HRIS IMP/TASK development branch through commits, a reviewable GitHub PR, and verified CI; also verify a human merge and advance stacked PR bases.
+description: Integrate a completed HRIS IMP/TASK development branch through a reviewable PR, verified CI, gated protected-main merge, and stacked PR management.
 ---
 
 # HRIS Git integration
 
-Use after a development task has met its local acceptance criteria, or after the human owner merges a predecessor PR. Read the root `AGENTS.md`, the active IMP/TASK, `docs/implementation/EXECUTION_RULES.md`, `docs/implementation/IMPLEMENTATION_STATE.md`, and `docs/implementation/REPOSITORY_WORKFLOW.md`. Follow the repository's source precedence and the latest explicit user decision. This skill is an execution handoff, not a new authority for product, architecture, compliance, or remote governance decisions.
+Use after a development task has met its local acceptance criteria, or after a predecessor PR merges. Read the root `AGENTS.md`, the active IMP/TASK, `docs/implementation/EXECUTION_RULES.md`, `docs/implementation/IMPLEMENTATION_STATE.md`, `docs/implementation/REPOSITORY_WORKFLOW.md`, and the canonical [Git Integration Agent specification](../../../docs/implementation/GIT_INTEGRATION_AGENT.md). Follow the repository's source precedence and latest explicit user decision. This skill is an execution handoff, not a new authority for product, architecture, compliance, or remote governance decisions.
 
 ## Establish the actual state
 
@@ -20,8 +20,8 @@ Identify the repository, branch, intended PR base, active IMP/TASK, Git status, 
 - Inspect the actual GitHub Actions run for the current head SHA and base. Confirm each applicable job's conclusion, OS, and required tests. A skipped, cancelled, pending, or older run is not a pass. Fix straightforward in-scope CI failures and reverify; otherwise report the blocker. Check post-merge `main` CI when the task requires it.
 - Update mutable task/state records and the PR body only with verified evidence. Keep historical evidence and do not call an older run final after a newer run supersedes it.
 
-Routine task-branch commits, pushes, PR creation/updates, and stacked-PR retargeting are authorized by the repository workflow. Never merge `main`, bypass protection, or change branch protection, required checks, approval rules, visibility, permissions, force-push, or deletion settings without explicit user authorization for that specific change. The human owner reviews and performs the final merge. Do not start a later IMP merely because its predecessor branch is complete; apply its stated post-merge gate first.
+Routine task-branch commits, pushes, PR creation/updates, and stacked-PR retargeting are authorized by the repository workflow. As the dedicated Git Integration Agent, independently verify every mandatory gate in the canonical specification for the current head SHA before merging through the normal protected PR path. Return ordinary defects to the Developer Agent with the required correction details, revalidate every gate after a fix, and stop after three cycles for the same substantive defect. Escalate the specified human decisions and blockers. Never bypass protection or change branch protection, required checks, approval rules, visibility, permissions, force-push, or deletion settings without explicit user authorization for that specific change. Verify the intended merge commit, applicable `main` CI, and next stacked PR after merge. Do not start a later IMP merely because its predecessor branch is complete; apply its stated post-merge gate first.
 
 ## Report
 
-Give the owner a short integration summary with status `READY`, `BLOCKED`, or `MERGED-VERIFYING`; the IMP/TASK, PR link, applicable Linux/Windows CI results, commit SHA and push state, at most two findings, and one sentence for the human action. Name any blocker plainly. Do not include command transcripts or claim checks that do not exist or are not required. If CI is still running, say so and continue checking when possible.
+Use the short `MERGED` or `BLOCKED` integration summary in the canonical specification. Do not include routine command transcripts or claim checks that do not exist or are not required. If CI is still running, continue checking when possible and do not claim completion.

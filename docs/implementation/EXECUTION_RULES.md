@@ -223,7 +223,7 @@ Do not mix unrelated implementation items into the same PR unless explicitly app
 
 Do not commit directly to protected `main` once branch protection is established.
 
-Do not push, merge, or delete branches unless authorized by the user or the active task workflow explicitly allows it.
+Do not push, merge, or delete branches unless authorized by the user or the active task workflow explicitly allows it. The dedicated Git Integration Agent has standing authority to merge an eligible PR through protected `main` only after independently verifying every gate in the [Git Integration Agent specification](GIT_INTEGRATION_AGENT.md).
 
 ## 13. AI AUTONOMY
 
@@ -242,7 +242,7 @@ The coding agent must not automatically:
 - change frozen planning artifacts;
 - change architecture;
 - expand task scope;
-- merge protected `main`;
+- merge protected `main` except as the dedicated Git Integration Agent under its mandatory gates;
 - use real customer data;
 - expose secrets;
 - bypass failing tests;
