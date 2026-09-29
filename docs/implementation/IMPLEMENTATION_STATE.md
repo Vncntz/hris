@@ -4,9 +4,9 @@ Last updated: 2026-09-29. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-087](tasks/IMP-087.md) is an authorized four-PR maintenance initiative that temporarily precedes IMP-004. [TASK-0004](../tasks/TASK-0004.md) is active on `chore/imp-087-task-0004-context-state`. [TASK-0005](../tasks/TASK-0005.md) and [TASK-0006](../tasks/TASK-0006.md) must run sequentially after their predecessors merge and required post-merge verification passes.
+M0 — Engineering Foundation. [IMP-087](tasks/IMP-087.md) is an authorized four-PR maintenance initiative that temporarily precedes IMP-004. [TASK-0005](../tasks/TASK-0005.md) is active on `chore/imp-087-task-0005-ci-gates`. [TASK-0006](../tasks/TASK-0006.md) waits for its merge and post-merge verification.
 
-Last completed work order: [TASK-0003](../tasks/TASK-0003.md) under active IMP-087. The last completed normal implementation item is [IMP-003](tasks/IMP-003.md) / [TASK-0002](../tasks/TASK-0002.md). IMP-004 remains ready for planning only and has not started.
+Last completed work order: [TASK-0004](../tasks/TASK-0004.md) under active IMP-087. The last completed normal implementation item is [IMP-003](tasks/IMP-003.md) / [TASK-0002](../tasks/TASK-0002.md). IMP-004 remains ready for planning only and has not started.
 
 ## Active implementation decisions
 
@@ -17,8 +17,8 @@ Last completed work order: [TASK-0003](../tasks/TASK-0003.md) under active IMP-0
 
 ## Blockers and open verification
 
-- TASK-0005 and TASK-0006 retain the sequential dependencies in [IMP-087](tasks/IMP-087.md). IMP-004 waits for this maintenance initiative.
-- TASK-0004 local tooling and documentation verification passed; Draft PR, current-head CI, merge gates, and post-merge CI remain open. No current architecture-test or MySQL integration suite exists; those belong to IMP-011 and IMP-004 respectively.
+- TASK-0006 waits for TASK-0005 integration and post-merge verification; IMP-004 waits for this maintenance initiative.
+- TASK-0005 local script, workflow-structure, index, documentation, and full Maven Wrapper verification passed; Draft PR, changed-workflow CI, merge gates, and post-merge CI remain open. No current architecture-test or MySQL integration suite exists; those belong to IMP-011 and IMP-004 respectively.
 - No approved ADRs or open implementation questions are recorded.
 
 ## Completed evidence
@@ -27,7 +27,8 @@ Last completed work order: [TASK-0003](../tasks/TASK-0003.md) under active IMP-0
 - [IMP-002](tasks/IMP-002.md) / [TASK-0001](../tasks/TASK-0001.md) record repository governance, branch-protection readback, historical decisions, and [PR #2](https://github.com/Vncntz/hris/pull/2). IMP-001 merged via [PR #1](https://github.com/Vncntz/hris/pull/1).
 - [IMP-003](tasks/IMP-003.md) / [TASK-0002](../tasks/TASK-0002.md) record local and Linux/Windows CI, [PR #3](https://github.com/Vncntz/hris/pull/3), governance [PR #4](https://github.com/Vncntz/hris/pull/4), and the passing [first `push`-to-`main` run](https://github.com/Vncntz/hris/actions/runs/36553948635). The IMP-003 post-merge CI gate passed.
 - [TASK-0003](../tasks/TASK-0003.md) records governance hardening, [PR #6](https://github.com/Vncntz/hris/pull/6) merged as `179c2e8`, and passing [post-merge `main` CI](https://github.com/Vncntz/hris/actions/runs/36569966460).
+- [TASK-0004](../tasks/TASK-0004.md) records lazy planning context, [PR #7](https://github.com/Vncntz/hris/pull/7) merged as `6eac045`, and passing [post-merge `main` CI](https://github.com/Vncntz/hris/actions/runs/36580275388).
 
 ## Next action
 
-Commit TASK-0004 and open its focused Draft PR. Recheck every integration gate before merge and require passing post-merge `main` CI before TASK-0005.
+Commit TASK-0005 and open its focused Draft PR. Use independent manual integration gates for this bootstrap PR, then require passing post-merge `main` CI before TASK-0006.
