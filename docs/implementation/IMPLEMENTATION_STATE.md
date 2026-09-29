@@ -10,7 +10,7 @@ Compilation: COMPLETE
 Implementation: IN PROGRESS
 
 Current Milestone: M0 — Engineering Foundation
-Current Task: None — IMP-003 is next and has not started
+Current Task: IMP-003 — CI baseline in progress
 Last Completed Task: IMP-002
 
 ## AUTHORITATIVE PLANNING SOURCES
@@ -22,9 +22,9 @@ These planning artifacts are frozen and must not be modified during normal imple
 
 ## CURRENT TASK
 
-### Next: IMP-003 — CI baseline
+### Active: IMP-003 — CI baseline
 
-Status: READY — not started
+Status: IN PROGRESS — dual-OS build checks verified; required checks not yet active on `main`
 
 Objective:
 
@@ -32,7 +32,7 @@ Create the CI baseline and then require verified, stable named status checks for
 
 Detailed task specification:
 
-IMP-003 work order has not yet been created. The completed governance control file is `docs/implementation/tasks/IMP-002.md`, with focused work order `docs/tasks/TASK-0001.md`.
+The [IMP-003 control file](tasks/IMP-003.md) and [TASK-0002 work order](../tasks/TASK-0002.md) define this work. The workflow passed on the task branch; `main` protection still has no required status checks.
 
 ## COMPLETED IMPLEMENTATION TASKS
 
@@ -53,13 +53,17 @@ None.
 
 ## OPEN BLOCKERS
 
-None for IMP-002. The previous private-repository protection limitation and the earlier reviewer/credential-path blocker were resolved by the explicit public-repository and solo-developer governance decisions. Their historical evidence remains in `docs/implementation/tasks/IMP-002.md`.
+IMP-003 remote integration is pending: `origin/main` still points to `a7038ea`, before the completed IMP-002 branch. A focused IMP-003 PR requires that branch to be integrated first. Remote required-check activation also needs explicit authorization for a governance-setting change under the approved solo-developer workflow. Architecture and MySQL suites await IMP-011 and IMP-004 respectively; their absence is not covered by the passing build checks.
+
+The earlier IMP-002 private-repository protection and reviewer/credential-path blockers were resolved by the explicit public-repository and solo-developer decisions. Their historical evidence remains in `docs/implementation/tasks/IMP-002.md`.
 
 ## OPEN IMPLEMENTATION QUESTIONS
 
 None.
 
 ## IMPLEMENTATION VERIFICATION ITEMS
+
+IMP-003 partial verification (2026-09-29): local Windows `.\mvnw.cmd -B clean verify` passed all 17 reactor projects and the single smoke test with 0 failures, 0 errors, and 0 skips. GitHub Actions run `36546049750` on pushed task-branch commit `613a9e6` passed both `ci / build-linux` and `ci / build-windows`; each log shows `BUILD SUCCESS` and the same smoke-test result. The workflow was parsed and executed remotely. GitHub API readback still reports `required_status_checks: null` on `main`; no protection change was made. The run does not contain architecture or MySQL integration tests because those suites do not yet exist.
 
 IMP-001 verification: `.\mvnw.cmd -B clean verify` passed with all 17 reactor projects successful; `HrisApplicationSmokeTest` ran once with 0 failures, 0 errors, and 0 skips. The packaged JAR started on port `18080`; logs confirmed Tomcat startup, Vaadin production mode, and `HrisApplication` Started. `/` returned HTTP 200 with `text/html;charset=utf-8` and Vaadin bootstrap HTML. Browser rendering of the static route text was unavailable for independent verification. Spring graceful shutdown completed, the process exited, and no port `18080` listener remained. Git mode for `mvnw` is `100755`.
 
@@ -71,7 +75,7 @@ IMP-002: GitHub REST independently read back `main` as protected and the classic
 |---|---|---|
 | IMP-001 | Maven multi-module repository skeleton and one deployable application | COMPLETE |
 | IMP-002 | AGENTS.md, task/ADR/docs structure, branch protection, PR conventions | COMPLETE |
-| IMP-003 | CI baseline | READY |
+| IMP-003 | CI baseline | IN PROGRESS |
 | IMP-004 | MySQL/Testcontainers development and test environment | READY |
 | IMP-005 | Flyway and migration-order conventions | BLOCKED BY IMP-004 |
 | IMP-006 | UUID/public-ID, money, business-date, UTC instant, timezone primitives | READY |
@@ -83,4 +87,4 @@ IMP-002: GitHub REST independently read back `main` as protected and the classic
 
 ## NEXT ACTION
 
-Next implementation task: IMP-003 — CI baseline. Create and verify stable named CI checks before making them required on protected `main`. IMP-003 has not started.
+Continue IMP-003: integrate the preceding IMP-002 branch, prepare a focused IMP-003 PR, and obtain explicit authorization before requiring the verified `ci / build-linux` and `ci / build-windows` contexts on protected `main`. Add architecture and MySQL test coverage when their owning tasks deliver those suites; do not claim they currently pass.
