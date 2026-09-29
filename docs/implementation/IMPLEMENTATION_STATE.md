@@ -10,7 +10,7 @@ Compilation: COMPLETE
 Implementation: IN PROGRESS
 
 Current Milestone: M0 — Engineering Foundation
-Current Task: None — IMP-004 is next
+Current Task: None — IMP-003 awaits integration; IMP-004 is blocked
 Last Completed Task: IMP-003
 
 ## AUTHORITATIVE PLANNING SOURCES
@@ -22,9 +22,9 @@ These planning artifacts are frozen and must not be modified during normal imple
 
 ## CURRENT TASK
 
-### Next: IMP-004 — MySQL/Testcontainers development and test environment
+### Blocked next: IMP-004 — MySQL/Testcontainers development and test environment
 
-Status: READY — not started
+Status: BLOCKED — not started; predecessor PR integration and post-merge `main` CI verification pending
 
 Objective:
 
@@ -38,7 +38,7 @@ The IMP-004 control file and focused TASK work order have not yet been created. 
 
 IMP-001 — Maven multi-module repository skeleton and one deployable application (2026-09-29).
 IMP-002 — Repository governance and documentation foundation; protected `main` under the approved solo-developer model (2026-09-29).
-IMP-003 — Ubuntu/Windows Maven CI baseline and verified named build checks; `main` protection unchanged by explicit user instruction (2026-09-29).
+IMP-003 — Ubuntu/Windows Maven CI baseline and verified named build checks on its task branch; `main` protection unchanged by explicit user instruction (2026-09-29).
 
 ## ACTIVE IMPLEMENTATION DECISIONS
 
@@ -56,7 +56,7 @@ None.
 
 ## OPEN BLOCKERS
 
-No blocker to beginning IMP-004. Human review and merge of draft PRs #1, #2, and #3 remain pending in that order. The user directed that remote required checks remain disabled. Architecture tests await IMP-011; MySQL integration coverage awaits IMP-004 and is not covered by the passing IMP-003 build checks.
+IMP-003 implementation and task-branch verification are complete, but draft PRs #1, #2, and #3 remain pending human review and integration into `main` in order. IMP-004 must not begin until all three predecessor PRs are integrated and the first post-merge `push`-to-`main` CI run for IMP-003 passes on Ubuntu and Windows. The user directed that `main` branch protection remain unchanged; neither build check is required. Architecture tests await IMP-011; MySQL integration coverage awaits IMP-004 and is not covered by the passing IMP-003 build checks.
 
 The earlier IMP-002 private-repository protection and reviewer/credential-path blockers were resolved by the explicit public-repository and solo-developer decisions. Their historical evidence remains in `docs/implementation/tasks/IMP-002.md`.
 
@@ -79,7 +79,7 @@ IMP-002: GitHub REST independently read back `main` as protected and the classic
 | IMP-001 | Maven multi-module repository skeleton and one deployable application | COMPLETE |
 | IMP-002 | AGENTS.md, task/ADR/docs structure, branch protection, PR conventions | COMPLETE |
 | IMP-003 | CI baseline | COMPLETE |
-| IMP-004 | MySQL/Testcontainers development and test environment | READY |
+| IMP-004 | MySQL/Testcontainers development and test environment | BLOCKED BY PR INTEGRATION AND POST-MERGE MAIN CI |
 | IMP-005 | Flyway and migration-order conventions | BLOCKED BY IMP-004 |
 | IMP-006 | UUID/public-ID, money, business-date, UTC instant, timezone primitives | READY |
 | IMP-007 | Configuration/secrets/environment conventions | READY |
@@ -90,4 +90,4 @@ IMP-002: GitHub REST independently read back `main` as protected and the classic
 
 ## NEXT ACTION
 
-Next implementation item: IMP-004 — MySQL/Testcontainers development and test environment. Human owner reviews and merges draft PRs #1, #2, and #3 in order. `main` protection stays unchanged per the user's explicit instruction. IMP-011 owns executable architecture tests; do not claim that suite currently passes.
+Human owner reviews and merges draft PRs #1, #2, and #3 in order, with PR #2 and then PR #3 retargeted to `main` and PR #3 CI passing against the updated base before merge. Verify the first post-merge `main` push CI run passes both named jobs. Only then begin IMP-004 — MySQL/Testcontainers development and test environment. `main` protection stays unchanged per the user's explicit instruction. IMP-011 owns executable architecture tests; do not claim that suite currently passes.
