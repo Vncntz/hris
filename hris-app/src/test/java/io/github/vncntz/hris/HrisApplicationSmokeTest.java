@@ -17,7 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "vaadin.productionMode=true"
+        properties = {
+                "vaadin.productionMode=true",
+                "spring.autoconfigure.exclude=org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration"
+        }
 )
 class HrisApplicationSmokeTest {
     @Value("${local.server.port}")

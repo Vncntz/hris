@@ -51,7 +51,7 @@ jobs:
           java-version: '25'
           cache: maven
       - name: Build and test reactor
-        run: ./mvnw -B clean verify
+        run: ./mvnw -B -Pmysql-it clean verify
 
   build-windows:
     name: ci / build-windows

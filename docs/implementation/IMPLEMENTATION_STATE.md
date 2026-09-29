@@ -4,7 +4,7 @@ Last updated: 2026-09-29. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-004](tasks/IMP-004.md) is the active planned implementation item. [TASK-0007](../tasks/TASK-0007.md) defines its first focused work order. MySQL/Testcontainers implementation has not started.
+M0 — Engineering Foundation. [IMP-004](tasks/IMP-004.md) / [TASK-0007](../tasks/TASK-0007.md) is the active implementation work. The real MySQL baseline passed local verification; PR CI and integration verification are pending.
 
 Last completed work order: [TASK-0006](../tasks/TASK-0006.md) under completed [IMP-087](tasks/IMP-087.md). The last completed normal implementation item is [IMP-003](tasks/IMP-003.md) / [TASK-0002](../tasks/TASK-0002.md).
 
@@ -14,12 +14,13 @@ Last completed work order: [TASK-0006](../tasks/TASK-0006.md) under completed [I
 - The repository is public by the user's explicit decision, overriding the frozen private-repository baseline for this repository. Frozen planning sources remain unchanged.
 - Protected `main` requires PR integration, applies to administrators, and disallows force-push and deletion. The user directed that protection remain unchanged after IMP-003; `ci / build-linux` and `ci / build-windows` are policy checks but are not GitHub-required status checks. Do not change remote settings without a separate explicit decision.
 - The dedicated Git Integration Agent may merge only after independently passing all current [integration gates](GIT_INTEGRATION_AGENT.md). This does not grant protection bypass. Dependabot PRs remain human-reviewed unless separately authorized later.
+- The operator accepted a one-time exception for PR #11 / merge commit `ca8ca7e5d54cc490d6723e9f7fbe22b85fe717d1`: exact-head PR policy/Linux/Windows CI and manual CI on that merge SHA close its missing post-merge `push` run gate. The PR policy job, rather than the manual policy self-comparison, supplies independent frozen-plan evidence. Future PRs retain the normal post-merge `push` CI requirement.
 
 ## Blockers and open verification
 
-- No current blocker is known for TASK-0007.
-- Before implementation pins or adds database-test dependencies, verify the current Testcontainers version/integration convention, exact MySQL 8.4 LTS-line image tag, MySQL JDBC version when not BOM-managed, and Spring Boot 4.1.x Testcontainers conventions from official sources.
-- No current architecture-test or MySQL integration suite exists; IMP-011 owns architecture tests and TASK-0007 will establish the first real-MySQL integration baseline.
+- TASK-0007 local verification passed; exact-head PR CI, trusted-main integration gates, merge, and normal post-merge `push` CI remain open.
+- Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
+- IMP-011 owns architecture tests; TASK-0007 has established the first real-MySQL integration test locally, pending PR CI and integration.
 - No approved ADRs or open product/architecture decisions are recorded.
 
 ## Completed evidence
@@ -31,4 +32,4 @@ Last completed work order: [TASK-0006](../tasks/TASK-0006.md) under completed [I
 
 ## Next action
 
-Execute [TASK-0007](../tasks/TASK-0007.md) in a separate implementation task/chat. Do not implement it as part of this planning change.
+Open the focused TASK-0007 PR, verify exact-head policy/Linux/Windows CI and the Linux MySQL test, then run the protected-main integration gates and normal post-merge `push` CI.
