@@ -1,0 +1,19 @@
+# Local advisory state only. Copy to .agent-state.yaml; never commit that copy.
+task: IMP-XXX
+work_order: TASK-XXXX
+stage: PLANNING # PLANNING | IMPLEMENTING | LOCAL_VERIFIED | WAITING_CI | INTEGRATION_READY | BLOCKED | MERGED | POST_MERGE_VERIFIED
+branch: null
+pr: null
+head_sha: null
+
+retry_count: 0
+defect_fingerprint: null
+
+gates:
+  scope: NOT_STARTED
+  local_tests: NOT_STARTED
+  ci: NOT_STARTED
+  security: NOT_STARTED
+  planning: NOT_STARTED
+
+next_action: null

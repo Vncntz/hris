@@ -7,6 +7,8 @@
 3. Read referenced ADR, domain, module, and compliance documents, then relevant source and tests.
 4. Check [implementation state](docs/implementation/IMPLEMENTATION_STATE.md) for task selection and blockers. Use the source precedence in [execution rules](docs/implementation/EXECUTION_RULES.md) and the [documentation index](docs/README.md) for routing.
 
+During normal implementation, use the generated [planning index](docs/planning/INDEX.md) to retrieve only relevant Decision IDs or sections. Do not preload either frozen planning source in full; [execution rules](docs/implementation/EXECUTION_RULES.md) define the narrow exceptions.
+
 ## Global boundaries
 
 - Work on one `IMP-###` item and its linked `TASK-####` at a time. Stay within its scope and owning module; preserve dependency direction.

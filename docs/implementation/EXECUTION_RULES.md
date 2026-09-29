@@ -40,6 +40,8 @@ Do not silently contradict a higher-authority source.
 
 The planning documents are frozen.
 
+During normal implementation, do not preload `docs/planning/MASTER_SOFTWARE_PLAN.md` or `docs/planning/FINAL_PLANNING_STATE.md` in full. Resolve required Decision IDs or exact indexed titles through the generated [planning index](../planning/INDEX.md) and retrieve only the relevant range with `python tools/plan-get.py D-131`. The index is a non-authoritative convenience artifact; the frozen sources retain precedence. Whole-document analysis is allowed only when a task explicitly requires it, index corruption is being repaired, or a material conflict cannot be resolved by targeted retrieval.
+
 Do not modify:
 
 - `docs/planning/MASTER_SOFTWARE_PLAN.md`
@@ -271,3 +273,7 @@ Every implementation decision should satisfy:
 > Can one developer realistically understand, test, deploy, update, diagnose, and support this across multiple customer installations?
 
 Prefer the simplest design that satisfies correctness, compliance, security, data integrity, performance, and scale requirements.
+
+## 16. LOCAL ADVISORY AGENT STATE
+
+`.agent-state.yaml` is local-only and must never be committed. Its schema is illustrated by [`.agent-state.example.yaml`](../../.agent-state.example.yaml). It supports resumable execution and may retain correction retry count and defect fingerprint. Allowed stages are `PLANNING`, `IMPLEMENTING`, `LOCAL_VERIFIED`, `WAITING_CI`, `INTEGRATION_READY`, `BLOCKED`, `MERGED`, and `POST_MERGE_VERIFIED`. This file is advisory: it never overrides tracked repository state, never proves a gate passed, and must be reconciled with Git/GitHub reality after every session restart.
