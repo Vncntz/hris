@@ -11,7 +11,7 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0003](TASK-0003.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Governance and security hardening |
 | [TASK-0004](TASK-0004.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Lazy context retrieval and local agent state |
 | [TASK-0005](TASK-0005.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | CI deduplication and mechanical gates |
-| [TASK-0006](TASK-0006.md) | [IMP-087](../implementation/tasks/IMP-087.md) | In progress | Java codebase polish |
+| [TASK-0006](TASK-0006.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Java codebase polish |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. This historical drift is left intact.
 
