@@ -29,4 +29,4 @@
 
 - Blockers, open questions, and review points, or “none”:
 
-CI checks are added under IMP-003; list only checks that actually ran. The human owner reviews the PR and verification evidence and makes the final merge decision; agents may not merge protected `main`.
+The IMP-003 workflow defines `ci / build-linux` and `ci / build-windows`; list only checks that actually ran. Required status-check enforcement is effective only after independent remote verification. The human owner reviews the PR and verification evidence and makes the final merge decision; agents may not merge protected `main`.
