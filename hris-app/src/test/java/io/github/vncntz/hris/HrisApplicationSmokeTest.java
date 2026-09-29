@@ -1,31 +1,44 @@
 package io.github.vncntz.hris;
 
-import com.vaadin.flow.spring.SpringServlet;
-import com.vaadin.flow.spring.VaadinConfigurationProperties;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.ApplicationContext;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "vaadin.productionMode=true"
+)
 class HrisApplicationSmokeTest {
-    @Autowired
-    private ApplicationContext context;
+    @Value("${local.server.port}")
+    private int port;
 
     @Test
-    void contextLoadsWithVaadinServlet() {
-        assertNotNull(context.getBean(HrisApplication.class));
-        ServletRegistrationBean<?> registration = context.getBean(
-                "servletRegistrationBean", ServletRegistrationBean.class);
-        assertInstanceOf(SpringServlet.class, registration.getServlet());
-        assertEquals("/*", context.getBean(VaadinConfigurationProperties.class).getUrlMapping());
-        // Root requests are forwarded by Vaadin's Spring MVC integration to this servlet.
-        assertTrue(registration.getUrlMappings().contains("/vaadinServlet/*"));
+    void rootServesVaadinBootstrapHtml() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/"))
+                .timeout(Duration.ofSeconds(15))
+                .GET()
+                .build();
+
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            HttpResponse<String> response = client.send(request,
+                    HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            String contentType = response.headers().firstValue("content-type").orElse("");
+
+            assertEquals(200, response.statusCode());
+            assertTrue(contentType.toLowerCase(Locale.ROOT).startsWith("text/html"), contentType);
+            assertTrue(response.body().toLowerCase(Locale.ROOT).contains("<html"));
+            assertTrue(response.body().contains("window.Vaadin"));
+        }
     }
 }
