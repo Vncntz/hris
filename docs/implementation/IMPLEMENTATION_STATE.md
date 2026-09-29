@@ -10,8 +10,8 @@ Compilation: COMPLETE
 Implementation: IN PROGRESS
 
 Current Milestone: M0 — Engineering Foundation
-Current Task: None — IMP-003 is next and has not started
-Last Completed Task: IMP-002
+Current Task: None — IMP-003 awaits integration; IMP-004 is blocked
+Last Completed Task: IMP-003
 
 ## AUTHORITATIVE PLANNING SOURCES
 
@@ -22,30 +22,33 @@ These planning artifacts are frozen and must not be modified during normal imple
 
 ## CURRENT TASK
 
-### Next: IMP-003 — CI baseline
+### Blocked next: IMP-004 — MySQL/Testcontainers development and test environment
 
-Status: READY — not started
+Status: BLOCKED — not started; PR #3 integration and its first post-merge `main` CI verification pending
 
 Objective:
 
-Create the CI baseline and then require verified, stable named status checks for protected `main`.
+Create the MySQL/Testcontainers development and test environment.
 
 Detailed task specification:
 
-IMP-003 work order has not yet been created. The completed governance control file is `docs/implementation/tasks/IMP-002.md`, with focused work order `docs/tasks/TASK-0001.md`.
+The IMP-004 control file and focused TASK work order have not yet been created. The [completed IMP-003 control file](tasks/IMP-003.md) and [TASK-0002 work order](../tasks/TASK-0002.md) record the CI baseline and the user's instruction to leave `main` protection unchanged.
 
 ## COMPLETED IMPLEMENTATION TASKS
 
 IMP-001 — Maven multi-module repository skeleton and one deployable application (2026-09-29).
 IMP-002 — Repository governance and documentation foundation; protected `main` under the approved solo-developer model (2026-09-29).
+IMP-003 — Ubuntu/Windows Maven CI baseline and verified named build checks on its task branch; `main` protection unchanged by explicit user instruction (2026-09-29).
 
 ## ACTIVE IMPLEMENTATION DECISIONS
 
-User-approved solo-developer governance (2026-09-29): normal changes to `main` require a PR with 0 required approving reviews while the repository has one human owner. Protection applies to administrators; force-push and deletion are disabled; no normal-development bypass is intentional. The human owner reviews the PR and verification evidence and makes the final merge decision. Agents may prepare branches and PRs but may not merge `main`, bypass protection, or change protection settings without explicit user authorization. A second human reviewer or separate non-admin agent credential is not required for this phase. Add required named CI checks only after IMP-003 creates and verifies them. If a genuine collaborator joins later, one required approval is recommended hardening.
+User-approved solo-developer governance (2026-09-29): normal changes to `main` require a PR with 0 required approving reviews while the repository has one human owner. Protection applies to administrators; force-push and deletion are disabled; no normal-development bypass is intentional. The initial decision reserved the final merge for the human owner; the later explicit user authorization below permits the dedicated Git Integration Agent to merge this stack after independently satisfying every mandatory gate. A second human reviewer or separate non-admin agent credential is not required for this phase. Add required named CI checks only after IMP-003 creates and verifies them. If a genuine collaborator joins later, one required approval is recommended hardening.
 
 The user explicitly made the repository public to enable protection, overriding the frozen private-repository baseline for the current repository. The frozen planning files remain unchanged.
 
-User-requested Git integration handoff (2026-09-29): after a development task is verified, the repo-scoped `hris-git-integration` skill manages routine task-branch commits, pushes, PR maintenance, stacked-PR bases, and CI verification. The human owner retains the final `main` merge decision; agents may not change remote governance settings without explicit authorization for that change.
+User decision (2026-09-29): leave `main` branch protection unchanged after IMP-003 verified `ci / build-linux` and `ci / build-windows`; neither check is required. This overrides the planned D-131 required-check gate for the current repository until a later explicit decision. Three draft PRs were initially authorized for IMP-001, IMP-002, and IMP-003, with a human-only merge decision at that time. PRs #1 and #2 have since merged; the later explicit authorization below governs the remaining stack.
+
+User-requested Git integration handoff (2026-09-29): after a development task is verified, the repo-scoped `hris-git-integration` skill manages routine task-branch commits, pushes, PR maintenance, stacked-PR bases, and CI verification. The initial handoff reserved the final merge for the human owner. The latest explicit user authorization permits the dedicated Git Integration Agent to auto-merge PRs #1–#4 through the normal protected PR path, in dependency order, only after independently satisfying every mandatory gate; this applies while PR #4 records the governance in the repository. No remote governance setting may change.
 
 New implementation-specific decisions must be recorded here or through an approved ADR when appropriate.
 
@@ -55,13 +58,19 @@ None.
 
 ## OPEN BLOCKERS
 
-None for IMP-002. The previous private-repository protection limitation and the earlier reviewer/credential-path blocker were resolved by the explicit public-repository and solo-developer governance decisions. Their historical evidence remains in `docs/implementation/tasks/IMP-002.md`.
+IMP-003 implementation and task-branch verification are complete. PRs #1 and #2 are merged into `main`; PR #3 targets `main` and awaits current-head CI revalidation and integration. IMP-004 must not begin until PR #3 is integrated and the first post-merge `push`-to-`main` CI run for IMP-003 passes on Ubuntu and Windows. The user directed that `main` branch protection remain unchanged; neither build check is required. Architecture tests await IMP-011; MySQL integration coverage awaits IMP-004 and is not covered by the passing IMP-003 build checks.
+
+The earlier IMP-002 private-repository protection and reviewer/credential-path blockers were resolved by the explicit public-repository and solo-developer decisions. Their historical evidence remains in `docs/implementation/tasks/IMP-002.md`.
 
 ## OPEN IMPLEMENTATION QUESTIONS
 
 None.
 
 ## IMPLEMENTATION VERIFICATION ITEMS
+
+IMP-003 verification (2026-09-29): local Windows `.\mvnw.cmd -B clean verify` passed all 17 reactor projects and the single smoke test with 0 failures, 0 errors, and 0 skips. GitHub Actions push runs `36546049750` and `36546445927` and PR run `36546891168` passed both `ci / build-linux` and `ci / build-windows`; logs from the first show `BUILD SUCCESS` and the same smoke-test result. The workflow was parsed and executed remotely. Draft PRs #1/#2/#3 were originally created for IMP-001/002/003; #3 was then based on the IMP-002 branch. PRs #1/#2 have since merged into `main` and #3 has been retargeted to `main`. GitHub API readback reported `required_status_checks: null` on `main`; the user directed no protection change. The run does not contain architecture or MySQL integration tests because those suites do not yet exist.
+
+Latest workflow correction verification (2026-09-29): commit `2df1553` added workflow `push` validation for `main` and concurrency that cancels older runs for the same PR while giving non-PR runs unique groups. GitHub Actions PR #3 run `36548541831` successfully executed the updated workflow; `ci / build-linux` and `ci / build-windows` both passed. The concurrency configuration was accepted and executed, though overlapping-run cancellation was not separately observed. After PRs #1/#2 merged and #3 was retargeted to `main`, head `778374d` passed both named jobs in PR run `36552165875`. This documentation correction requires fresh current-head CI. Post-merge `main` CI remains pending, and IMP-004 remains blocked until that first resulting `main` CI run passes both jobs.
 
 IMP-001 verification: `.\mvnw.cmd -B clean verify` passed with all 17 reactor projects successful; `HrisApplicationSmokeTest` ran once with 0 failures, 0 errors, and 0 skips. The packaged JAR started on port `18080`; logs confirmed Tomcat startup, Vaadin production mode, and `HrisApplication` Started. `/` returned HTTP 200 with `text/html;charset=utf-8` and Vaadin bootstrap HTML. Browser rendering of the static route text was unavailable for independent verification. Spring graceful shutdown completed, the process exited, and no port `18080` listener remained. Git mode for `mvnw` is `100755`.
 
@@ -73,8 +82,8 @@ IMP-002: GitHub REST independently read back `main` as protected and the classic
 |---|---|---|
 | IMP-001 | Maven multi-module repository skeleton and one deployable application | COMPLETE |
 | IMP-002 | AGENTS.md, task/ADR/docs structure, branch protection, PR conventions | COMPLETE |
-| IMP-003 | CI baseline | READY |
-| IMP-004 | MySQL/Testcontainers development and test environment | READY |
+| IMP-003 | CI baseline | COMPLETE |
+| IMP-004 | MySQL/Testcontainers development and test environment | BLOCKED BY PR INTEGRATION AND POST-MERGE MAIN CI |
 | IMP-005 | Flyway and migration-order conventions | BLOCKED BY IMP-004 |
 | IMP-006 | UUID/public-ID, money, business-date, UTC instant, timezone primitives | READY |
 | IMP-007 | Configuration/secrets/environment conventions | READY |
@@ -85,4 +94,4 @@ IMP-002: GitHub REST independently read back `main` as protected and the classic
 
 ## NEXT ACTION
 
-Next implementation task: IMP-003 — CI baseline. Create and verify stable named CI checks before making them required on protected `main`. IMP-003 has not started.
+Revalidate PR #3's complete diff and both named CI jobs against `main`, then the dedicated Git Integration Agent may merge it through the protected PR path if every mandatory gate passes. Verify the first post-merge `main` push CI run passes both named jobs. PR #4 remains a separate governance PR to retarget, revalidate, and integrate afterward. Only then is IMP-004 ready for planning. `main` protection stays unchanged per the user's explicit instruction. IMP-011 owns executable architecture tests; do not claim that suite currently passes.

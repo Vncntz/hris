@@ -7,5 +7,6 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | ID | Parent | Status | Work order |
 | --- | --- | --- | --- |
 | [TASK-0001](TASK-0001.md) | [IMP-002](../implementation/tasks/IMP-002.md) | Complete | Repository governance foundation |
+| [TASK-0002](TASK-0002.md) | [IMP-003](../implementation/tasks/IMP-003.md) | Complete | CI baseline |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. This historical drift is left intact.
