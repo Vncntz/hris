@@ -12,7 +12,8 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0004](TASK-0004.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Lazy context retrieval and local agent state |
 | [TASK-0005](TASK-0005.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | CI deduplication and mechanical gates |
 | [TASK-0006](TASK-0006.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Java codebase polish |
+| [TASK-0007](TASK-0007.md) | [IMP-004](../implementation/tasks/IMP-004.md) | Ready | Real MySQL integration-test baseline |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. This historical drift is left intact.
 
-The frozen backlog reserves IMP-001 through IMP-086. [IMP-087](../implementation/tasks/IMP-087.md) is the separately authorized maintenance parent; its four work orders run in order before normal implementation resumes at IMP-004.
+The frozen backlog reserves IMP-001 through IMP-086. [IMP-087](../implementation/tasks/IMP-087.md) is the separately authorized completed maintenance parent. Normal implementation has resumed at [IMP-004](../implementation/tasks/IMP-004.md), with TASK-0007 defined but not yet implemented.
