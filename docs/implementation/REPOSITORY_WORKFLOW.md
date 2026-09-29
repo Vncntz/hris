@@ -1,0 +1,11 @@
+# Repository workflow
+
+The GitHub repository is currently public by explicit instruction to enable branch protection; the frozen D-131 baseline calls for a private repository. Use short-lived branches or isolated worktrees. Keep one implementation item and its linked [TASK work order](../tasks/README.md) in one focused, reviewable pull request. Suggested branches are `feat/imp-###-short-description`, `fix/imp-###-short-description`, and `chore/imp-###-short-description`. Do not commit directly to protected `main`.
+
+Before editing, follow [AGENTS.md](../../AGENTS.md), the [execution rules](EXECUTION_RULES.md), and the active IMP/TASK specifications. The PR description should link both IDs, explain the scope, give actual commands and results, address security/privacy/audit and migration/deployment effects, identify documentation changes, and name unresolved issues. Use “not applicable” with a reason when a field does not apply. The [PR template](../../.github/pull_request_template.md) prompts for this evidence.
+
+Review the full diff for scope and customer data. Run the task's required checks with ordinary Maven, shell, or PowerShell commands so local verification remains usable outside GitHub. A human reviewer distinct from the PR author gives explicit approval before an agent merges protected `main`. Agent credentials should have no repository administration permission; agents must not edit or bypass branch rules or use an administrator override to merge. Pushing a task branch or opening a PR is not approval to merge.
+
+`main` must require pull-request integration, prevent agent bypass or unauthorized merge, and block force-push and deletion. Record and verify actual remote settings in the applicable IMP completion evidence. Do not rely on this document as proof of enforcement. If GitHub access, repository plan, agent permissions, or the review path prevents the required control, leave the IMP item incomplete and report the blocker; do not relax the human checkpoint to make solo merging possible.
+
+IMP-003 owns CI creation. Required status checks should be enabled only after those checks exist and their names and behavior are verified. Until then, the PR template asks for local verification and does not claim an active CI gate. Once CI exists, require the appropriate checks before normal merge under D-131.
