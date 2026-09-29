@@ -1,0 +1,13 @@
+# Repository agent contract
+
+Before editing, read in this order: this file; an applicable module `AGENTS.md` if one exists; the active [TASK work order](docs/tasks/README.md) and its linked parent IMP control file; referenced ADR, domain, module, and compliance documents; then relevant source and tests. For task selection and current blockers, read [implementation state](docs/implementation/IMPLEMENTATION_STATE.md). Follow the source precedence in [execution rules](docs/implementation/EXECUTION_RULES.md): latest explicit user instruction, verified external facts, approved later ADRs, frozen [Master Plan](docs/planning/MASTER_SOFTWARE_PLAN.md), frozen [planning state](docs/planning/FINAL_PLANNING_STATE.md), implementation state, current task, then AI advice. See the [documentation index](docs/README.md).
+
+- Work on one `IMP-###` item and its linked `TASK-####` work order at a time. Stay within the task's scope and the owning module; preserve dependency direction. One Maven modular monolith and one deployable application are the baseline. Keep `shared-kernel` neutral and small.
+- Do not introduce microservices, customer-specific forks, or other architecture shortcuts prohibited by the frozen plan. Do not change frozen planning files or architecture without an approved ADR. Do not bypass protected `main` or merge it without explicit human approval.
+- Use the required tests and relevant regression checks. Review the complete diff and update affected docs and mutable implementation state only with verified evidence. [Definition of Done and testing rules](docs/implementation/EXECUTION_RULES.md) apply.
+- Never commit secrets or put real customer production data in source control, normal fixtures, developer databases, CI artifacts, synthetic datasets, or AI context. Use synthetic or explicitly sanitized data.
+- Preserve released migration history and data integrity; validate migrations against the required database when applicable. Do not invent Philippine statutory formulas, rates, deadlines, forms, or legal requirements; verify authoritative sources and mark unresolved items for verification.
+
+See [repository workflow](docs/implementation/REPOSITORY_WORKFLOW.md) for branches, PRs, review, and remote safeguards. Add module `AGENTS.md` only when a concrete module invariant warrants one.
+
+After a development task is verified, use the [Git integration skill](.codex/skills/hris-git-integration/SKILL.md) for the branch, PR, and CI handoff. The human owner retains the final `main` merge decision.
