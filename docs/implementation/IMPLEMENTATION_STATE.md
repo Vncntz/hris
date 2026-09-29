@@ -48,6 +48,8 @@ The user explicitly made the repository public to enable protection, overriding 
 
 User decision (2026-09-29): leave `main` branch protection unchanged after IMP-003 verified `ci / build-linux` and `ci / build-windows`; neither check is required. This overrides the planned D-131 required-check gate for the current repository until a later explicit decision. Three draft PRs were authorized for IMP-001, IMP-002, and IMP-003; the human owner retains the merge decision.
 
+User-requested Git integration handoff (2026-09-29): after a development task is verified, the repo-scoped `hris-git-integration` skill manages routine task-branch commits, pushes, PR maintenance, stacked-PR bases, and CI verification. The human owner retains the final `main` merge decision; agents may not change remote governance settings without explicit authorization for that change.
+
 New implementation-specific decisions must be recorded here or through an approved ADR when appropriate.
 
 ## APPROVED ADRS
