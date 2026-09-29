@@ -4,7 +4,7 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-004](tasks/IMP-004.md) / [TASK-0007](../tasks/TASK-0007.md) is `POST_MERGE_VERIFIED` / complete. [IMP-005](tasks/IMP-005.md) / [TASK-0008](../tasks/TASK-0008.md) is the next planned work; implementation is blocked until its planning PR merges and passes required post-merge CI.
+M0 — Engineering Foundation. [IMP-004](tasks/IMP-004.md) / [TASK-0007](../tasks/TASK-0007.md) is `POST_MERGE_VERIFIED` / complete. [IMP-005](tasks/IMP-005.md) / [TASK-0008](../tasks/TASK-0008.md) planning PR #13 merged and passed required post-merge CI; implementation is in progress.
 
 Last completed work order: [TASK-0007](../tasks/TASK-0007.md) under completed [IMP-004](tasks/IMP-004.md).
 
@@ -18,7 +18,7 @@ Last completed work order: [TASK-0007](../tasks/TASK-0007.md) under completed [I
 
 ## Blockers and open verification
 
-- TASK-0007 local verification, exact-head PR CI, trusted-main integration gates, merge, and normal post-merge `push` CI passed. TASK-0008 planning is defined here; its implementation awaits the planning PR's protected-main integration and passing post-merge `push` CI.
+- TASK-0008 implementation requires local verification, exact-head PR CI, trusted-main integration gates, merge, and normal post-merge `push` CI before completion.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
@@ -33,4 +33,4 @@ Last completed work order: [TASK-0007](../tasks/TASK-0007.md) under completed [I
 
 ## Next action
 
-Merge the focused IMP-005 / TASK-0008 planning PR through protected `main` and verify its required post-merge `push` CI. Only then begin TASK-0008 implementation on a separate branch and PR.
+Finish TASK-0008 implementation on its focused branch and PR, then verify protected-main integration and post-merge `push` CI before marking the task complete.
