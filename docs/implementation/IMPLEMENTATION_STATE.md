@@ -4,9 +4,9 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-004](tasks/IMP-004.md) / [TASK-0007](../tasks/TASK-0007.md) is `POST_MERGE_VERIFIED` / complete. [IMP-005](tasks/IMP-005.md) / [TASK-0008](../tasks/TASK-0008.md) planning PR #13 merged and passed required post-merge CI; implementation is in progress.
+M0 — Engineering Foundation. [IMP-005](tasks/IMP-005.md) / [TASK-0008](../tasks/TASK-0008.md) is `POST_MERGE_VERIFIED` / complete. [IMP-006](tasks/IMP-006.md) / [TASK-0009](../tasks/TASK-0009.md) is the next planning work order; implementation is gated until its planning PR merges and passes post-merge CI.
 
-Last completed work order: [TASK-0007](../tasks/TASK-0007.md) under completed [IMP-004](tasks/IMP-004.md).
+Last completed work order: [TASK-0008](../tasks/TASK-0008.md) under completed [IMP-005](tasks/IMP-005.md).
 
 ## Active implementation decisions
 
@@ -18,7 +18,7 @@ Last completed work order: [TASK-0007](../tasks/TASK-0007.md) under completed [I
 
 ## Blockers and open verification
 
-- TASK-0008 implementation requires local verification, exact-head PR CI, trusted-main integration gates, merge, and normal post-merge `push` CI before completion.
+- TASK-0009 implementation is blocked until the IMP-006 / TASK-0009 planning PR merges and its exact-merge-SHA `push` CI passes.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
@@ -30,7 +30,8 @@ Last completed work order: [TASK-0007](../tasks/TASK-0007.md) under completed [I
 - [IMP-003](tasks/IMP-003.md) / [TASK-0002](../tasks/TASK-0002.md) record the Linux/Windows CI baseline and passing post-merge `main` CI.
 - [IMP-087](tasks/IMP-087.md) is complete; [TASK-0003](../tasks/TASK-0003.md) through [TASK-0006](../tasks/TASK-0006.md) merged in order with required post-merge verification.
 - [IMP-004](tasks/IMP-004.md) / [TASK-0007](../tasks/TASK-0007.md) established disposable MySQL 8.4.11 testing. [PR #12](https://github.com/Vncntz/hris/pull/12) exact head `847228f5f67b9212ae77d5459e73728d560666ff` passed policy/Linux/Windows [PR CI](https://github.com/Vncntz/hris/actions/runs/36592276188). It merged as `00b59954db6c13a031d78434ea36ed8f0c744425`, and [post-merge `push` run 36592772489](https://github.com/Vncntz/hris/actions/runs/36592772489) passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` on that merge SHA. Linux ran `./mvnw -B -Pmysql-it clean verify` and `MySqlDatasourceIT` against `mysql:8.4.11` with zero failures/errors/skips; Windows ran ordinary `.\mvnw.cmd -B clean verify` and passed the HTTP smoke test. This satisfies IMP-004's acceptance direction and closes the predecessor without a standalone closeout PR.
+- [IMP-005](tasks/IMP-005.md) / [TASK-0008](../tasks/TASK-0008.md) established the global Flyway migration stream and technical V1 baseline. [Implementation PR #14](https://github.com/Vncntz/hris/pull/14) exact head `f11eb3663bcc0cc2b386849931b163291faa0c93` passed policy/Linux/Windows in [PR run 36647193876](https://github.com/Vncntz/hris/actions/runs/36647193876). It merged as `024143ee931c63a0c1847e1b4cf5fa4ca1288f98`; [post-merge `push` run 36647440772](https://github.com/Vncntz/hris/actions/runs/36647440772) on `main` at that SHA passed all three required jobs. IMP-005 / TASK-0008 is `POST_MERGE_VERIFIED` / complete.
 
 ## Next action
 
-Finish TASK-0008 implementation on its focused branch and PR, then verify protected-main integration and post-merge `push` CI before marking the task complete.
+Complete the IMP-006 / TASK-0009 planning PR and verify its protected-main merge and exact-merge-SHA `push` CI. Then begin TASK-0009 implementation in a new focused Codex session.
