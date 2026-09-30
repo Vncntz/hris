@@ -4,7 +4,7 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation starts with planned [IMP-012](tasks/IMP-012.md) / [TASK-0016](../tasks/TASK-0016.md), the Agency/platform root. TASK-0016 implementation waits for this planning PR's protected-main merge and exact-merge-SHA `push` CI.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation is active with [IMP-012](tasks/IMP-012.md) / [TASK-0016](../tasks/TASK-0016.md), the Agency/platform root. Its planning PR #27 has merged with passing exact-merge-SHA `push` CI; TASK-0016 implementation is underway in the focused branch.
 
 Last completed work order: [TASK-0015](../tasks/TASK-0015.md) under completed [IMP-011](tasks/IMP-011.md).
 
@@ -20,7 +20,7 @@ Last completed work order: [TASK-0015](../tasks/TASK-0015.md) under completed [I
 
 ## Blockers and open verification
 
-- TASK-0016 is planning only. Its implementation gate requires this planning PR to merge and pass exact-merge-SHA `push` CI. TASK-0015's classpath guard covers all 15 production reactor modules, and eight architecture tests are present on `main`. The [unresolved PR #24 finding](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) remains historical evidence of the gap addressed by TASK-0015; PR #26 itself has no review finding or blocker.
+- TASK-0016 implementation and exact-head/post-merge CI remain open. Planning [PR #27](https://github.com/Vncntz/hris/pull/27) merged as `1050ddbb8dbe259b931572dd4ab04182cf3cf273`; [exact-merge-SHA push run 36704364319](https://github.com/Vncntz/hris/actions/runs/36704364319) passed policy, Linux, and Windows. TASK-0015's classpath guard covers all 15 production reactor modules, and eight architecture tests are present on `main`. The [unresolved PR #24 finding](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) remains historical evidence of the gap addressed by TASK-0015; PR #26 itself has no review finding or blocker.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
@@ -48,4 +48,4 @@ Last completed work order: [TASK-0015](../tasks/TASK-0015.md) under completed [I
 
 ## Next action
 
-Integrate the IMP-012 / TASK-0016 planning PR through exact-head policy/Linux/Windows CI and protected `main`, then verify all three `push` jobs on the actual planning merge SHA. Only then may a separately instructed TASK-0016 implementation begin.
+Complete local TASK-0016 implementation verification, review the focused PR diff, then require exact-final-head policy/Linux/Windows CI and trusted-main integration gates. Verify all three post-merge `push` jobs on the actual merge SHA before recording TASK-0016 as `POST_MERGE_VERIFIED`. Review IMP-012 closure in the next fresh cycle.

@@ -4,5 +4,6 @@ Add module ownership, public boundaries, and cross-module contracts here as they
 
 - [Shared kernel](shared-kernel.md): neutral identifier, decimal money, and business-time types.
 - [Platform operations audit](platform-operations-audit.md): append-only audit ownership, transaction and privacy boundaries.
+- [Platform operations Agency](platform-operations-agency.md): single installation configuration, public boundary, and explicit setup behavior.
 - [Identity and access](identity-access.md): local authentication and current-actor boundary.
 - [Synthetic data generator](synthetic-data.md): versioned fictional population identities and extension boundary.
