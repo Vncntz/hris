@@ -4,9 +4,9 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-008](tasks/IMP-008.md) / [TASK-0011](../tasks/TASK-0011.md) is `POST_MERGE_VERIFIED` / complete. [IMP-009](tasks/IMP-009.md) / [TASK-0012](../tasks/TASK-0012.md) is the active combined work-order and implementation item.
+M0 — Engineering Foundation. [IMP-009](tasks/IMP-009.md) / [TASK-0012](../tasks/TASK-0012.md) is `POST_MERGE_VERIFIED` / complete. [IMP-010](tasks/IMP-010.md) / [TASK-0013](../tasks/TASK-0013.md) is the active combined work-order and implementation item.
 
-Last completed work order: [TASK-0011](../tasks/TASK-0011.md) under completed [IMP-008](tasks/IMP-008.md).
+Last completed work order: [TASK-0012](../tasks/TASK-0012.md) under completed [IMP-009](tasks/IMP-009.md).
 
 ## Active implementation decisions
 
@@ -20,12 +20,14 @@ Last completed work order: [TASK-0011](../tasks/TASK-0011.md) under completed [I
 
 ## Blockers and open verification
 
-- TASK-0012 requires local verification, a combined PR, exact-head policy/Linux/Windows CI, protected-main integration, and exact-merge-SHA `push` CI before completion. IMP-009 remains open pending its post-task scope review.
+- TASK-0013 requires local verification, a combined PR, exact-head policy/Linux/Windows CI, protected-main integration, and exact-merge-SHA `push` CI before completion. IMP-010 remains open pending its post-task scope review.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
 
 ## Completed evidence
+
+- [IMP-009](tasks/IMP-009.md) / [TASK-0012](../tasks/TASK-0012.md) [PR #21](https://github.com/Vncntz/hris/pull/21) final head `e6d14fda52a5eef4c138a967d9f93b4ba48abf32` passed policy/Linux/Windows in [exact-head PR run 36672125046](https://github.com/Vncntz/hris/actions/runs/36672125046). It merged as `4ad9c46c13729b2e8b1baba74baf602e9eab19e5`; [exact-merge-SHA push run 36672409587](https://github.com/Vncntz/hris/actions/runs/36672409587) passed all three jobs on that SHA. Both Linux runs passed `AccountAuthenticationIT` (1), `AuditPersistenceIT` (3), and `MySqlDatasourceIT` (2) against MySQL 8.4.11 with zero failures, errors, or skips. IMP-009's post-merge scope review found no additional IMP-009 TASK is required; later ownership of TOTP, privileged re-authentication, password calibration, and security-event audit integration remains as recorded in its control file. IMP-009 / TASK-0012 is `POST_MERGE_VERIFIED` / complete.
 
 - [IMP-008](tasks/IMP-008.md) / [TASK-0011](../tasks/TASK-0011.md) [PR #20](https://github.com/Vncntz/hris/pull/20) final head `38d4372c92e9fd0cc7f68f4a78853efb6b9751fd` passed policy/Linux/Windows in [PR run 36668524580](https://github.com/Vncntz/hris/actions/runs/36668524580). It merged as `529e21301ab2c53d86992cae532e51bb05984da7`; [post-merge push run 36668727407](https://github.com/Vncntz/hris/actions/runs/36668727407) passed all three jobs on that SHA. Linux ran `AuditPersistenceIT` (3 tests) and `MySqlDatasourceIT` (2 tests) against MySQL 8.4.11 without failures, errors, or skips. IMP-008 / TASK-0011 is `POST_MERGE_VERIFIED` / complete.
 
@@ -41,4 +43,4 @@ Last completed work order: [TASK-0011](../tasks/TASK-0011.md) under completed [I
 
 ## Next action
 
-Implement and verify IMP-009 / TASK-0012, integrate its combined PR through protected `main`, then verify required `push` CI on the exact merge SHA. Review remaining IMP-009 scope after TASK-0012 is post-merge verified.
+Implement and verify IMP-010 / TASK-0013, integrate its combined PR through protected `main`, then verify required `push` CI on the exact merge SHA. Do not start IMP-011 in this execution.
