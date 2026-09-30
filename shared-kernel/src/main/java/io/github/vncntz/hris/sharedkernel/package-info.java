@@ -1,2 +1,2 @@
-/** Structural placeholder for the shared-kernel module; no functionality is implemented. */
+/** Neutral identifier, decimal money, and explicit business-time value types. */
 package io.github.vncntz.hris.sharedkernel;
