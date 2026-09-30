@@ -257,6 +257,10 @@ class AgencyConfigurationIT {
         }
         assertTrue(agency.current().isPresent());
         assertEquals(before + 1, auditCount());
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            assertEquals(1, count(statement, "SELECT COUNT(*) FROM agency_configuration"));
+        }
     }
 
     @Test
