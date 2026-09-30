@@ -4,9 +4,9 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-011](tasks/IMP-011.md) remains ACTIVE. [TASK-0014](../tasks/TASK-0014.md) is `POST_MERGE_VERIFIED` / complete; [TASK-0015](../tasks/TASK-0015.md) is the active focused production-module coverage follow-up. Its planning gate passed; implementation integration and post-merge CI remain pending.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation starts with planned [IMP-012](tasks/IMP-012.md) / [TASK-0016](../tasks/TASK-0016.md), the Agency/platform root. TASK-0016 implementation waits for this planning PR's protected-main merge and exact-merge-SHA `push` CI.
 
-Last completed work order: [TASK-0014](../tasks/TASK-0014.md) under active [IMP-011](tasks/IMP-011.md).
+Last completed work order: [TASK-0015](../tasks/TASK-0015.md) under completed [IMP-011](tasks/IMP-011.md).
 
 ## Active implementation decisions
 
@@ -20,13 +20,14 @@ Last completed work order: [TASK-0014](../tasks/TASK-0014.md) under active [IMP-
 
 ## Blockers and open verification
 
-- TASK-0015 implementation integration remains pending. Its new classpath guard covers all 15 production reactor modules; the local negative control removed `reporting` from `hris-app` dependencies and failed with the intended missing-module message, then restored the POM. Restored `-pl hris-app -am test` and `clean verify` passed; final Surefire reports show 33 tests, including eight architecture tests, with zero failures, errors, or skips. The [unresolved PR #24 finding](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) remains historical evidence of the gap addressed by this task.
+- TASK-0016 is planning only. Its implementation gate requires this planning PR to merge and pass exact-merge-SHA `push` CI. TASK-0015's classpath guard covers all 15 production reactor modules, and eight architecture tests are present on `main`. The [unresolved PR #24 finding](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) remains historical evidence of the gap addressed by TASK-0015; PR #26 itself has no review finding or blocker.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
 
 ## Completed evidence
 
+- [IMP-011](tasks/IMP-011.md) / [TASK-0015](../tasks/TASK-0015.md) implementation [PR #26](https://github.com/Vncntz/hris/pull/26) final head `ab93a7a31a7213c8c7178efb80afcafdbaee878d` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head PR run 36700965762](https://github.com/Vncntz/hris/actions/runs/36700965762). It merged to protected `main` as `ff8b2655a93bcb4e433f89a47e45e8350c40a728`; [exact-merge-SHA push run 36701364403](https://github.com/Vncntz/hris/actions/runs/36701364403) passed all three jobs. The all-15-production-module guard and all eight architecture tests are on `main`. The [PR #24 coverage thread](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) is historical evidence addressed by TASK-0015. IMP-011 / TASK-0015 is `POST_MERGE_VERIFIED` / complete.
 - [TASK-0015](../tasks/TASK-0015.md) planning [PR #25](https://github.com/Vncntz/hris/pull/25) final head `963010ce0befb763b776ec7493947303e29e057c` passed policy/Linux/Windows in [exact-head PR run 36698034846](https://github.com/Vncntz/hris/actions/runs/36698034846). It merged as `fbf1d13b0638169aa19e29615dee2f801533abcd`; [exact-merge-SHA push run 36698351224](https://github.com/Vncntz/hris/actions/runs/36698351224) passed all three jobs. The implementation gate passed.
 - [IMP-011](tasks/IMP-011.md) / [TASK-0014](../tasks/TASK-0014.md) [implementation PR #24](https://github.com/Vncntz/hris/pull/24) final head `903aec4a040fea3d943f2da3ec3bb78184f961da` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head PR run 36679651944](https://github.com/Vncntz/hris/actions/runs/36679651944). It merged as `3f5de3d5544f6cc3fc6f8ea897f6d633066f7283`; [exact-merge-SHA push run 36679928125](https://github.com/Vncntz/hris/actions/runs/36679928125) passed all three jobs. TASK-0014 is `POST_MERGE_VERIFIED` / complete. IMP-011 stays active for TASK-0015's coverage hardening.
 - [IMP-010](tasks/IMP-010.md) / [TASK-0013](../tasks/TASK-0013.md) [PR #22](https://github.com/Vncntz/hris/pull/22) final head `4d7d537fd2911831fb1ad105c7c98ab63f5bcb36` passed policy/Linux/Windows in [exact-head PR run 36675258199](https://github.com/Vncntz/hris/actions/runs/36675258199). It merged as `712818a3f320f50692b05af1f167d1babdcb34f7`; [exact-merge-SHA push run 36675558743](https://github.com/Vncntz/hris/actions/runs/36675558743) passed all three jobs. The generator skeleton now has explicit versioning, S/M/L/XL population targets, deterministic seed/scenario/options handling, canonical SHA-256 dataset identity, visibly fictional deterministic record IDs, lazy XL generation through 100,000 records, tests, and extension documentation. Post-task review found no further IMP-010 foundation task; business-domain loaders, persistence, scenario expansion, and performance qualification remain later-owned. IMP-010 / TASK-0013 is `POST_MERGE_VERIFIED` / complete.
@@ -47,4 +48,4 @@ Last completed work order: [TASK-0014](../tasks/TASK-0014.md) under active [IMP-
 
 ## Next action
 
-Integrate the focused TASK-0015 implementation PR through exact-head policy/Linux/Windows CI and protected `main`, then verify all three `push` jobs on the actual merge SHA. TASK-0015 tracked closeout and final IMP-011 closure belong to the next planning cycle.
+Integrate the IMP-012 / TASK-0016 planning PR through exact-head policy/Linux/Windows CI and protected `main`, then verify all three `push` jobs on the actual planning merge SHA. Only then may a separately instructed TASK-0016 implementation begin.
