@@ -4,9 +4,9 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation is active with [IMP-012](tasks/IMP-012.md) / [TASK-0016](../tasks/TASK-0016.md), the Agency/platform root. Its planning PR #27 has merged with passing exact-merge-SHA `push` CI; TASK-0016 implementation is underway in the focused branch.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation is active with [IMP-012](tasks/IMP-012.md). [TASK-0016](../tasks/TASK-0016.md), the Agency/platform root, is `POST_MERGE_VERIFIED` / complete. [TASK-0017](../tasks/TASK-0017.md) is planned to harden the Agency migration no-seed regression before IMP-012 closure review.
 
-Last completed work order: [TASK-0015](../tasks/TASK-0015.md) under completed [IMP-011](tasks/IMP-011.md).
+Last completed work order: [TASK-0016](../tasks/TASK-0016.md) under active [IMP-012](tasks/IMP-012.md).
 
 ## Active implementation decisions
 
@@ -20,13 +20,14 @@ Last completed work order: [TASK-0015](../tasks/TASK-0015.md) under completed [I
 
 ## Blockers and open verification
 
-- TASK-0016 implementation and exact-head/post-merge CI remain open. Planning [PR #27](https://github.com/Vncntz/hris/pull/27) merged as `1050ddbb8dbe259b931572dd4ab04182cf3cf273`; [exact-merge-SHA push run 36704364319](https://github.com/Vncntz/hris/actions/runs/36704364319) passed policy, Linux, and Windows. TASK-0015's classpath guard covers all 15 production reactor modules, and eight architecture tests are present on `main`. The [unresolved PR #24 finding](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) remains historical evidence of the gap addressed by TASK-0015; PR #26 itself has no review finding or blocker.
+- [PR #28 review comment 4144224385](https://github.com/Vncntz/hris/pull/28#discussion_r4144224385) identifies a no-seed false positive: `AgencyConfigurationIT` deletes `agency_configuration` in `@BeforeEach` before asserting the migrated table is empty. [TASK-0017](../tasks/TASK-0017.md) owns the correction. The finding remains open pending a verified successor fix; IMP-012 closure and IMP-013 remain deferred. TASK-0015's classpath guard covers all 15 production reactor modules, and eight architecture tests are present on `main`.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
 
 ## Completed evidence
 
+- [IMP-012](tasks/IMP-012.md) / [TASK-0016](../tasks/TASK-0016.md) implementation [PR #28](https://github.com/Vncntz/hris/pull/28) final head `a313d0d2aac1f38687939c28152de07e8325fbd3` passed policy/Linux/Windows in [exact-head run 36709556688](https://github.com/Vncntz/hris/actions/runs/36709556688). It merged to protected `main` as `a50e03e617e8e07fe003a769bed814cb84b422ac`; [exact-merge-SHA push run 36710076118](https://github.com/Vncntz/hris/actions/runs/36710076118) passed all three jobs. TASK-0016 is `POST_MERGE_VERIFIED` / complete; IMP-012 remains active for the TASK-0017 review follow-up and later closure review.
 - [IMP-011](tasks/IMP-011.md) / [TASK-0015](../tasks/TASK-0015.md) implementation [PR #26](https://github.com/Vncntz/hris/pull/26) final head `ab93a7a31a7213c8c7178efb80afcafdbaee878d` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head PR run 36700965762](https://github.com/Vncntz/hris/actions/runs/36700965762). It merged to protected `main` as `ff8b2655a93bcb4e433f89a47e45e8350c40a728`; [exact-merge-SHA push run 36701364403](https://github.com/Vncntz/hris/actions/runs/36701364403) passed all three jobs. The all-15-production-module guard and all eight architecture tests are on `main`. The [PR #24 coverage thread](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) is historical evidence addressed by TASK-0015. IMP-011 / TASK-0015 is `POST_MERGE_VERIFIED` / complete.
 - [TASK-0015](../tasks/TASK-0015.md) planning [PR #25](https://github.com/Vncntz/hris/pull/25) final head `963010ce0befb763b776ec7493947303e29e057c` passed policy/Linux/Windows in [exact-head PR run 36698034846](https://github.com/Vncntz/hris/actions/runs/36698034846). It merged as `fbf1d13b0638169aa19e29615dee2f801533abcd`; [exact-merge-SHA push run 36698351224](https://github.com/Vncntz/hris/actions/runs/36698351224) passed all three jobs. The implementation gate passed.
 - [IMP-011](tasks/IMP-011.md) / [TASK-0014](../tasks/TASK-0014.md) [implementation PR #24](https://github.com/Vncntz/hris/pull/24) final head `903aec4a040fea3d943f2da3ec3bb78184f961da` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head PR run 36679651944](https://github.com/Vncntz/hris/actions/runs/36679651944). It merged as `3f5de3d5544f6cc3fc6f8ea897f6d633066f7283`; [exact-merge-SHA push run 36679928125](https://github.com/Vncntz/hris/actions/runs/36679928125) passed all three jobs. TASK-0014 is `POST_MERGE_VERIFIED` / complete. IMP-011 stays active for TASK-0015's coverage hardening.
@@ -48,4 +49,4 @@ Last completed work order: [TASK-0015](../tasks/TASK-0015.md) under completed [I
 
 ## Next action
 
-Complete local TASK-0016 implementation verification, review the focused PR diff, then require exact-final-head policy/Linux/Windows CI and trusted-main integration gates. Verify all three post-merge `push` jobs on the actual merge SHA before recording TASK-0016 as `POST_MERGE_VERIFIED`. Review IMP-012 closure in the next fresh cycle.
+Integrate the TASK-0017 planning record through protected `main`, verify exact-merge-SHA `push` CI, then implement only TASK-0017 under its work order. Keep IMP-012 closure and IMP-013 deferred until the successor fix and fresh-cycle acceptance review.
