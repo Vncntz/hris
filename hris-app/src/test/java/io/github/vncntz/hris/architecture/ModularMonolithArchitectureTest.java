@@ -9,6 +9,14 @@ import jakarta.persistence.Entity;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.repository.Repository;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
@@ -19,6 +27,22 @@ class ModularMonolithArchitectureTest {
     private static final String BASE = "io.github.vncntz.hris";
     private static final String APP = BASE + ".app";
     private static final String SHARED_KERNEL = BASE + ".sharedkernel";
+    private static final List<String> PRODUCTION_MODULES = List.of(
+            "shared-kernel",
+            "modules/platform-operations",
+            "modules/identity-access",
+            "modules/person-documents",
+            "modules/client-management",
+            "modules/recruitment",
+            "modules/worker-master",
+            "modules/client-deployment",
+            "modules/scheduling",
+            "modules/attendance",
+            "modules/payroll",
+            "modules/billing",
+            "modules/compliance-rules",
+            "modules/reporting",
+            "hris-app");
 
     private static final DescribedPredicate<JavaClass> OTHER_HRIS_CLASSES =
             DescribedPredicate.describe("HRIS classes outside shared-kernel",
@@ -43,6 +67,29 @@ class ModularMonolithArchitectureTest {
         assertTrue(contains("io.github.vncntz.hris.identityaccess.AccountRepository"));
         assertFalse(contains(ModularMonolithArchitectureTest.class.getName()));
         assertFalse(contains("io.github.vncntz.hris.HrisApplicationSmokeTest"));
+    }
+
+    @Test
+    void architectureTestClasspathContainsEveryProductionModule() {
+        Path reactorRoot = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize().getParent();
+        Set<Path> classpath = Arrays.stream(System.getProperty("java.class.path")
+                        .split(Pattern.quote(File.pathSeparator)))
+                .map(Path::of)
+                .map(Path::toAbsolutePath)
+                .map(Path::normalize)
+                .collect(Collectors.toSet());
+
+        for (String module : PRODUCTION_MODULES) {
+            Path target = reactorRoot.resolve(module).resolve("target");
+            String artifact = Path.of(module).getFileName().toString();
+            boolean present = classpath.contains(target.resolve("classes"))
+                    || classpath.stream().anyMatch(path -> target.equals(path.getParent())
+                            && path.getFileName().toString().startsWith(artifact + "-")
+                            && path.getFileName().toString().endsWith(".jar"));
+            assertTrue(present,
+                    () -> "Architecture-test classpath is missing expected production module '"
+                            + module + "' (classes or JAR from " + target + ")");
+        }
     }
 
     @Test
