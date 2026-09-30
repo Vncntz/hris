@@ -1,2 +1,2 @@
-/** Structural placeholder for the synthetic-data module; no functionality is implemented. */
+/** Versioned deterministic generator for fictional population identities. */
 package io.github.vncntz.hris.syntheticdata;
