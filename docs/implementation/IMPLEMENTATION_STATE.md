@@ -4,7 +4,7 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-010](tasks/IMP-010.md) / [TASK-0013](../tasks/TASK-0013.md) is `POST_MERGE_VERIFIED` / complete. [IMP-011](tasks/IMP-011.md) / [TASK-0014](../tasks/TASK-0014.md) is the active planning work order. Its implementation waits for this planning PR's exact-merge-SHA post-merge CI.
+M0 — Engineering Foundation. [IMP-010](tasks/IMP-010.md) / [TASK-0013](../tasks/TASK-0013.md) is `POST_MERGE_VERIFIED` / complete. [IMP-011](tasks/IMP-011.md) / [TASK-0014](../tasks/TASK-0014.md) is implementing; local verification passed, and final implementation PR CI and integration remain pending.
 
 Last completed work order: [TASK-0013](../tasks/TASK-0013.md) under completed [IMP-010](tasks/IMP-010.md).
 
@@ -20,7 +20,7 @@ Last completed work order: [TASK-0013](../tasks/TASK-0013.md) under completed [I
 
 ## Blockers and open verification
 
-- TASK-0014 implementation is gated on the planning PR containing its IMP/TASK work order and IMP-010 closeout reaching protected `main` and passing exact-merge-SHA post-merge `push` CI. This is a task-specific planning requirement.
+- TASK-0014's planning gate passed: [PR #23](https://github.com/Vncntz/hris/pull/23) final head `06f7659e95abba098b3ec710ee46e391542bf4ff` passed all three jobs in [run 36677926894](https://github.com/Vncntz/hris/actions/runs/36677926894), merged as `f2da4b1902b22b516ecdcb74c46265d663cd13cf`, and passed all three jobs in [exact-SHA push run 36678138396](https://github.com/Vncntz/hris/actions/runs/36678138396). Implementation PR exact-head CI, protected-main integration, and exact-merge-SHA push CI remain pending.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
@@ -45,4 +45,4 @@ Last completed work order: [TASK-0013](../tasks/TASK-0013.md) under completed [I
 
 ## Next action
 
-Integrate the IMP-011 / TASK-0014 planning PR through protected `main` and verify all three required `push` CI jobs on its exact merge SHA. Then implement TASK-0014 on a focused implementation branch.
+Integrate the locally verified IMP-011 / TASK-0014 implementation PR after exact-head policy/Linux/Windows CI, then verify all three required `push` CI jobs on its exact merge SHA.

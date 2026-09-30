@@ -4,7 +4,7 @@ The frozen [Master Software Plan](planning/MASTER_SOFTWARE_PLAN.md) and [Final P
 
 | Area | Entry point |
 | --- | --- |
-| Architecture decisions | [ADR index](architecture/adr/README.md) |
+| Architecture decisions | [ADR index](architecture/adr/README.md) and [executable rules](architecture/EXECUTABLE_RULES.md) |
 | Domain | [Domain index](domain/README.md) |
 | Modules | [Module index](modules/README.md) |
 | Compliance | [Compliance index](compliance/README.md) |
