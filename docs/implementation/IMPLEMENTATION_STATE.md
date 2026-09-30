@@ -4,7 +4,7 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation is active with [IMP-012](tasks/IMP-012.md). [TASK-0016](../tasks/TASK-0016.md), the Agency/platform root, is `POST_MERGE_VERIFIED` / complete. [TASK-0017](../tasks/TASK-0017.md) is planned to harden the Agency migration no-seed regression before IMP-012 closure review.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation is active with [IMP-012](tasks/IMP-012.md). [TASK-0016](../tasks/TASK-0016.md), the Agency/platform root, is `POST_MERGE_VERIFIED` / complete. [TASK-0017](../tasks/TASK-0017.md) is the active implementation task to harden the Agency migration no-seed regression before IMP-012 closure review.
 
 Last completed work order: [TASK-0016](../tasks/TASK-0016.md) under active [IMP-012](tasks/IMP-012.md).
 
@@ -27,6 +27,7 @@ Last completed work order: [TASK-0016](../tasks/TASK-0016.md) under active [IMP-
 
 ## Completed evidence
 
+- [TASK-0017](../tasks/TASK-0017.md) planning [PR #29](https://github.com/Vncntz/hris/pull/29) final head `aa6c19dcbba26bcef1b3e6ed351498bde0254682` passed policy/Linux/Windows in [exact-head run 36713360392](https://github.com/Vncntz/hris/actions/runs/36713360392). It merged to protected `main` as `36cb2b755db9ef6279859b8815103ad2b82ceceb`; [exact-merge-SHA push run 36713909037](https://github.com/Vncntz/hris/actions/runs/36713909037) passed all three jobs. The TASK-0017 implementation gate is open.
 - [IMP-012](tasks/IMP-012.md) / [TASK-0016](../tasks/TASK-0016.md) implementation [PR #28](https://github.com/Vncntz/hris/pull/28) final head `a313d0d2aac1f38687939c28152de07e8325fbd3` passed policy/Linux/Windows in [exact-head run 36709556688](https://github.com/Vncntz/hris/actions/runs/36709556688). It merged to protected `main` as `a50e03e617e8e07fe003a769bed814cb84b422ac`; [exact-merge-SHA push run 36710076118](https://github.com/Vncntz/hris/actions/runs/36710076118) passed all three jobs. TASK-0016 is `POST_MERGE_VERIFIED` / complete; IMP-012 remains active for the TASK-0017 review follow-up and later closure review.
 - [IMP-011](tasks/IMP-011.md) / [TASK-0015](../tasks/TASK-0015.md) implementation [PR #26](https://github.com/Vncntz/hris/pull/26) final head `ab93a7a31a7213c8c7178efb80afcafdbaee878d` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head PR run 36700965762](https://github.com/Vncntz/hris/actions/runs/36700965762). It merged to protected `main` as `ff8b2655a93bcb4e433f89a47e45e8350c40a728`; [exact-merge-SHA push run 36701364403](https://github.com/Vncntz/hris/actions/runs/36701364403) passed all three jobs. The all-15-production-module guard and all eight architecture tests are on `main`. The [PR #24 coverage thread](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) is historical evidence addressed by TASK-0015. IMP-011 / TASK-0015 is `POST_MERGE_VERIFIED` / complete.
 - [TASK-0015](../tasks/TASK-0015.md) planning [PR #25](https://github.com/Vncntz/hris/pull/25) final head `963010ce0befb763b776ec7493947303e29e057c` passed policy/Linux/Windows in [exact-head PR run 36698034846](https://github.com/Vncntz/hris/actions/runs/36698034846). It merged as `fbf1d13b0638169aa19e29615dee2f801533abcd`; [exact-merge-SHA push run 36698351224](https://github.com/Vncntz/hris/actions/runs/36698351224) passed all three jobs. The implementation gate passed.
@@ -49,4 +50,4 @@ Last completed work order: [TASK-0016](../tasks/TASK-0016.md) under active [IMP-
 
 ## Next action
 
-Integrate the TASK-0017 planning record through protected `main`, verify exact-merge-SHA `push` CI, then implement only TASK-0017 under its work order. Keep IMP-012 closure and IMP-013 deferred until the successor fix and fresh-cycle acceptance review.
+Integrate the locally verified TASK-0017 fix through protected `main` and verify exact-merge-SHA `push` CI. Resolve PR #28 review thread `PRRT_kwDOUxlVNs6ng-cL` only after the fix is present on verified `main`. Keep IMP-012 closure and IMP-013 deferred until a fresh-cycle acceptance review.

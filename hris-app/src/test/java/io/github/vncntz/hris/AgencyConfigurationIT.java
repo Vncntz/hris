@@ -22,8 +22,12 @@ import java.time.ZoneId;
 import javax.sql.DataSource;
 
 import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -55,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = "vaadin.productionMode=true")
 @Import(AgencyConfigurationIT.FixedClockConfiguration.class)
+@TestMethodOrder(OrderAnnotation.class)
 class AgencyConfigurationIT {
     private static final Instant FIXED_TIME = Instant.parse("2026-09-30T02:15:40.123456Z");
     private static final PublicId ACTOR = PublicId.of(UUID.fromString("00000000-0000-0000-0000-000000000007"));
@@ -81,15 +86,21 @@ class AgencyConfigurationIT {
     private TestClock clock;
 
     @BeforeEach
-    void removeAgencyForIndependentTest() throws Exception {
+    void resetClock() {
         clock.set(FIXED_TIME);
+    }
+
+    @AfterEach
+    void removeAgencyForIndependentTest() throws Exception {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             statement.executeUpdate("DELETE FROM agency_configuration");
         }
     }
 
+    // Run before any test can create an Agency or trigger row cleanup.
     @Test
+    @Order(1)
     void cleanMigrationHasNoSeedAndRevalidationPreservesHistory() throws Exception {
         assertTrue(mysql.isRunning());
         try (Connection connection = dataSource.getConnection();
