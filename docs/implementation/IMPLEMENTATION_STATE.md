@@ -4,9 +4,9 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-010](tasks/IMP-010.md) / [TASK-0013](../tasks/TASK-0013.md) is `POST_MERGE_VERIFIED` / complete. [IMP-011](tasks/IMP-011.md) / [TASK-0014](../tasks/TASK-0014.md) is implementing; local verification passed, and final implementation PR CI and integration remain pending.
+M0 — Engineering Foundation. [IMP-011](tasks/IMP-011.md) remains ACTIVE. [TASK-0014](../tasks/TASK-0014.md) is `POST_MERGE_VERIFIED` / complete; [TASK-0015](../tasks/TASK-0015.md) is the planned focused production-module coverage follow-up. TASK-0015 implementation waits for this planning PR's exact-merge-SHA post-merge CI.
 
-Last completed work order: [TASK-0013](../tasks/TASK-0013.md) under completed [IMP-010](tasks/IMP-010.md).
+Last completed work order: [TASK-0014](../tasks/TASK-0014.md) under active [IMP-011](tasks/IMP-011.md).
 
 ## Active implementation decisions
 
@@ -20,13 +20,14 @@ Last completed work order: [TASK-0013](../tasks/TASK-0013.md) under completed [I
 
 ## Blockers and open verification
 
-- TASK-0014's planning gate passed: [PR #23](https://github.com/Vncntz/hris/pull/23) final head `06f7659e95abba098b3ec710ee46e391542bf4ff` passed all three jobs in [run 36677926894](https://github.com/Vncntz/hris/actions/runs/36677926894), merged as `f2da4b1902b22b516ecdcb74c46265d663cd13cf`, and passed all three jobs in [exact-SHA push run 36678138396](https://github.com/Vncntz/hris/actions/runs/36678138396). Implementation PR exact-head CI, protected-main integration, and exact-merge-SHA push CI remain pending.
+- TASK-0015 planning and implementation gates remain pending. TASK-0014's seven architecture checks run in normal CI, but the production-import coverage assertion checks only representative Identity & Access and Platform Operations classes. [TASK-0015](../tasks/TASK-0015.md) must make every expected production module visible to the architecture rules; the [unresolved PR #24 finding](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) is supporting evidence, not execution authority.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
 
 ## Completed evidence
 
+- [IMP-011](tasks/IMP-011.md) / [TASK-0014](../tasks/TASK-0014.md) [implementation PR #24](https://github.com/Vncntz/hris/pull/24) final head `903aec4a040fea3d943f2da3ec3bb78184f961da` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head PR run 36679651944](https://github.com/Vncntz/hris/actions/runs/36679651944). It merged as `3f5de3d5544f6cc3fc6f8ea897f6d633066f7283`; [exact-merge-SHA push run 36679928125](https://github.com/Vncntz/hris/actions/runs/36679928125) passed all three jobs. TASK-0014 is `POST_MERGE_VERIFIED` / complete. IMP-011 stays active for TASK-0015's coverage hardening.
 - [IMP-010](tasks/IMP-010.md) / [TASK-0013](../tasks/TASK-0013.md) [PR #22](https://github.com/Vncntz/hris/pull/22) final head `4d7d537fd2911831fb1ad105c7c98ab63f5bcb36` passed policy/Linux/Windows in [exact-head PR run 36675258199](https://github.com/Vncntz/hris/actions/runs/36675258199). It merged as `712818a3f320f50692b05af1f167d1babdcb34f7`; [exact-merge-SHA push run 36675558743](https://github.com/Vncntz/hris/actions/runs/36675558743) passed all three jobs. The generator skeleton now has explicit versioning, S/M/L/XL population targets, deterministic seed/scenario/options handling, canonical SHA-256 dataset identity, visibly fictional deterministic record IDs, lazy XL generation through 100,000 records, tests, and extension documentation. Post-task review found no further IMP-010 foundation task; business-domain loaders, persistence, scenario expansion, and performance qualification remain later-owned. IMP-010 / TASK-0013 is `POST_MERGE_VERIFIED` / complete.
 
 - [IMP-009](tasks/IMP-009.md) / [TASK-0012](../tasks/TASK-0012.md) [PR #21](https://github.com/Vncntz/hris/pull/21) final head `e6d14fda52a5eef4c138a967d9f93b4ba48abf32` passed policy/Linux/Windows in [exact-head PR run 36672125046](https://github.com/Vncntz/hris/actions/runs/36672125046). It merged as `4ad9c46c13729b2e8b1baba74baf602e9eab19e5`; [exact-merge-SHA push run 36672409587](https://github.com/Vncntz/hris/actions/runs/36672409587) passed all three jobs on that SHA. Both Linux runs passed `AccountAuthenticationIT` (1), `AuditPersistenceIT` (3), and `MySqlDatasourceIT` (2) against MySQL 8.4.11 with zero failures, errors, or skips. IMP-009's post-merge scope review found no additional IMP-009 TASK is required; later ownership of TOTP, privileged re-authentication, password calibration, and security-event audit integration remains as recorded in its control file. IMP-009 / TASK-0012 is `POST_MERGE_VERIFIED` / complete.
@@ -45,4 +46,4 @@ Last completed work order: [TASK-0013](../tasks/TASK-0013.md) under completed [I
 
 ## Next action
 
-Integrate the locally verified IMP-011 / TASK-0014 implementation PR after exact-head policy/Linux/Windows CI, then verify all three required `push` CI jobs on its exact merge SHA.
+Complete the TASK-0015 planning PR through exact-head policy/Linux/Windows CI and protected-main integration, then verify all three `push` CI jobs on its exact merge SHA. Begin TASK-0015 implementation only after that planning gate passes under a separate authorization.
