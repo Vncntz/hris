@@ -14,8 +14,9 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0006](TASK-0006.md) | [IMP-087](../implementation/tasks/IMP-087.md) | Complete | Java codebase polish |
 | [TASK-0007](TASK-0007.md) | [IMP-004](../implementation/tasks/IMP-004.md) | Complete | Real MySQL integration-test baseline |
 | [TASK-0008](TASK-0008.md) | [IMP-005](../implementation/tasks/IMP-005.md) | Complete | Flyway foundation and global migration ordering |
-| [TASK-0009](TASK-0009.md) | [IMP-006](../implementation/tasks/IMP-006.md) | Implementing; local verification passed | Shared identifier, money, and business-time primitives |
+| [TASK-0009](TASK-0009.md) | [IMP-006](../implementation/tasks/IMP-006.md) | Complete; post-merge CI passed | Shared identifier, money, and business-time primitives |
+| [TASK-0010](TASK-0010.md) | [IMP-007](../implementation/tasks/IMP-007.md) | Implementing; combined PR #18 | Configuration, secrets, and environment conventions |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. This historical drift is left intact.
 
-The frozen backlog reserves IMP-001 through IMP-086. [IMP-087](../implementation/tasks/IMP-087.md) is the separately authorized completed maintenance parent. [IMP-004](../implementation/tasks/IMP-004.md) / TASK-0007 reached `POST_MERGE_VERIFIED` on PR #12's passing post-merge `push` CI. [IMP-005](../implementation/tasks/IMP-005.md) / TASK-0008 reached `POST_MERGE_VERIFIED` on PR #14's passing post-merge `push` CI. [IMP-006](../implementation/tasks/IMP-006.md) / TASK-0009 planning PR #15 passed its post-merge CI; implementation is in progress.
+The frozen backlog reserves IMP-001 through IMP-086. [IMP-087](../implementation/tasks/IMP-087.md) is the separately authorized completed maintenance parent. [IMP-004](../implementation/tasks/IMP-004.md) / TASK-0007 reached `POST_MERGE_VERIFIED` on PR #12's passing post-merge `push` CI. [IMP-005](../implementation/tasks/IMP-005.md) / TASK-0008 reached `POST_MERGE_VERIFIED` on PR #14's passing post-merge `push` CI. [IMP-006](../implementation/tasks/IMP-006.md) / TASK-0009 reached `POST_MERGE_VERIFIED` on PR #16's passing post-merge `push` CI. IMP-007 / TASK-0010 is the active combined work-order and implementation PR.

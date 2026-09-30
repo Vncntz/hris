@@ -12,7 +12,7 @@ java -jar .\hris-app\target\hris-app-0.1.0-SNAPSHOT.jar --spring.profiles.active
 
 Open http://127.0.0.1:18080/ after startup. Stop with Ctrl+C.
 
-On Linux/macOS, replace `.\mvnw.cmd` with `./mvnw` (or `sh ./mvnw` if not executable). The `dev` profile binds loopback for local use. Normal configuration leaves the server address open to on-premises LAN configuration.
+On Linux/macOS, replace `.\mvnw.cmd` with `./mvnw` (or `sh ./mvnw` if not executable). The `dev` profile binds loopback for local use and must be activated explicitly. The [runtime configuration convention](docs/deployment/configuration.md) covers external installation settings and protected secrets for Windows and Ubuntu. Normal LAN deployment and HTTPS setup remain later work.
 
 The [CI workflow](.github/workflows/ci.yml) runs on pull requests, `main` pushes, and manual dispatch. Its policy job checks the frozen planning paths and generated planning index before both builds. New runs for a PR cancel older in-progress runs for that PR; each `main` push runs separately. Ubuntu 24.04 runs `./mvnw -B -Pmysql-it clean verify`, including the real MySQL test. Windows 2025 runs the ordinary `clean verify` reactor, including compilation, packaging, and the HTTP smoke test, without repeating the container test. Both use JDK 25. The stable build job names are `ci / build-linux` and `ci / build-windows`.
 

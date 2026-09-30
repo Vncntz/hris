@@ -1,3 +1,3 @@
 # Deployment documentation
 
-Add deployment and operational procedures with the code they govern. No production deployment procedure has been established by IMP-002. The current local build and run commands are in the root [README](../../README.md).
+The [runtime configuration and secrets convention](configuration.md) defines external configuration sources and logical Windows/Ubuntu locations. Production service setup remains later work. The current local build and run commands are in the root [README](../../README.md).
