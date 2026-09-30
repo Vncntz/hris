@@ -11,6 +11,7 @@ Last completed work order: [TASK-0008](../tasks/TASK-0008.md) under completed [I
 ## Active implementation decisions
 
 - The latest explicit operator instruction authorizes gated automatic merge for ordinary eligible PRs. A later explicit instruction or task can require human merge.
+- The operator authorized a single combined PR for each complete local IMP/TASK pair and its implementation after an explicit implementation prompt. Codex commits the work orders with the code; a separate planning PR is not required. The next task PR reconciles verified predecessor closeout.
 - The repository is public by the user's explicit decision, overriding the frozen private-repository baseline for this repository. Frozen planning sources remain unchanged.
 - Protected `main` requires PR integration, applies to administrators, and disallows force-push and deletion. The user directed that protection remain unchanged after IMP-003; `ci / build-linux` and `ci / build-windows` are policy checks but are not GitHub-required status checks. Do not change remote settings without a separate explicit decision.
 - The dedicated Git Integration Agent may merge only after independently passing all current [integration gates](GIT_INTEGRATION_AGENT.md). This does not grant protection bypass. Dependabot PRs remain human-reviewed unless separately authorized later.
@@ -35,4 +36,4 @@ Last completed work order: [TASK-0008](../tasks/TASK-0008.md) under completed [I
 
 ## Next action
 
-Integrate the TASK-0009 implementation PR after independent gates, then verify the required `push` CI on its exact `main` merge SHA. Reconcile tracked completion in the next planning PR.
+Integrate the TASK-0009 implementation PR after independent gates, then verify the required `push` CI on its exact `main` merge SHA. Reconcile tracked completion in the next task PR.
