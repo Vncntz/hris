@@ -1,0 +1,9 @@
+# Platform/Operations audit foundation
+
+Platform/Operations owns the JPA-backed `AuditRecorder` implementation and the `audit_event` table. Callers provide actor reference, action, target type/reference, optional reason, and an optional short context summary. The recorder assigns a public UUID and a UTC timestamp from an injected clock. It truncates the timestamp to MySQL's microsecond precision. V2 stores it in a `DATETIME(6)` column using explicit UTC conversion, independent of the database session's time zone.
+
+`AuditRecorder.record` joins an existing Spring transaction. Without one, its `@Transactional` boundary starts a short transaction. A rollback of the surrounding command removes its audit insert. Future application services must call the recorder at their own material command boundaries; this task has no business-module call sites. The actor is supplied by the caller until Identity & Access integration exists. Do not derive or invent an actor from a security context here.
+
+The application contract supports append only. The JPA entity stays inside Platform/Operations, and MySQL `BEFORE UPDATE` and `BEFORE DELETE` triggers reject ordinary row changes. Privileged DDL, including `TRUNCATE` and `DROP`, is outside those trigger protections and belongs to database administration controls. Audit events complement authoritative domain history; they do not replace effective-dated or finalized domain records.
+
+Actor/action/target fields are bounded at 128/64/64/128 characters, reason at 512, and context at 1024. Context is a privacy-minimized summary, not arbitrary JSON or serialized entity state. Never record credentials, private keys, secret configuration, uploaded documents, government identifiers, payroll line details, or unrestricted personal data. Tests use synthetic values only.

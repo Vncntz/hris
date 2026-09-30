@@ -4,9 +4,9 @@ Last updated: 2026-09-30. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation. [IMP-006](tasks/IMP-006.md) / [TASK-0009](../tasks/TASK-0009.md) is `POST_MERGE_VERIFIED` / complete. [IMP-007](tasks/IMP-007.md) / [TASK-0010](../tasks/TASK-0010.md) is the active combined work-order and implementation PR #18; local implementation verification has passed, and final-head PR CI, integration, and post-merge CI remain pending.
+M0 — Engineering Foundation. [IMP-007](tasks/IMP-007.md) / [TASK-0010](../tasks/TASK-0010.md) is `POST_MERGE_VERIFIED` / complete. [IMP-008](tasks/IMP-008.md) / [TASK-0011](../tasks/TASK-0011.md) is the active combined work-order and implementation item.
 
-Last completed work order: [TASK-0009](../tasks/TASK-0009.md) under completed [IMP-006](tasks/IMP-006.md).
+Last completed work order: [TASK-0010](../tasks/TASK-0010.md) under completed [IMP-007](tasks/IMP-007.md).
 
 ## Active implementation decisions
 
@@ -20,12 +20,14 @@ Last completed work order: [TASK-0009](../tasks/TASK-0009.md) under completed [I
 
 ## Blockers and open verification
 
-- TASK-0010 combined PR #18 requires exact-head policy/Linux/Windows CI after adding the work orders, protected-main integration, and successful exact-merge-SHA `push` CI before completion.
+- TASK-0011 requires local verification, a combined PR, exact-head policy/Linux/Windows CI, protected-main integration, and exact-merge-SHA `push` CI before completion.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
 
 ## Completed evidence
+
+- [IMP-007](tasks/IMP-007.md) / [TASK-0010](../tasks/TASK-0010.md) [PR #18](https://github.com/Vncntz/hris/pull/18) final head `dc95e95ac2b932d51fd7fa72cc268975f31bb578` passed policy/Linux/Windows [PR run 36658388543](https://github.com/Vncntz/hris/actions/runs/36658388543). It merged as `fcc5ebfb99b44d419cd392b54aa8d31c47042fac`; [post-merge `push` run 36658621739](https://github.com/Vncntz/hris/actions/runs/36658621739) passed all three jobs on that SHA. Linux executed `MySqlDatasourceIT` against MySQL 8.4.11 with zero failures/errors/skips. IMP-007 / TASK-0010 is `POST_MERGE_VERIFIED` / complete.
 
 - [IMP-001](tasks/IMP-001.md) records the Maven skeleton, full local reactor, application startup, HTTP, shutdown, and wrapper verification.
 - [IMP-002](tasks/IMP-002.md) / [TASK-0001](../tasks/TASK-0001.md) record repository governance and branch-protection evidence.
@@ -37,4 +39,4 @@ Last completed work order: [TASK-0009](../tasks/TASK-0009.md) under completed [I
 
 ## Next action
 
-Complete TASK-0010 PR #18's final-head verification and independent integration gates, merge through protected `main` when eligible, then verify required `push` CI on its exact merge SHA.
+Implement and verify IMP-008 / TASK-0011, integrate its combined PR through protected `main`, then verify required `push` CI on the exact merge SHA.

@@ -27,6 +27,17 @@ upgrade proceeds.
 `V1` creates only a constant technical view. It proves application, history,
 and repeat validation without introducing business schema or data.
 
+`V2__create_audit_event.sql` creates Platform/Operations audit storage and
+MySQL triggers rejecting ordinary UPDATE and DELETE statements. It introduces
+no data transformation. `DATETIME(6)` holds UTC wall time by explicit
+application conversion; `BINARY(16)` holds the stable public event UUID.
+On MySQL with binary logging enabled, creating V2's triggers requires a migration
+account with the server's required elevated privilege or a DBA-approved
+`log_bin_trust_function_creators=1` setting. The disposable integration server
+uses that setting solely to exercise the trigger migration and enforcement.
+See the [MySQL 8.4 trigger privilege rules](https://dev.mysql.com/doc/refman/8.4/en/create-trigger.html)
+and [binary-log option](https://dev.mysql.com/doc/refman/8.4/en/replication-options-binary-log.html).
+
 ## Verify locally
 
 - Ordinary reactor and database-independent application smoke test: on Windows,
