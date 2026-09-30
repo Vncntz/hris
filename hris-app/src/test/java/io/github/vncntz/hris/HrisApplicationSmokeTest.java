@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import io.github.vncntz.hris.sharedkernel.AuditRecorder;
 import io.github.vncntz.hris.identityaccess.AccountAuthenticationService;
+import io.github.vncntz.hris.platformoperations.AgencyConfigurationService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,6 +33,9 @@ class HrisApplicationSmokeTest {
 
     @MockitoBean
     private AccountAuthenticationService accountAuthenticationService;
+
+    @MockitoBean
+    private AgencyConfigurationService agencyConfigurationService;
 
     @Value("${local.server.port}")
     private int port;

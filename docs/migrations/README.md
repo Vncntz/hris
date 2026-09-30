@@ -40,6 +40,8 @@ and [binary-log option](https://dev.mysql.com/doc/refman/8.4/en/replication-opti
 
 `V3__create_identity_access_authentication.sql` creates the minimal Identity & Access account table. It stores a compact internal key, binary public UUID, canonical unique ASCII login, versioned password hash, enabled state, failure count, UTC lock and security timestamps, and an optimistic row version. It creates no account, role, permission, MFA, Worker link, or production-data transformation. Clean migrations through V3 still run V2, including its binary-logging trigger-creation privilege prerequisite above.
 
+`V4__create_agency_configuration.sql` creates Platform/Operations' single Agency configuration row structure. A fixed key constrained to `1` enforces one row per database; the table also stores a unique binary public UUID, bounded display name, explicit IANA zone name, UTC creation/update wall times, and an optimistic row version. V4 creates no Agency row or production default. Application commands supply both a display name and explicit time zone during initialization.
+
 ## Verify locally
 
 - Ordinary reactor and database-independent application smoke test: on Windows,
