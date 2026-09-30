@@ -19,6 +19,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <vaadin.version>25.3.0</vaadin.version>
     <bouncycastle.version>1.86</bouncycastle.version>
+    <archunit.version>1.5.1</archunit.version>
   </properties>
   <modules>
     <module>shared-kernel</module>
@@ -40,6 +41,11 @@
   </modules>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit</artifactId>
+        <version>${archunit.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.bouncycastle</groupId>
         <artifactId>bcprov-jdk18on</artifactId>
@@ -151,6 +157,20 @@
                 <requireJavaVersion>
                   <version>[25,26)</version>
                 </requireJavaVersion>
+                <!-- No distributed messaging/cache infrastructure without an approved ADR and task. -->
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>org.apache.kafka:*</exclude>
+                    <exclude>org.springframework.kafka:*</exclude>
+                    <exclude>org.springframework.data:spring-data-redis*</exclude>
+                    <exclude>org.springframework.boot:spring-boot-starter-data-redis*</exclude>
+                    <exclude>io.lettuce:*</exclude>
+                    <exclude>redis.clients:*</exclude>
+                    <exclude>org.redisson:*</exclude>
+                  </excludes>
+                  <searchTransitive>true</searchTransitive>
+                  <message>Kafka and Redis dependency families require an approved architecture decision and task.</message>
+                </bannedDependencies>
               </rules>
             </configuration>
           </execution>
