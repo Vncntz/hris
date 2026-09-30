@@ -63,17 +63,21 @@ class MySqlDatasourceIT {
                     "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '1' AND success = 1"));
             assertEquals(1, queryInt(statement,
                     "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '2' AND success = 1"));
-            assertEquals(2, queryInt(statement, "SELECT COUNT(*) FROM flyway_schema_history"));
+            assertEquals(1, queryInt(statement,
+                    "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '3' AND success = 1"));
+            assertEquals(3, queryInt(statement, "SELECT COUNT(*) FROM flyway_schema_history"));
             assertEquals("V1__create_technical_baseline_view.sql", queryString(statement,
                     "SELECT script FROM flyway_schema_history WHERE version = '1'"));
             assertEquals("V2__create_audit_event.sql", queryString(statement,
                     "SELECT script FROM flyway_schema_history WHERE version = '2'"));
+            assertEquals("V3__create_identity_access_authentication.sql", queryString(statement,
+                    "SELECT script FROM flyway_schema_history WHERE version = '3'"));
 
             int checksum = queryInt(statement,
                     "SELECT checksum FROM flyway_schema_history WHERE version = '1'");
             flyway.validate();
             assertEquals(0, flyway.migrate().migrationsExecuted);
-            assertEquals(2, queryInt(statement, "SELECT COUNT(*) FROM flyway_schema_history"));
+            assertEquals(3, queryInt(statement, "SELECT COUNT(*) FROM flyway_schema_history"));
             assertEquals(checksum, queryInt(statement,
                     "SELECT checksum FROM flyway_schema_history WHERE version = '1'"));
 

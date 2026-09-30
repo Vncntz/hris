@@ -38,6 +38,8 @@ uses that setting solely to exercise the trigger migration and enforcement.
 See the [MySQL 8.4 trigger privilege rules](https://dev.mysql.com/doc/refman/8.4/en/create-trigger.html)
 and [binary-log option](https://dev.mysql.com/doc/refman/8.4/en/replication-options-binary-log.html).
 
+`V3__create_identity_access_authentication.sql` creates the minimal Identity & Access account table. It stores a compact internal key, binary public UUID, canonical unique ASCII login, versioned password hash, enabled state, failure count, UTC lock and security timestamps, and an optimistic row version. It creates no account, role, permission, MFA, Worker link, or production-data transformation. Clean migrations through V3 still run V2, including its binary-logging trigger-creation privilege prerequisite above.
+
 ## Verify locally
 
 - Ordinary reactor and database-independent application smoke test: on Windows,
