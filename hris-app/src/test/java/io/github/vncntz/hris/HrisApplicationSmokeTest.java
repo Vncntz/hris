@@ -11,6 +11,9 @@ import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import io.github.vncntz.hris.sharedkernel.AuditRecorder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         }
 )
 class HrisApplicationSmokeTest {
+    @MockitoBean
+    private AuditRecorder auditRecorder;
+
     @Value("${local.server.port}")
     private int port;
 

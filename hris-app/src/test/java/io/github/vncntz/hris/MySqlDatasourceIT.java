@@ -28,7 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MySqlDatasourceIT {
     @Container
     @ServiceConnection
-    static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11");
+    static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
+            .withCommand("--log-bin-trust-function-creators=1");
 
     @Autowired
     private DataSource dataSource;
@@ -60,15 +61,19 @@ class MySqlDatasourceIT {
             assertEquals(1, queryInt(statement, "SELECT baseline_version FROM hris_migration_baseline"));
             assertEquals(1, queryInt(statement,
                     "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '1' AND success = 1"));
-            assertEquals(1, queryInt(statement, "SELECT COUNT(*) FROM flyway_schema_history"));
+            assertEquals(1, queryInt(statement,
+                    "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '2' AND success = 1"));
+            assertEquals(2, queryInt(statement, "SELECT COUNT(*) FROM flyway_schema_history"));
             assertEquals("V1__create_technical_baseline_view.sql", queryString(statement,
                     "SELECT script FROM flyway_schema_history WHERE version = '1'"));
+            assertEquals("V2__create_audit_event.sql", queryString(statement,
+                    "SELECT script FROM flyway_schema_history WHERE version = '2'"));
 
             int checksum = queryInt(statement,
                     "SELECT checksum FROM flyway_schema_history WHERE version = '1'");
             flyway.validate();
             assertEquals(0, flyway.migrate().migrationsExecuted);
-            assertEquals(1, queryInt(statement, "SELECT COUNT(*) FROM flyway_schema_history"));
+            assertEquals(2, queryInt(statement, "SELECT COUNT(*) FROM flyway_schema_history"));
             assertEquals(checksum, queryInt(statement,
                     "SELECT checksum FROM flyway_schema_history WHERE version = '1'"));
 

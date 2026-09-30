@@ -1,6 +1,8 @@
 # Shared kernel
 
-`shared-kernel` provides five immutable, neutral Java value types. It has no production dependency outside the JDK. Domain modules own their entities, persistence mappings, policy, and installation configuration.
+`shared-kernel` provides immutable, neutral Java value types and the audit recording contract. It has no production dependency outside the JDK. Domain modules own their entities, persistence mappings, policy, and installation configuration.
+
+`AuditRequest` carries an explicit caller-supplied actor reference, action, target type/reference, optional reason, and optional context summary. `AuditRecorder.record` returns `RecordedAuditEvent` with a `PublicId` and `UtcInstant`. Platform/Operations supplies the implementation; the shared contract has no update or delete operation.
 
 | Type | Meaning and boundary |
 | --- | --- |

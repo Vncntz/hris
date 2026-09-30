@@ -1,2 +1,2 @@
-/** Structural placeholder for the platform-operations module; no functionality is implemented. */
+/** Platform-owned audit persistence and technical time configuration. */
 package io.github.vncntz.hris.platformoperations;
