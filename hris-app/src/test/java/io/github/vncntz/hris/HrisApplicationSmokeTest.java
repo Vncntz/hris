@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import io.github.vncntz.hris.sharedkernel.AuditRecorder;
+import io.github.vncntz.hris.identityaccess.AccountAuthenticationService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,12 +30,15 @@ class HrisApplicationSmokeTest {
     @MockitoBean
     private AuditRecorder auditRecorder;
 
+    @MockitoBean
+    private AccountAuthenticationService accountAuthenticationService;
+
     @Value("${local.server.port}")
     private int port;
 
     @Test
-    void rootServesVaadinBootstrapHtml() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/"))
+    void anonymousLoginServesVaadinBootstrapAndRootRequiresAuthentication() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/login"))
                 .timeout(Duration.ofSeconds(15))
                 .GET()
                 .build();
@@ -48,6 +52,11 @@ class HrisApplicationSmokeTest {
             assertTrue(contentType.toLowerCase(Locale.ROOT).startsWith("text/html"), contentType);
             assertTrue(response.body().toLowerCase(Locale.ROOT).contains("<html"));
             assertTrue(response.body().contains("window.Vaadin"));
+            HttpResponse<Void> protectedRoot = client.send(HttpRequest.newBuilder(
+                            URI.create("http://127.0.0.1:" + port + "/")).GET().build(),
+                    HttpResponse.BodyHandlers.discarding());
+            assertEquals(302, protectedRoot.statusCode());
+            assertTrue(protectedRoot.headers().firstValue("location").orElse("").contains("login"));
         }
     }
 }
