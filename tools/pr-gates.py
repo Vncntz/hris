@@ -3,8 +3,8 @@
 
 Run the copy checked out from trusted, current main. A PENDING CI result is not
 a failure: exit 2 means wait, exit 1 means a failed/error gate, and exit 0
-means all mechanical gates passed. Human review of task scope, local evidence,
-security, and governance remains mandatory before merge.
+means all mechanical gates passed. Independent review of task scope, local
+evidence, security, and governance remains mandatory before merge.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from urllib.parse import urlencode
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_JOBS = ("ci / build-linux", "ci / build-windows")
+EXPECTED_JOBS = ("ci / policy", "ci / build-linux", "ci / build-windows")
 FROZEN = (
     "docs/planning/MASTER_SOFTWARE_PLAN.md",
     "docs/planning/FINAL_PLANNING_STATE.md",
@@ -106,10 +106,46 @@ def ci_for(repo: str, branch: str, sha: str) -> tuple[str, int | None, dict[str,
     return status, run_id, states
 
 
+def metadata_snapshot(pull: dict) -> dict:
+    """Validate and capture the mechanical facts whose changes invalidate evidence."""
+    try:
+        base, head = pull["base"], pull["head"]
+        base_repo, head_repo = base["repo"], head["repo"]
+        snapshot = {
+            "state": pull["state"],
+            "draft": pull["draft"],
+            "base_ref": base["ref"],
+            "base_sha": base["sha"],
+            "head_ref": head["ref"],
+            "head_sha": head["sha"],
+            "base_repository_id": base_repo["id"],
+            "head_repository_id": head_repo["id"],
+            "base_repository": base_repo["full_name"],
+            "head_repository": head_repo["full_name"],
+            "base_owner": base_repo["owner"]["login"],
+            "author": pull["user"]["login"],
+            "head_is_fork": head_repo["fork"],
+        }
+    except (KeyError, TypeError) as error:
+        raise CommandError(f"PR metadata is incomplete: {error}") from error
+    for name, value in snapshot.items():
+        if name in ("draft", "head_is_fork"):
+            valid = type(value) is bool
+        elif name.endswith("_id"):
+            valid = type(value) is int and value > 0
+        else:
+            valid = isinstance(value, str) and bool(value)
+        if not valid:
+            raise CommandError(f"PR metadata field {name} is missing or malformed")
+    return snapshot
+
+
 def evaluate(number: int) -> dict:
     result = {
         "pr": number,
         "head_sha": None,
+        "base_sha": None,
+        "metadata_snapshot": None,
         "base_ref": None,
         "base_ok": False,
         "author_login": None,
@@ -130,6 +166,7 @@ def evaluate(number: int) -> dict:
     try:
         checkout_repo = json.loads(run("gh", "repo", "view", "--json", "nameWithOwner"))["nameWithOwner"]
         pull = gh_json(f"repos/{checkout_repo}/pulls/{number}")
+        snapshot = metadata_snapshot(pull)
     except (CommandError, KeyError, TypeError, ValueError) as error:
         errors.append(f"PR metadata unavailable: {error}")
         return result
@@ -148,6 +185,8 @@ def evaluate(number: int) -> dict:
     author = (pull.get("user") or {}).get("login")
 
     result["head_sha"] = sha
+    result["base_sha"] = base_sha
+    result["metadata_snapshot"] = snapshot
     result["base_ref"] = base.get("ref")
     result["base_ok"] = base.get("ref") == "main"
     result["author_login"] = author
@@ -163,7 +202,7 @@ def evaluate(number: int) -> dict:
         errors.append("PR does not target main")
     if not result["same_repo"]:
         errors.append("PR head repository differs from base repository")
-    if head_repo.get("fork") and not result["same_repo"]:
+    if head_repo.get("fork"):
         errors.append("PR originates from an external fork")
     if author in ("dependabot[bot]", "dependabot"):
         errors.append("Dependabot PR requires human review and merge")
@@ -209,8 +248,14 @@ def evaluate(number: int) -> dict:
 
     try:
         current = gh_json(f"repos/{repo}/pulls/{number}")
-        if (current.get("head") or {}).get("sha") != sha:
-            errors.append("PR head moved during gate evaluation")
+        current_snapshot = metadata_snapshot(current)
+        changed_fields = sorted(
+            name for name in snapshot if current_snapshot[name] != snapshot[name]
+        )
+        if changed_fields:
+            errors.append(
+                "PR metadata changed during gate evaluation: " + ", ".join(changed_fields)
+            )
     except (CommandError, ValueError) as error:
         errors.append(f"PR head recheck unavailable: {error}")
     return result
