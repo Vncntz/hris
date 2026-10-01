@@ -2,6 +2,7 @@ package io.github.vncntz.hris.identityaccess;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ public class AccountAuthenticationService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Optional<AccountPrincipal> authenticate(String suppliedLogin, String rawPassword) {
+    public Optional<AuthenticatedAccount> authenticate(String suppliedLogin, String rawPassword) {
         String canonical;
         try {
             canonical = LoginNames.canonicalize(suppliedLogin);
@@ -56,6 +57,11 @@ public class AccountAuthenticationService {
             return Optional.empty();
         }
         account.recordSuccess(now);
-        return Optional.of(new AccountPrincipal(account.publicId(), account.canonicalLogin()));
+        List<String> authorityKeys = accounts.findAssignedRoles(account.id()).stream()
+                .filter(RoleEntity::enabled)
+                .flatMap(role -> role.authorityKeys().stream())
+                .distinct().sorted().toList();
+        return Optional.of(new AuthenticatedAccount(
+                new AccountPrincipal(account.publicId(), account.canonicalLogin()), authorityKeys));
     }
 }

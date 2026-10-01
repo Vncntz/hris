@@ -42,6 +42,8 @@ and [binary-log option](https://dev.mysql.com/doc/refman/8.4/en/replication-opti
 
 `V4__create_agency_configuration.sql` creates Platform/Operations' single Agency configuration row structure. A fixed key constrained to `1` enforces one row per database; the table also stores a unique binary public UUID, bounded display name, explicit IANA zone name, UTC creation/update wall times, and an optimistic row version. V4 creates no Agency row or production default. Application commands supply both a display name and explicit time zone during initialization.
 
+`V5__create_identity_authorization.sql` adds Identity & Access roles, permission authority keys, account-role membership, and role-permission membership. Unique role UUIDs/names and authority keys, canonical ASCII CHECK constraints, composite membership primary keys, and explicit RESTRICT foreign keys protect relational integrity. Membership primary keys support authentication lookup; reverse indexes support referenced-key checks. V5 seeds no account, role, permission, membership, credential, or customer value and does not rewrite prior data. The real-MySQL tests cover a clean migration and an upgrade from V4 preserving an existing synthetic account. Released V1–V4 are unchanged; later evolution requires forward migrations. The canonical checks use MySQL 8.4's [CHECK constraints](https://dev.mysql.com/doc/refman/8.4/en/create-table-check-constraints.html) and [case-sensitive regular expression matching](https://dev.mysql.com/doc/refman/8.4/en/regexp.html).
+
 ## Verify locally
 
 - Ordinary reactor and database-independent application smoke test: on Windows,
