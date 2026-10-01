@@ -35,6 +35,8 @@ jobs:
           if ($changed.Count -ne 0) { throw "Frozen planning source changed: $($changed -join ', ')" }
       - name: Check generated planning index
         run: python tools/plan-index.py --check
+      - name: Test deterministic PR gates
+        run: python -B -m unittest discover -s tools/tests -p 'test_*.py' -v
 
   build-linux:
     name: ci / build-linux
