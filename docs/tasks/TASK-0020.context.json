@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "task": "TASK-0020",
+  "imp": "IMP-088",
+  "decisions": ["D-131", "D-132", "D-134", "D-140"],
+  "references": [
+    "docs/implementation/EXECUTION_RULES.md",
+    "docs/implementation/REPOSITORY_WORKFLOW.md",
+    "docs/implementation/GIT_INTEGRATION_AGENT.md"
+  ]
+}

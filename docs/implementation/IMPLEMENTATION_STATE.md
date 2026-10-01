@@ -4,13 +4,13 @@ Last updated: 2026-10-01. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) awaiting its explicit fresh-cycle closure review; [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED` / complete. The current focused maintenance work is [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md). IMP-013 has not begun.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) awaiting its explicit fresh-cycle closure review; [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED` / complete. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md) is also `POST_MERGE_VERIFIED`; [TASK-0020](../tasks/TASK-0020.md) is locally verified and awaiting PR integration. IMP-013 has not begun.
 
-Last completed work order: [TASK-0018](../tasks/TASK-0018.md) under [IMP-012](tasks/IMP-012.md).
+Last completed work order: [TASK-0019](../tasks/TASK-0019.md) under [IMP-088](tasks/IMP-088.md).
 
 ## Active implementation decisions
 
-- The operator requested implementation of the repository-specific coding-agent workflow recommendations; IMP-088 / TASK-0019 is the first focused maintenance slice. Remote governance settings remain unchanged pending a specific decision.
+- The operator requested implementation of the repository-specific coding-agent workflow recommendations; IMP-088 / TASK-0019 is the first completed maintenance slice. The operator explicitly authorized IMP-088 / TASK-0020 for the context-packet recommendation. Remote governance settings remain unchanged pending a specific decision.
 - The latest explicit operator instruction authorizes gated automatic merge for ordinary eligible PRs. A later explicit instruction or task can require human merge.
 - The operator authorized a single combined PR for each complete local IMP/TASK pair and its implementation after an explicit implementation prompt. Codex commits the work orders with the code; a separate planning PR is not required. The next task PR reconciles verified predecessor closeout.
 - [Governance PR #19](https://github.com/Vncntz/hris/pull/19) merged as `ea880d1ada243deec86e9a3a2c3e5c167c6a44dc`; [post-merge `push` run 36657908607](https://github.com/Vncntz/hris/actions/runs/36657908607) passed policy, Linux, and Windows on that exact SHA, making the combined-PR workflow effective.
@@ -28,6 +28,7 @@ Last completed work order: [TASK-0018](../tasks/TASK-0018.md) under [IMP-012](ta
 
 ## Completed evidence
 
+- [TASK-0019](../tasks/TASK-0019.md) [PR #33](https://github.com/Vncntz/hris/pull/33) final head `d90ce54ccd030041b566182483c40f655ac53e03` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36817863949](https://github.com/Vncntz/hris/actions/runs/36817863949). It merged through protected `main` as `af094b72d3d0ae6392f8229890cc722224f4fa9b`; [actual merge-SHA push run 36819892901](https://github.com/Vncntz/hris/actions/runs/36819892901) passed those three jobs on that SHA. TASK-0019 is `POST_MERGE_VERIFIED` / complete.
 - [TASK-0018](../tasks/TASK-0018.md) implementation [PR #32](https://github.com/Vncntz/hris/pull/32) final head `1ea3db6ce8e389afb0be45ab0f5987141b647fcd` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36737850496](https://github.com/Vncntz/hris/actions/runs/36737850496). It merged to protected `main` as `42e16c4b4292bef50c8d5b1a49cc45c9958fa00b`; [exact-merge-SHA push run 36792294156](https://github.com/Vncntz/hris/actions/runs/36792294156) passed the same jobs. TASK-0018 is `POST_MERGE_VERIFIED` / complete. IMP-012 awaits a separate fresh-cycle closure review.
 - [TASK-0018](../tasks/TASK-0018.md) planning [PR #31](https://github.com/Vncntz/hris/pull/31) final head `12cc883a70b374a352f0f9f460be7fd1db7878da` passed policy, Linux, and Windows in [exact-head run 36733623709](https://github.com/Vncntz/hris/actions/runs/36733623709). It merged to protected `main` as `8457a4b6f09acd34824266a16486659450e8d840`; [exact-merge-SHA push run 36734083837](https://github.com/Vncntz/hris/actions/runs/36734083837) passed the same jobs. Local TASK-0018 implementation verification passed before PR #32.
 - [IMP-012](tasks/IMP-012.md) / [TASK-0017](../tasks/TASK-0017.md) implementation [PR #30](https://github.com/Vncntz/hris/pull/30) final head `32c6381d65165418cd2afc249db37e1057ee8a8a` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36728288068](https://github.com/Vncntz/hris/actions/runs/36728288068). It merged to protected `main` as `b32dc8e8cab6cfd615b3be4d77d7202e225de8c4`; [exact-merge-SHA push run 36728840447](https://github.com/Vncntz/hris/actions/runs/36728840447) passed the same three jobs. The [PR #28 no-seed finding](https://github.com/Vncntz/hris/pull/28#discussion_r4144224385) was [resolved with fixing evidence](https://github.com/Vncntz/hris/pull/28#discussion_r4145713700). TASK-0017 is `POST_MERGE_VERIFIED` / complete; IMP-012 remains active for TASK-0018's observed contention follow-up.
@@ -54,4 +55,4 @@ Last completed work order: [TASK-0018](../tasks/TASK-0018.md) under [IMP-012](ta
 
 ## Next action
 
-Complete focused [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md) gate hardening, run its required local and PR verification, and integrate only through the trusted-main gates. Keep IMP-012 closure and IMP-013 deferred until a fresh-cycle acceptance review. Later IMP-088 work orders proceed sequentially.
+Integrate the locally verified [IMP-088](tasks/IMP-088.md) / [TASK-0020](../tasks/TASK-0020.md) context packet through trusted-main gates and exact-merge-SHA push CI. Keep IMP-012 closure and IMP-013 deferred until a fresh-cycle acceptance review. Later IMP-088 work orders proceed sequentially.
