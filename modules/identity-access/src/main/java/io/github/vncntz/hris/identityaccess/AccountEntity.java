@@ -3,6 +3,8 @@ package io.github.vncntz.hris.identityaccess;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -13,6 +15,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
@@ -53,6 +58,12 @@ class AccountEntity {
     @Column(name = "row_version", nullable = false)
     private long rowVersion;
 
+    @ManyToMany
+    @JoinTable(name = "identity_account_role",
+            joinColumns = @JoinColumn(name = "account_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<RoleEntity> roles = new HashSet<>();
+
     protected AccountEntity() {
     }
 
@@ -67,6 +78,10 @@ class AccountEntity {
 
     UUID publicId() {
         return publicId;
+    }
+
+    Long id() {
+        return id;
     }
 
     String canonicalLogin() {

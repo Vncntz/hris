@@ -1,10 +1,10 @@
 # HRIS implementation state
 
-Last updated: 2026-10-01. Planning and compilation are complete; implementation is in progress.
+Last updated: 2026-10-02. Planning and compilation are complete; implementation is in progress.
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is planned with first work order [TASK-0022](../tasks/TASK-0022.md); implementation has not begun.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is active with first work order [TASK-0022](../tasks/TASK-0022.md) `LOCAL_VERIFIED`; exact-final-head PR CI, Linux real-MySQL execution, protected integration, and post-merge push CI remain pending.
 
 Last completed work order: [TASK-0021](../tasks/TASK-0021.md) under [IMP-088](tasks/IMP-088.md).
 
@@ -22,13 +22,15 @@ Last completed work order: [TASK-0021](../tasks/TASK-0021.md) under [IMP-088](ta
 ## Blockers and open verification
 
 - [TASK-0020](../tasks/TASK-0020.md)'s [post-merge identity-heading finding](https://github.com/Vncntz/hris/pull/34#discussion_r4154527760) was corrected by [TASK-0021](../tasks/TASK-0021.md) / PR #36. The historical [review thread](https://github.com/Vncntz/hris/pull/34#discussion_r4155621507) was resolved after fixing evidence and clean trusted-main TASK-0001 verification. Neither task remains blocked.
-- [TASK-0022](../tasks/TASK-0022.md) is planning only. Role/permission persistence, first-administrator provisioning, and administrative authorization are not yet implemented; later IMP-013 slices require their own work orders. No approved ADR or product/architecture decision blocks the focused first slice.
+- [TASK-0022](../tasks/TASK-0022.md)'s role/permission persistence and runtime-authority slice is locally verified. Linux real-MySQL execution and remote integration gates remain open; the local Docker Linux engine is unavailable. First-administrator provisioning, administrative lifecycle/authorization/audit, and privileged-account MFA remain later IMP-013 slices requiring their own work orders. No approved ADR or product/architecture decision blocks the focused first slice.
 - [PR #30 review comment 4145705615](https://github.com/Vncntz/hris/pull/30#discussion_r4145705615) on stale TASK-0017 routing records was [resolved with fixing-merge evidence](https://github.com/Vncntz/hris/pull/30#discussion_r4146157971) after TASK-0018 planning PR #31 and its exact-merge-SHA push CI passed. PR #30's intermittent MySQL deadlock led to [TASK-0018](../tasks/TASK-0018.md); its deterministic contention and real-MySQL regressions and implementation PR #32's exact-head/merge-SHA CI have now passed. The fresh-cycle review has since closed IMP-012. TASK-0015's classpath guard covers all 15 production reactor modules, and eight architecture tests passed locally.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
 
 ## Completed evidence
+
+- [TASK-0022](../tasks/TASK-0022.md) planning [PR #37](https://github.com/Vncntz/hris/pull/37) final head `84420d872a34ff73aa05f3ea61cc74dd2011a936` passed policy/Linux/Windows in [run 36867143103](https://github.com/Vncntz/hris/actions/runs/36867143103). It merged as `4242321cf736c0817d4cd3e8593d200e4b9accd0`; [exact-merge-SHA push run 36867516666](https://github.com/Vncntz/hris/actions/runs/36867516666) passed all three jobs. The operator then explicitly authorized implementation. Local focused authentication tests (9), Windows reactor tests (48, including 8 architecture tests), and tooling tests (42) passed without failures/errors/skips. V5 and four new MySQL integration tests are ready for required Linux CI; TASK-0022 remains `LOCAL_VERIFIED`, not complete.
 
 - [TASK-0021](../tasks/TASK-0021.md) implementation [PR #36](https://github.com/Vncntz/hris/pull/36) final head `13c971d392cf451a5e41bda126a9d8ed4591abfa` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36862928301](https://github.com/Vncntz/hris/actions/runs/36862928301). It merged as `9782032cd382e3de6b995043fc5b3c94674313d6`; [exact-merge-SHA push run 36863449413](https://github.com/Vncntz/hris/actions/runs/36863449413) passed all three jobs. Linux completed 13 MySQL integration tests with zero failures, errors, or skips. On clean trusted `main`, TASK-0001 packets succeeded twice identically and all seven emitted reference byte counts and SHA-256 hashes matched independent source reads. TASK-0021 and the corrected TASK-0020 are `POST_MERGE_VERIFIED` / complete.
 - [IMP-012](tasks/IMP-012.md) fresh-cycle closure review found the single Agency enforced by V4 and application behavior, no V4 seed, a stable public ID, explicit actor, atomic audit/rollback, optimistic update/version checks, deterministic bounded contention handling, and real-MySQL concurrency coverage. TASK-0016/0017/0018's exact-merge-SHA push runs `36710076118`, `36728840447`, and `36792294156` each passed policy/Linux/Windows on their actual merge SHAs. IMP-012 is complete; IMP-013 may begin with TASK-0022 after its planning gate.
@@ -60,4 +62,4 @@ Last completed work order: [TASK-0021](../tasks/TASK-0021.md) under [IMP-088](ta
 
 ## Next action
 
-Integrate the focused [IMP-013](tasks/IMP-013.md) / [TASK-0022](../tasks/TASK-0022.md) planning package through exact-head and exact-merge-SHA gates. After the planning gate is verified, a separate explicit implementation instruction may start TASK-0022. Do not implement it in this planning cycle.
+Integrate the locally verified [IMP-013](tasks/IMP-013.md) / [TASK-0022](../tasks/TASK-0022.md) implementation through exact-final-head policy/Linux/Windows CI and all trusted-main integration gates. Inspect real-MySQL results, merge through protected main, and require passing push CI on the actual merge SHA. Then perform a fresh-cycle IMP-013 review before any later TASK allocation; IMP-013 is not complete after this persistence/runtime slice.
