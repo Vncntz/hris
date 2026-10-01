@@ -60,7 +60,10 @@ def reference(source: str, data: bytes, start: int = 1, end: int | None = None,
 
 
 def identity(text: str, expected: str, kind: str) -> None:
-    headings = re.findall(rf"^ {{0,3}}#{{1,6}}[ \t]+({kind}-[^\s]+)(?:[ \t]+.*)?$", text, re.MULTILINE)
+    headings = re.findall(
+        rf"^ {{0,3}}#{{1,6}}[ \t]+({kind}-[^\s]+)[ \t]+[—–-][ \t]+\S.*$",
+        text, re.MULTILINE,
+    )
     first = text.splitlines()[0] if text else ""
     if headings != [expected] or not re.fullmatch(
         rf"# {re.escape(expected)} [—–-] \S.*", first

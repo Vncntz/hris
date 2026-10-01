@@ -281,13 +281,17 @@ class TaskContextTests(unittest.TestCase):
         cases = (
             (TASK, ""), (TASK, TASK_TEXT.replace("# TASK-0020", "# TASK-0021", 1)),
             (TASK, TASK_TEXT.replace("# TASK-0020", "# TASK-00200", 1)),
+            (TASK, TASK_TEXT.replace("# TASK-0020 -", "# TASK-0020", 1)),
             (TASK, TASK_TEXT + "\n# TASK-0020 - Duplicate identity\n"),
             (TASK, TASK_TEXT + "\n# TASK-0021 - Conflicting identity\n"),
             (TASK, TASK_TEXT + "\n ## TASK-0021 - Indented conflicting identity\n"),
+            (TASK, TASK_TEXT + "\n  ## TASK-0020 – Indented duplicate identity\n"),
             (IMP, ""), (IMP, IMP_TEXT.replace("# IMP-088", "# IMP-089", 1)),
+            (IMP, IMP_TEXT.replace("# IMP-088 -", "# IMP-088", 1)),
             (IMP, IMP_TEXT + "\n# IMP-088 - Duplicate identity\n"),
             (IMP, IMP_TEXT + "\n# IMP-089 - Conflicting identity\n"),
             (IMP, IMP_TEXT + "\n   ## IMP-088 - Indented duplicate identity\n"),
+            (IMP, IMP_TEXT + "\n ### IMP-089 — Indented conflicting identity\n"),
         )
         for source, content in cases:
             with self.subTest(source=source, content=content):
@@ -297,6 +301,16 @@ class TaskContextTests(unittest.TestCase):
                         self.packet()
                 finally:
                     self.write(source, TASK_TEXT if source == TASK else IMP_TEXT)
+
+    def test_same_id_report_heading_is_not_an_identity(self):
+        self.write(IMP, IMP_TEXT.replace("# IMP-088 -", "# IMP-088 —", 1)
+                   + "\n# IMP-088 Implementation Result\n")
+        self.assertEqual(self.packet()["imp"]["source"], IMP)
+
+    def test_malformed_first_line_identity_fails_without_partial_cli_output(self):
+        self.write(IMP, IMP_TEXT.replace("# IMP-088 -", "# IMP-088", 1)
+                   + "\n# IMP-088 — Later canonical identity\n")
+        self.assert_cli_failure()
 
     def test_parent_link_missing_duplicate_or_mismatched_identity_fails(self):
         parent = "Parent implementation item: [IMP-088](../implementation/tasks/IMP-088.md)"
