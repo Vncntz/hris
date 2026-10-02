@@ -61,6 +61,10 @@ class RoleEntity {
         return enabled;
     }
 
+    void assignBootstrapPermission(PermissionEntity permission) {
+        permissions.add(permission);
+    }
+
     List<String> authorityKeys() {
         return permissions.stream().map(PermissionEntity::authorityKey).toList();
     }

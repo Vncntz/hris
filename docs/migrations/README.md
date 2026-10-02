@@ -46,6 +46,18 @@ and [binary-log option](https://dev.mysql.com/doc/refman/8.4/en/replication-opti
 
 ## Verify locally
 
+`V6__create_identity_bootstrap_state.sql` adds Identity & Access's technical singleton
+coordination/completion row for [TASK-0023](../tasks/TASK-0023.md). It seeds only that
+technical row, with no account, role, permission, assignment or credential. CHECK
+constraints enforce its fixed identity and Boolean state; triggers reject ordinary
+deletion and changes to completed state. Successful provisioning closes it atomically
+with identity state and audit evidence. Existing populated installations are never
+adopted or elevated. The [operator runbook](../deployment/first-administrator.md)
+describes fail-closed reconciliation and the absence of reset/recovery. V6 requires
+the same trigger-creation privileges described for V2. V1–V5 remain immutable.
+
+## Verify locally
+
 - Ordinary reactor and database-independent application smoke test: on Windows,
   `.\mvnw.cmd -B clean verify`; on Unix, `./mvnw -B clean verify`.
 - Disposable MySQL 8.4.11 migration and invalid-history tests: on Windows,

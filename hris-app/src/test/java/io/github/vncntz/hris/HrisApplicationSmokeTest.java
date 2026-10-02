@@ -15,6 +15,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import io.github.vncntz.hris.sharedkernel.AuditRecorder;
 import io.github.vncntz.hris.identityaccess.AccountAuthenticationService;
+import io.github.vncntz.hris.identityaccess.FirstAdministratorProvisioner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import io.github.vncntz.hris.platformoperations.AgencyConfigurationService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         }
 )
 class HrisApplicationSmokeTest {
+    @Autowired
+    private ApplicationContext context;
     @MockitoBean
     private AuditRecorder auditRecorder;
 
@@ -42,6 +47,7 @@ class HrisApplicationSmokeTest {
 
     @Test
     void anonymousLoginServesVaadinBootstrapAndRootRequiresAuthentication() throws Exception {
+        assertEquals(0, context.getBeanNamesForType(FirstAdministratorProvisioner.class).length);
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/login"))
                 .timeout(Duration.ofSeconds(15))
                 .GET()
@@ -61,6 +67,13 @@ class HrisApplicationSmokeTest {
                     HttpResponse.BodyHandlers.discarding());
             assertEquals(302, protectedRoot.statusCode());
             assertTrue(protectedRoot.headers().firstValue("location").orElse("").contains("login"));
+            for (String path : new String[]{"/setup", "/bootstrap", "/provision-first-administrator"}) {
+                HttpResponse<Void> setup = client.send(HttpRequest.newBuilder(
+                        URI.create("http://127.0.0.1:" + port + path)).POST(HttpRequest.BodyPublishers.noBody()).build(),
+                        HttpResponse.BodyHandlers.discarding());
+                assertEquals(302, setup.statusCode());
+                assertTrue(setup.headers().firstValue("location").orElse("").contains("login"));
+            }
         }
     }
 }

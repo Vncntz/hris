@@ -96,6 +96,10 @@ class AccountEntity {
         return enabled;
     }
 
+    void assignBootstrapRole(RoleEntity role) {
+        roles.add(role);
+    }
+
     boolean isLockedAt(Instant now) {
         return lockedUntilUtc != null && now.isBefore(lockedUntilUtc.toInstant(ZoneOffset.UTC));
     }
