@@ -17,10 +17,10 @@ Successful password authentication fetches assigned roles and their permissions 
 Authorities are a login/session snapshot. Assignment changes and role disablement take effect on a new authentication; an existing authenticated token keeps its snapshot. Later administrative work must add explicit session revocation/re-authentication behavior where required, including account disablement and privileged operations. There is no authorization cache or distributed session invalidation in TASK-0022.
 
 TASK-0025 supplies a reusable local revocation primitive for later administrative commands;
-it does not implement assignment or lifecycle administration. Password change uses it now
+it does not implement assignment administration. TASK-0026 reuses it for lifecycle commands. Password change uses it now
 to expire all tracked sessions belonging to the authenticated account.
 
-Application services may depend on `CurrentActor` to require the authenticated public user ID and test or require a named authority. The normal authentication provider now supplies authorities from persisted assignments; synthetic tests prove both successful enforcement and denial. Role/permission administration, account lifecycle beyond creation, their append-only audit events, TOTP enrollment/challenge/recovery, privileged re-authentication, and business-module call sites remain later focused work.
+Application services may depend on `CurrentActor` to require the authenticated public user ID and test or require a named authority. The normal authentication provider now supplies authorities from persisted assignments; synthetic tests prove both successful enforcement and denial. Role/permission administration, corresponding assignment audit events, TOTP enrollment/challenge/recovery, privileged re-authentication, and business-module call sites remain later focused work.
 
 API and dependency choices were checked against [Spring Security 7 password storage](https://docs.spring.io/spring-security/reference/7.0/features/authentication/password-storage.html), [Vaadin Spring Boot security](https://vaadin.com/docs/latest/flow/security/enabling-security), and the [Bouncy Castle 1.86 provider release](https://www.bouncycastle.org/download/bouncy-castle-java/). Bouncy Castle is centrally versioned in the repository because the Spring Boot/Vaadin BOMs do not manage its provider artifact.
 
@@ -80,23 +80,24 @@ default, with existing fixation protection, CSRF and logout. Restart destroys lo
 sessions as before; no distributed-session guarantee is added. APIs were checked against
 the resolved JARs and [Spring Security session documentation](https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html).
 
-No production UI/HTTP adapter, migration, dependency or lifecycle/assignment operation
-is added. The HTTP integration probe is test-only and exercises the production filter
+TASK-0025 added no production UI/HTTP adapter or assignment operation. TASK-0026 adds
+only V7 and the application-service lifecycle boundary. The HTTP integration probe is test-only and exercises the production filter
 chain with a narrow authenticated test-route rule. Recovery/reset, privileged MFA and
-re-authentication, administration and password-cost calibration remain deferred.
+re-authentication, assignment administration and password-cost calibration remain deferred.
 
-## Credential-generation check at final session registration
+## Authentication-generation check at final session registration
 
 TASK-0025's original PR #44 left a gap between successful credential verification and
 servlet session registration. A password-change registry scan could miss a login paused
-in that gap. The corrective implementation carries the existing credential-updated
-DATETIME(6) value as non-secret, request-only authentication details. Each credential
-replacement advances that generation strictly, using Clock at microsecond precision
-or the preceding value plus one microsecond when the clock is equal/backwards. Ordinary
-login/security-state updates do not change it; concurrent logins remain unlimited.
+in that gap. The correction originally carried the credential-update timestamp as request-only generation.
+TASK-0026 replaces that mechanism with V7's dedicated non-secret BIGINT authentication_generation.
+Password replacement and enable/disable increment it; ordinary login/security bookkeeping does
+not. Math.incrementExact fails closed before overflow. credential_updated_at_utc is the actual
+credential-change timestamp and is never advanced for lifecycle invalidation. The counter is
+captured in request-only AuthenticationGeneration details and stripped before context persistence.
 
 `AccountSessionRegistrationService` opens a short REQUIRES_NEW READ COMMITTED transaction,
-locks the same public-UUID account row as password change, explicitly refreshes it, and
+locks the same public-UUID account row as password change and lifecycle commands, explicitly refreshes it, and
 checks enabled state plus generation. The one standard registry registration runs while
 that row lock is held. Replacement first means old authentication is rejected before
 registration; registration first means password change sees and expires that entry.
@@ -115,8 +116,26 @@ default idle timeout and logout lifecycle remain configured. See the
 The generation is removed in a finally block on both success and failure before the
 security context can be saved. AccountPrincipal remains its stable UUID/canonical-login
 record; credentials are null and no password/hash/session identifier is added to token,
-principal, audit or log state. No migration or dependency change is needed. Deterministic
+principal, audit or log state. V7 is the only schema addition; no dependency change is needed. Deterministic
 real HTTP/MySQL tests pause after verification and after registration, exercise both
 orderings, preserve unrelated sessions and prove normal concurrent logins. A fixed-clock
 repeated-change test prevents generation reuse; a real registration commit-failure test
 checks registry/context cleanup. See the [TASK evidence](../tasks/TASK-0025.md).
+
+## Administrative account lifecycle
+
+[TASK-0026](../tasks/TASK-0026.md) adds AccountLifecycleService.enable/disable with only
+a target public UUID. Both require CurrentActor identity:admin and derive the audit actor
+from requireUserId. Self-disable, no-op and missing targets are rejected. The short standalone
+REQUIRES_NEW READ COMMITTED transaction locks and refreshes the target, changes enabled/security
+state and generation, and clears failed-attempt/temporary-lock state on enable. Credentials,
+credential timestamp, identity and assignments remain unchanged.
+
+Exactly one fixed-context IDENTITY_ACCOUNT_ENABLED/DISABLED audit event flushes with the
+mutation before every target session is expired locally. Revocation failure rolls back the
+database; a later commit failure may retain expired sessions with the preceding database state.
+Both directions and both registration race orderings are tested against MySQL/HTTP. A generation
+captured before disable cannot register after disable then enable. Unrelated accounts/sessions remain
+unchanged. The boundary adds no production UI/REST adapter; assignment administration, recovery,
+MFA and privileged re-authentication remain future IMP-013 scope. Later assignment mutations
+must explicitly advance generation and revoke sessions when effective authorities change.

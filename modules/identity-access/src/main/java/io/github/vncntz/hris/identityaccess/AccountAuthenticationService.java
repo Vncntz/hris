@@ -62,6 +62,6 @@ public class AccountAuthenticationService {
                 .flatMap(role -> role.authorityKeys().stream())
                 .distinct().sorted().toList();
         return Optional.of(new AuthenticatedAccount(
-                new AccountPrincipal(account.publicId(), account.canonicalLogin()), authorityKeys, account.credentialGeneration()));
+                new AccountPrincipal(account.publicId(), account.canonicalLogin()), authorityKeys, account.authenticationGeneration()));
     }
 }

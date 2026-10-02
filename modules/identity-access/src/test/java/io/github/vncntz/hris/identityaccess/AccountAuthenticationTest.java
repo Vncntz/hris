@@ -87,6 +87,7 @@ class AccountAuthenticationTest {
 
         ReflectionTestUtils.setField(account, "enabled", false);
         assertFalse(service.authenticate("synthetic.login", syntheticPassword).isPresent());
+        assertEquals(0, account.authenticationGeneration());
     }
 
     private static UsernamePasswordAuthenticationToken attempt(String login, String password) {

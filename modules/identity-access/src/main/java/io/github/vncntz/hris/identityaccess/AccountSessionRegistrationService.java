@@ -10,7 +10,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/** Serializes the final servlet registration decision with credential replacement. */
+/** Serializes the final servlet registration decision with security-state mutation. */
 @Service
 public class AccountSessionRegistrationService {
     private final AccountRepository accounts;
@@ -32,7 +32,7 @@ public class AccountSessionRegistrationService {
         try {
             if (!authentication.isAuthenticated()
                     || !(authentication.getPrincipal() instanceof AccountPrincipal principal)
-                    || !(authentication.getDetails() instanceof CredentialGeneration generation)
+                    || !(authentication.getDetails() instanceof AuthenticationGeneration generation)
                     || !(authentication instanceof AbstractAuthenticationToken)
                     || TransactionSynchronizationManager.isActualTransactionActive()) {
                 throw rejected();
@@ -42,7 +42,7 @@ public class AccountSessionRegistrationService {
                         AccountSessionRegistrationService::rejected);
                 // A servlet-bound persistence context may still contain the authentication snapshot.
                 entities.refresh(account);
-                if (!account.enabled() || !generation.updatedAt().equals(account.credentialGeneration())) {
+                if (!account.enabled() || generation.value() != account.authenticationGeneration()) {
                     throw rejected();
                 }
                 registerSession.run();
