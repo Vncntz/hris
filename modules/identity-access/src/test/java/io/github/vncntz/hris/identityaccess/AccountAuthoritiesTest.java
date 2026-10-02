@@ -61,6 +61,9 @@ class AccountAuthoritiesTest {
         Authentication authenticated = signIn();
         assertEquals(List.of("test:approve", "test:zeta"), keys(authenticated));
         assertNull(authenticated.getCredentials());
+        var freshness = (AuthenticationGeneration) authenticated.getDetails();
+        assertEquals(java.util.Map.of(first.publicId(), 0L, second.publicId(), 0L,
+                disabled.publicId(), 0L), freshness.roles().values());
         SecurityContextHolder.getContext().setAuthentication(authenticated);
         CurrentActor actor = new SecurityCurrentActor();
         assertEquals(account.publicId(), actor.requireUserId());

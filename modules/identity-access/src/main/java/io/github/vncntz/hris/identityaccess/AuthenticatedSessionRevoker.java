@@ -15,10 +15,18 @@ public class AuthenticatedSessionRevoker {
     }
 
     public void revoke(UUID publicId) {
-        Objects.requireNonNull(publicId);
+        revoke(java.util.Set.of(Objects.requireNonNull(publicId)));
+    }
+
+    /** One local registry scan for the complete affected Account set. */
+    public void revoke(java.util.Set<UUID> publicIds) {
+        var affected = java.util.Set.copyOf(publicIds);
+        if (affected.isEmpty()) {
+            return;
+        }
         try {
             for (Object principal : sessions.getAllPrincipals()) {
-                if (principal instanceof AccountPrincipal account && publicId.equals(account.publicId())) {
+                if (principal instanceof AccountPrincipal account && affected.contains(account.publicId())) {
                     for (var session : sessions.getAllSessions(principal, false)) {
                         session.expireNow();
                     }

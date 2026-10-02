@@ -85,3 +85,12 @@ mode, backup, restore, or recovery qualification. Those remain later work under
 - [Spring Boot 4.1.1 managed dependencies](https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html): Boot manages `flyway-core` and `flyway-mysql`; the checked-in Boot 4.1.1 dependency POM resolves both to Flyway 12.4.0.
 - [Spring Boot 4.1.1 system requirements](https://docs.spring.io/spring-boot/system-requirements.html): Java 25 is within its Java 17 through 26 compatibility range.
 - [Redgate Flyway MySQL reference](https://documentation.red-gate.com/fd/mysql-277579322.html): MySQL support needs the separate MySQL module. MySQL 8.4.11 behavior is additionally qualified by this repository's real-MySQL integration test; the upstream page does not individually list 8.4 as a verified version.
+
+
+`V8__add_identity_role_authorization_generation.sql` adds only identity_role.authorization_generation,
+a non-secret BIGINT NOT NULL DEFAULT 0 with a nonnegative CHECK constraint. Existing Roles receive
+zero. No authorization or customer data is seeded or rewritten; released V1-V7 remain immutable.
+TASK-0028 advances this scalar for Role enable/disable and Permission membership mutation.
+Role-generation migration coverage compares a populated V7 upgrade with clean V8 schema while
+preserving synthetic Account/Role/Permission and both membership tables. Existing V6-to-V7
+regression remains explicitly pinned to V7; current clean-history assertions now expect V8.

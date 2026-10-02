@@ -52,7 +52,11 @@ class AccountRoleAssignmentServiceTest {
     private void ready() {
         when(actor.requireUserId()).thenReturn(administrator);
         when(accounts.findByPublicId(target)).thenReturn(Optional.of(account));
-        when(roles.findByPublicId(role.publicId())).thenReturn(Optional.of(role));
+        when(roles.findByPublicId(any())).thenAnswer(call -> {
+            UUID requested = call.getArgument(0);
+            if (role.publicId().equals(requested)) { return Optional.of(role); }
+            return account.assignedRoles().stream().filter(value -> requested.equals(value.publicId())).findFirst();
+        });
         when(transactions.getTransaction(any())).thenAnswer(call -> {
             TransactionDefinition definition = call.getArgument(0);
             assertEquals(TransactionDefinition.PROPAGATION_REQUIRES_NEW, definition.getPropagationBehavior());
@@ -87,8 +91,10 @@ class AccountRoleAssignmentServiceTest {
             order.verify(transactions).getTransaction(any());
             order.verify(accounts).findByPublicId(target);
             order.verify(entities).refresh(account);
-            order.verify(roles).findByPublicId(role.publicId());
-            order.verify(entities).refresh(role);
+            for (UUID locked : java.util.stream.Stream.of(role.publicId(), unrelated.publicId()).sorted().toList()) {
+                order.verify(roles).findByPublicId(locked);
+                order.verify(entities).refresh(locked.equals(role.publicId()) ? role : unrelated);
+            }
             order.verify(audit).record(event(action));
             order.verify(accounts).flush();
             order.verify(sessions).revoke(target);

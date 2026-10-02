@@ -17,13 +17,45 @@ import static org.mockito.Mockito.*;
 
 class AccountSessionRegistrationServiceTest {
     private final AccountRepository accounts = mock(AccountRepository.class);
+    private final RoleRepository roles = mock(RoleRepository.class);
     private final EntityManager entities = mock(EntityManager.class);
     private final PlatformTransactionManager transactions = mock(PlatformTransactionManager.class);
     private final Runnable callback = mock(Runnable.class);
     private final AccountEntity account = new AccountEntity(UUID.randomUUID(), "synthetic.login",
             UUID.randomUUID().toString(), Instant.EPOCH);
     private final AccountSessionRegistrationService service =
-            new AccountSessionRegistrationService(accounts, entities, transactions);
+            new AccountSessionRegistrationService(accounts, roles, entities, transactions);
+
+    @Test void exactRoleSnapshotIncludesDisabledRolesAndLocksInUuidOrder() {
+        ready();
+        var first = new RoleEntity(new UUID(0, 1), "first", false);
+        var second = new RoleEntity(new UUID(0, 2), "second", true);
+        account.assignBootstrapRole(second);
+        account.assignBootstrapRole(first);
+        when(roles.findByPublicId(first.publicId())).thenReturn(Optional.of(first));
+        when(roles.findByPublicId(second.publicId())).thenReturn(Optional.of(second));
+        var token = token();
+        token.setDetails(new AuthenticationGeneration(0, new RoleGenerations(java.util.Map.of(
+                first.publicId(), 0L, second.publicId(), 0L))));
+        service.register(token, callback);
+        var order = inOrder(accounts, roles, entities, callback);
+        order.verify(accounts).findByPublicId(account.publicId());
+        order.verify(entities).refresh(account);
+        order.verify(roles).findByPublicId(first.publicId());
+        order.verify(entities).refresh(first);
+        order.verify(roles).findByPublicId(second.publicId());
+        order.verify(entities).refresh(second);
+        order.verify(callback).run();
+        assertNull(token.getDetails());
+        clearInvocations(callback);
+        var stale = token();
+        stale.setDetails(new AuthenticationGeneration(0, new RoleGenerations(java.util.Map.of(
+                first.publicId(), 0L, second.publicId(), 0L))));
+        first.changeEnabled(true);
+        rejected(stale);
+        rejected(token()); // Missing assigned Roles is not an exact proof.
+        verifyNoInteractions(callback);
+    }
 
     private UsernamePasswordAuthenticationToken token() {
         var token = UsernamePasswordAuthenticationToken.authenticated(

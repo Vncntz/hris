@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         }
 )
 class HrisApplicationSmokeTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private io.github.vncntz.hris.identityaccess.RoleAdministrationService roleAdministration;
     @Autowired
     private ApplicationContext context;
     @MockitoBean

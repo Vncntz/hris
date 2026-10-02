@@ -20,7 +20,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
-/** Internal authorization role; administration belongs to a later IMP-013 task. */
+/** Internal authorization role with a dedicated authority freshness generation. */
 @Entity
 @Table(name = "identity_role")
 class RoleEntity {
@@ -37,6 +37,9 @@ class RoleEntity {
 
     @Column(name = "enabled", nullable = false)
     private boolean enabled;
+
+    @Column(name = "authorization_generation", nullable = false)
+    private long authorizationGeneration;
 
     @Version
     @Column(name = "row_version", nullable = false)
@@ -63,6 +66,34 @@ class RoleEntity {
 
     boolean enabled() {
         return enabled;
+    }
+
+    long authorizationGeneration() {
+        return authorizationGeneration;
+    }
+
+    String canonicalName() {
+        return canonicalName;
+    }
+
+    void changeEnabled(boolean value) {
+        if (enabled == value) {
+            throw new IllegalStateException("Role state did not change");
+        }
+        authorizationGeneration = Math.incrementExact(authorizationGeneration);
+        enabled = value;
+    }
+
+    void changePermission(PermissionEntity permission, boolean assigned) {
+        if (authorityKeys().contains(permission.authorityKey()) == assigned) {
+            throw new IllegalStateException("Permission membership did not change");
+        }
+        authorizationGeneration = Math.incrementExact(authorizationGeneration);
+        if (assigned) {
+            permissions.add(permission);
+        } else {
+            permissions.removeIf(value -> value.authorityKey().equals(permission.authorityKey()));
+        }
     }
 
     void assignBootstrapPermission(PermissionEntity permission) {

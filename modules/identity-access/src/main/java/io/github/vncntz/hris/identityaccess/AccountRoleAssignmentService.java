@@ -67,9 +67,20 @@ public class AccountRoleAssignmentService {
                 failed(AccountRoleAssignmentException.Reason.ACCOUNT_UNAVAILABLE));
         // A servlet persistence context may outlive a transaction; reload under the held lock.
         entities.refresh(account);
-        RoleEntity role = roles.findByPublicId(roleId).orElseThrow(() ->
-                failed(AccountRoleAssignmentException.Reason.ROLE_UNAVAILABLE));
-        entities.refresh(role);
+        // Account first, then selected/assigned Roles in UUID order, shared with Role mutation
+        // and final registration. No subsequent Account lock is acquired under a Role lock.
+        var roleIds = new java.util.TreeSet<UUID>();
+        account.assignedRoles().forEach(value -> roleIds.add(value.publicId()));
+        roleIds.add(roleId);
+        RoleEntity role = null;
+        for (UUID id : roleIds) {
+            RoleEntity locked = roles.findByPublicId(id).orElseThrow(() ->
+                    failed(AccountRoleAssignmentException.Reason.ROLE_UNAVAILABLE));
+            entities.refresh(locked);
+            if (roleId.equals(id)) {
+                role = locked;
+            }
+        }
         boolean present = account.assignedRoles().stream().anyMatch(value -> roleId.equals(value.publicId()));
         if (present == assigned) {
             throw failed(assigned ? AccountRoleAssignmentException.Reason.ALREADY_ASSIGNED
@@ -84,7 +95,6 @@ public class AccountRoleAssignmentService {
             boolean remainsAdmin = false;
             for (RoleEntity remaining : account.assignedRoles()) {
                 if (!roleId.equals(remaining.publicId())) {
-                    entities.refresh(remaining);
                     if (remaining.enabled() && remaining.authorityKeys().contains("identity:admin")) {
                         remainsAdmin = true;
                     }
