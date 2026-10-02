@@ -22,8 +22,10 @@ public class AccountAuthenticationProvider implements AuthenticationProvider {
         String password = String.valueOf(authentication.getCredentials());
         AuthenticatedAccount account = service.authenticate(login, password)
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
-        return UsernamePasswordAuthenticationToken.authenticated(account.principal(), null,
+        var token = UsernamePasswordAuthenticationToken.authenticated(account.principal(), null,
                 account.authorityKeys().stream().map(SimpleGrantedAuthority::new).toList());
+        token.setDetails(new CredentialGeneration(account.credentialGeneration()));
+        return token;
     }
 
     @Override

@@ -84,3 +84,39 @@ No production UI/HTTP adapter, migration, dependency or lifecycle/assignment ope
 is added. The HTTP integration probe is test-only and exercises the production filter
 chain with a narrow authenticated test-route rule. Recovery/reset, privileged MFA and
 re-authentication, administration and password-cost calibration remain deferred.
+
+## Credential-generation check at final session registration
+
+TASK-0025's original PR #44 left a gap between successful credential verification and
+servlet session registration. A password-change registry scan could miss a login paused
+in that gap. The corrective implementation carries the existing credential-updated
+DATETIME(6) value as non-secret, request-only authentication details. Each credential
+replacement advances that generation strictly, using Clock at microsecond precision
+or the preceding value plus one microsecond when the clock is equal/backwards. Ordinary
+login/security-state updates do not change it; concurrent logins remain unlimited.
+
+`AccountSessionRegistrationService` opens a short REQUIRES_NEW READ COMMITTED transaction,
+locks the same public-UUID account row as password change, explicitly refreshes it, and
+checks enabled state plus generation. The one standard registry registration runs while
+that row lock is held. Replacement first means old authentication is rejected before
+registration; registration first means password change sees and expires that entry.
+Failure exposes a fixed SessionAuthenticationException without infrastructure causes.
+The app removes a partial registry entry if registration/commit fails. This preserves
+the existing safe revocation/rollback asymmetry.
+
+An ObjectPostProcessor replaces only RegisterSessionAuthenticationStrategy inside
+Spring Security's standard composite. The resolved 7.1.1 JAR bytecode verifies the
+concurrency/fixation/registration ordering, the call to session authentication before
+successfulAuthentication, and subsequent SecurityContextRepository.saveContext. The
+framework's CSRF strategy, unlimited concurrency, fixation, expiry filter, 1800-second
+default idle timeout and logout lifecycle remain configured. See the
+[Spring Security 7.1.1 session lifecycle](https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html).
+
+The generation is removed in a finally block on both success and failure before the
+security context can be saved. AccountPrincipal remains its stable UUID/canonical-login
+record; credentials are null and no password/hash/session identifier is added to token,
+principal, audit or log state. No migration or dependency change is needed. Deterministic
+real HTTP/MySQL tests pause after verification and after registration, exercise both
+orderings, preserve unrelated sessions and prove normal concurrent logins. A fixed-clock
+repeated-change test prevents generation reuse; a real registration commit-failure test
+checks registry/context cleanup. See the [TASK evidence](../tasks/TASK-0025.md).

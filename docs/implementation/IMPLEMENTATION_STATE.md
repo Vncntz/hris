@@ -4,11 +4,11 @@ Last updated: 2026-10-02. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md) is `POST_MERGE_VERIFIED` / complete. [TASK-0024](../tasks/TASK-0024.md), authenticated account creation boundary, is `POST_MERGE_VERIFIED` / complete. [TASK-0025](../tasks/TASK-0025.md), authenticated password change and session revocation foundation, is LOCAL_VERIFIED; implementation integration and post-merge verification pending.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md) is `POST_MERGE_VERIFIED` / complete. [TASK-0024](../tasks/TASK-0024.md), authenticated account creation boundary, is `POST_MERGE_VERIFIED` / complete. [TASK-0025](../tasks/TASK-0025.md), authenticated password change and session revocation foundation, is incomplete after PR #44's P1 session-registration finding; corrective implementation and integration are active.
 
 Last completed work order: [TASK-0024](../tasks/TASK-0024.md) under [IMP-013](tasks/IMP-013.md).
 
-Current action: integrate the locally verified implementation of only [TASK-0025](../tasks/TASK-0025.md), then integrate through all protected-PR gates. TASK-0025 implementation is explicitly authorized after independent verification of planning PR #43 and successful exact-merge-SHA push CI. Local verification passed as recorded below; implementation PR integration and post-merge verification remain open. IMP-013 remains ACTIVE; do not allocate TASK-0026 or advance to IMP-014.
+Current action: correct only [TASK-0025](../tasks/TASK-0025.md)'s PR #44 session-registration acceptance blocker and re-run every local and protected integration gate. TASK-0025 remains incomplete despite the original green CI. IMP-013 remains ACTIVE; do not allocate TASK-0026 or advance to IMP-014.
 
 ## Active implementation decisions
 
@@ -22,6 +22,8 @@ Current action: integrate the locally verified implementation of only [TASK-0025
 - The operator accepted a one-time exception for PR #11 / merge commit `ca8ca7e5d54cc490d6723e9f7fbe22b85fe717d1`: exact-head PR policy/Linux/Windows CI and manual CI on that merge SHA close its missing post-merge `push` run gate. The PR policy job, rather than the manual policy self-comparison, supplies independent frozen-plan evidence. Future PRs retain the normal post-merge `push` CI requirement.
 
 ## Blockers and open verification
+
+- TASK-0025 remains incomplete: PR #44 has the verified P1 session-registration finding. See the corrective implementation record below; all corrective acceptance and integration gates must pass.
 
 - [TASK-0020](../tasks/TASK-0020.md)'s [post-merge identity-heading finding](https://github.com/Vncntz/hris/pull/34#discussion_r4154527760) was corrected by [TASK-0021](../tasks/TASK-0021.md) / PR #36. The historical [review thread](https://github.com/Vncntz/hris/pull/34#discussion_r4155621507) was resolved after fixing evidence and clean trusted-main TASK-0001 verification. Neither task remains blocked.
 - Historical TASK-0023 successor review: PR #40 exact-head and exact-merge-SHA push CI passed, including 24 real-MySQL tests in both Linux jobs. Fresh-cycle review selects TASK-0024 for authenticated identity:admin account creation, zero implicit roles/authorities, adaptive initial credentials and atomic audit. Lifecycle, assignment administration and privileged MFA/re-authentication remain later slices. No schema change or approved ADR is needed for this focused planning scope.
@@ -86,7 +88,7 @@ non-secret failures, closure and deferred qualification. Implementation [PR #40]
 
 ## Next action
 
-Implement and verify only [IMP-013](tasks/IMP-013.md) / [TASK-0025](../tasks/TASK-0025.md), then complete protected integration and exact-merge push CI. TASK-0025 implementation is explicitly authorized after independent verification of planning PR #43 and successful exact-merge-SHA push CI. Local verification passed as recorded below; implementation PR integration and post-merge verification remain open. IMP-013 remains ACTIVE; do not allocate TASK-0026 or advance to IMP-014.
+Correct and verify only [IMP-013](tasks/IMP-013.md) / [TASK-0025](../tasks/TASK-0025.md)'s PR #44 session-registration race, then complete protected integration and exact-merge push CI. Original green CI does not close this acceptance blocker. IMP-013 remains ACTIVE; no TASK-0026 or IMP-014 work is authorized.
 
 ## TASK-0024 local evidence - 2026-10-02
 
@@ -104,8 +106,48 @@ TASK-0025 implementation is explicitly authorized after independent verification
 
 Planning [PR #43](https://github.com/Vncntz/hris/pull/43), final head `bdfe4647e79ddcda9ebbb70881bbea612124edb8`, merged as `2f4e3a3259152f116b84adf39cf6d6c72b3d847f`. [Exact-head run 36963714302](https://github.com/Vncntz/hris/actions/runs/36963714302) and [exact-merge main push run 36967911646](https://github.com/Vncntz/hris/actions/runs/36967911646) passed ci / policy, ci / build-linux and ci / build-windows on their exact respective SHAs. Refreshed main starts at that planning merge; TASK-0024 is independently post-merge verified. The operator now explicitly authorizes only TASK-0025 implementation and protected integration. Local verification passed as recorded below, implementation merge gates remain open, and IMP-013 remains ACTIVE. No TASK-0026 allocation or IMP-014 advancement is authorized.
 
-## TASK-0025 locally verified implementation - 2026-10-02
+## Historical TASK-0025 / PR #44 local verification - 2026-10-02
 
 [TASK-0025](../tasks/TASK-0025.md) now provides self-only current-credential proof, adaptive replacement outside locks, stale/enabled rechecks in a short REQUIRES_NEW READ COMMITTED transaction with an explicit locked refresh, Clock timestamp/lock-state reset, atomic fixed-context audit and pre-commit local session expiry. Standard in-memory tracking preserves unlimited concurrency, 30-minute idle timeout, fixation, CSRF and logout. Audit/flush/expiry rollback and the later-commit safe asymmetry are tested. No migration, dependency, production adapter or frozen-source change is introduced.
 
 Final local verification passed: focused 34 Identity + 9 shared-kernel tests; Windows ordinary reactor 76 (8 architecture); focused Windows MySQL/HTTP 11 plus 76 ordinary; isolated Ubuntu 24.04 Docker mysql-it 76 ordinary + 42 real-MySQL tests; tooling 42. All counts have zero failures/errors/skips and Maven reports BUILD SUCCESS. Reports, 211 local links, backlinks, preserved work-order criteria/non-goals, final Linux source manifest, released/frozen-source preservation and full scope/security diff were reviewed. The TASK record contains exact commands and HTTP/concurrency/failure evidence. TASK-0025 is LOCAL_VERIFIED with implementation PR gates, protected merge and exact-merge push CI pending. IMP-013 remains ACTIVE; do not allocate TASK-0026 or advance to IMP-014.
+
+## PR #44 acceptance blocker and corrective implementation - 2026-10-02
+
+Implementation [PR #44](https://github.com/Vncntz/hris/pull/44) final head
+`7dbb93d2904a6d6f9ef111514b3bec7cd3bf7ca9` merged as
+`d9dfc46752b982ecbc43c3f90dae2b3026a2e1ee`. Independent GitHub queries confirmed
+[exact-head run 36972914846](https://github.com/Vncntz/hris/actions/runs/36972914846)
+and [exact-merge push run 36974258494](https://github.com/Vncntz/hris/actions/runs/36974258494)
+passed policy/Linux/Windows on their respective exact SHAs. Protected main was refreshed
+to that merge; PR integration is enforced for administrators, with force-push/deletion
+disallowed and unchanged remote settings.
+
+Those green runs did not prove the missing registration ordering. The unresolved
+[P1 finding](https://github.com/Vncntz/hris/pull/44#discussion_r4163413568) correctly
+identifies an old-credential authentication finishing before password replacement,
+then registering its session after revocation. TASK-0025 remains incomplete while this
+acceptance blocker is corrected on `fix/imp-013-task-0025-session-registration-race`.
+This is corrective implementation of the existing work order; no TASK-0026 is allocated
+and IMP-014 is not advanced.
+
+### Corrective local verification and integration boundary
+
+The existing TASK-0025 correction revalidates a strictly advancing, non-secret credential
+update generation while holding the account row lock through final servlet registration.
+Transient metadata is removed before context persistence; AccountPrincipal is unchanged.
+The original merged defect was deterministically reproduced as an authenticated HTTP 200
+after password change, then corrected with latch-controlled real HTTP/MySQL tests for
+both orderings, normal concurrent logins, unrelated session preservation, fixed-clock
+generation advancement and real registration-commit failure cleanup.
+
+Corrective local checks passed: 39 Identity + 9 shared-kernel focused tests; Windows
+ordinary reactor 81 (8 architecture); Windows focused MySQL/HTTP 16 plus 81 ordinary;
+isolated Ubuntu 24.04/Java 25 offline full mysql-it 81 ordinary + 47 integration;
+tooling 42, planning-index and whitespace. All counts have zero failures/errors/skips.
+XML reports, final Linux runtime manifest, preserved acceptance criteria/non-goals,
+local links/backlinks, full security/privacy diff, V1-V6 and frozen sources were reviewed.
+TASK-0025 is LOCAL_VERIFIED for the correction and still incomplete pending corrective
+exact-head policy/Linux/Windows CI, trusted-main gates, protected merge and exact-merge
+push CI. The original PR #44 finding is not dismissed by its historical green runs.
+IMP-013 remains ACTIVE; no TASK-0026 or IMP-014 work is authorized.
