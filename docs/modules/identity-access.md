@@ -52,7 +52,9 @@ The standalone command refuses an ambient transaction before reading/verifying t
 credential. A scalar enabled-account encoding snapshot is read without a write lock;
 current-password verification and replacement Argon2id encoding run outside the mutation
 transaction. A 15-second REQUIRES_NEW, READ COMMITTED transaction locks the public UUID,
-rechecks enabled state and the verified encoding, and rejects stale changes without retry.
+refreshes the managed entity under that lock, rechecks enabled state and the verified
+encoding, and rejects stale changes without retry. This also protects requests with a
+servlet-bound persistence context retained across an earlier transaction.
 The mutation updates only the encoding, credential/security UTC timestamps from Clock,
 failure count and temporary lock. UUID, canonical login and assignments are preserved.
 

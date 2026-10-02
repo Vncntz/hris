@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 import io.github.vncntz.hris.sharedkernel.AuditRecorder;
 import io.github.vncntz.hris.sharedkernel.AuditRequest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.*;
 class PasswordChangeServiceTest {
     private final CurrentActor actor = mock(CurrentActor.class);
     private final AccountRepository accounts = mock(AccountRepository.class);
+    private final EntityManager entities = mock(EntityManager.class);
     private final PasswordEncoder encoder = mock(PasswordEncoder.class);
     private final AuditRecorder audit = mock(AuditRecorder.class);
     private final AuthenticatedSessionRevoker sessions = mock(AuthenticatedSessionRevoker.class);
@@ -42,7 +44,7 @@ class PasswordChangeServiceTest {
     private final PasswordChangeService service = service(actor);
 
     private PasswordChangeService service(CurrentActor current) {
-        return new PasswordChangeService(current, accounts, encoder, audit, sessions,
+        return new PasswordChangeService(current, accounts, entities, encoder, audit, sessions,
                 Clock.fixed(now, ZoneOffset.UTC), transactions);
     }
 
@@ -82,7 +84,7 @@ class PasswordChangeServiceTest {
         var expected = java.time.LocalDateTime.ofInstant(now.truncatedTo(java.time.temporal.ChronoUnit.MICROS), ZoneOffset.UTC);
         assertEquals(expected, ReflectionTestUtils.getField(account, "credentialUpdatedAtUtc"));
         assertEquals(expected, ReflectionTestUtils.getField(account, "securityUpdatedAtUtc"));
-        var order = inOrder(actor, accounts, encoder, transactions, audit, sessions);
+        var order = inOrder(actor, accounts, entities, encoder, transactions, audit, sessions);
         order.verify(actor).requireUserId();
         order.verify(accounts).findEnabledCredential(id);
         order.verify(encoder).matches(any(CharBuffer.class), eq(oldEncoding));
@@ -93,12 +95,13 @@ class PasswordChangeServiceTest {
         assertEquals(TransactionDefinition.ISOLATION_READ_COMMITTED, definition.getValue().getIsolationLevel());
         assertEquals(15, definition.getValue().getTimeout());
         order.verify(accounts).findByPublicId(id);
+        order.verify(entities).refresh(account);
         order.verify(audit).record(new AuditRequest(id.toString(), "IDENTITY_PASSWORD_CHANGED",
                 "IDENTITY_ACCOUNT", id.toString(), null, "self-service-password-change"));
         order.verify(accounts).flush();
         order.verify(sessions).revoke(id);
         order.verify(transactions).commit(any());
-        verifyNoMoreInteractions(actor, accounts, encoder, audit, sessions, transactions);
+        verifyNoMoreInteractions(actor, accounts, entities, encoder, audit, sessions, transactions);
         assertEquals(3, PasswordChangeService.class.getMethod("change", char[].class, char[].class, char[].class).getParameterCount());
     }
 
@@ -117,7 +120,7 @@ class PasswordChangeServiceTest {
                     () -> real.change(buffers[0], buffers[1], buffers[2]));
             cleared(buffers);
         }
-        verifyNoInteractions(accounts, encoder, transactions, audit, sessions);
+        verifyNoInteractions(accounts, entities, encoder, transactions, audit, sessions);
     }
 
     @Test
@@ -163,7 +166,7 @@ class PasswordChangeServiceTest {
             assertThrows(IllegalArgumentException.class, () -> service.change(buffers[0], buffers[1], buffers[2]));
             cleared(buffers);
         }
-        verifyNoInteractions(accounts, encoder, transactions, audit, sessions);
+        verifyNoInteractions(accounts, entities, encoder, transactions, audit, sessions);
     }
 
     @Test
@@ -207,7 +210,7 @@ class PasswordChangeServiceTest {
         bounded(PasswordChangeException.Reason.PERSISTENCE_FAILED,
                 () -> service.change(buffers[0], buffers[1], buffers[2]));
         cleared(buffers);
-        verifyNoInteractions(accounts, encoder, transactions, audit, sessions);
+        verifyNoInteractions(accounts, entities, encoder, transactions, audit, sessions);
     }
 
     @Test
@@ -243,8 +246,8 @@ class PasswordChangeServiceTest {
 
     @Test
     void infrastructureFailuresAreBoundedClearBuffersAndRespectExpiryOrdering() {
-        for (int scenario = 0; scenario < 8; scenario++) {
-            reset(accounts, encoder, transactions, audit, sessions); ready();
+        for (int scenario = 0; scenario < 9; scenario++) {
+            reset(accounts, entities, encoder, transactions, audit, sessions); ready();
             account.changePassword(oldEncoding, Instant.EPOCH);
             var internal = new IllegalStateException("Synthetic internal failure " + UUID.randomUUID());
             switch (scenario) {
@@ -252,22 +255,23 @@ class PasswordChangeServiceTest {
                 case 1 -> when(encoder.matches(any(), any())).thenThrow(internal);
                 case 2 -> when(encoder.encode(any())).thenThrow(internal);
                 case 3 -> when(accounts.findByPublicId(id)).thenThrow(internal);
-                case 4 -> when(audit.record(any())).thenThrow(internal);
-                case 5 -> doThrow(internal).when(accounts).flush();
-                case 6 -> doThrow(new PasswordChangeException(PasswordChangeException.Reason.SESSION_REVOCATION_FAILED))
+                case 4 -> doThrow(internal).when(entities).refresh(account);
+                case 5 -> when(audit.record(any())).thenThrow(internal);
+                case 6 -> doThrow(internal).when(accounts).flush();
+                case 7 -> doThrow(new SessionRevocationException())
                         .when(sessions).revoke(id);
-                case 7 -> doThrow(internal).when(transactions).commit(any());
+                case 8 -> doThrow(internal).when(transactions).commit(any());
                 default -> fail();
             }
             char[][] buffers = buffers();
             bounded(scenario == 2 ? PasswordChangeException.Reason.ENCODING_FAILED
-                    : scenario == 6 ? PasswordChangeException.Reason.SESSION_REVOCATION_FAILED
+                    : scenario == 7 ? PasswordChangeException.Reason.SESSION_REVOCATION_FAILED
                     : PasswordChangeException.Reason.PERSISTENCE_FAILED,
                     () -> service.change(buffers[0], buffers[1], buffers[2]));
             cleared(buffers);
-            if (scenario < 6) { verifyNoInteractions(sessions); }
-            if (scenario >= 3 && scenario <= 6) { verify(transactions).rollback(any()); }
-            if (scenario == 7) { verify(sessions).revoke(id); }
+            if (scenario < 7) { verifyNoInteractions(sessions); }
+            if (scenario >= 3 && scenario <= 7) { verify(transactions).rollback(any()); }
+            if (scenario == 8) { verify(sessions).revoke(id); }
         }
     }
 

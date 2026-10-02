@@ -24,6 +24,8 @@ import io.github.vncntz.hris.sharedkernel.AuditRecorder;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.persistence.EntityManagerFactory;
+import org.springframework.orm.jpa.EntityManagerHolder;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +80,7 @@ class PasswordChangeIT {
     @Autowired private Flyway flyway;
     @Autowired private SessionRegistry registry;
     @Autowired private PlatformTransactionManager transactions;
+    @Autowired private EntityManagerFactory entityManagerFactory;
     @Autowired private ProbeCredentials probe;
     @MockitoSpyBean private AuditRecorder audit;
     @MockitoSpyBean private PasswordEncoder encoder;
@@ -288,6 +291,33 @@ class PasswordChangeIT {
     }
 
     @Test
+    void servletBoundManagedSnapshotCannotHidePersistedDisablement() {
+        var entities = entityManagerFactory.createEntityManager();
+        try {
+            // Model a request persistence context retained across transactions, without
+            // exposing the internal entity outside this persistence-focused test.
+            entities.createQuery("select account from AccountEntity account where account.publicId=:id")
+                    .setParameter("id", id).getSingleResult();
+            TransactionSynchronizationManager.bindResource(entityManagerFactory, new EntityManagerHolder(entities));
+            // Permit the initial enabled scalar read, then disable after verification while the
+            // preloaded entity still says enabled. Refresh under the write lock must see the change.
+            doAnswer(call -> {
+                jdbc.update("UPDATE identity_account SET enabled=0 WHERE canonical_login='synthetic.self'");
+                return call.callRealMethod();
+            }).when(encoder).encode(any());
+            char[][] buffers = buffers(UUID.randomUUID().toString());
+            bounded(PasswordChangeException.Reason.ACCOUNT_UNAVAILABLE, () -> invoke(buffers));
+            cleared(buffers);
+            assertEquals(0, jdbc.queryForObject("SELECT enabled FROM identity_account WHERE canonical_login='synthetic.self'", Integer.class));
+            assertPreserved(1, 1);
+            verifyNoInteractions(audit, revoker);
+        } finally {
+            TransactionSynchronizationManager.unbindResourceIfPossible(entityManagerFactory);
+            entities.close();
+        }
+    }
+
+    @Test
     void enabledStateIsRecheckedAfterEncodingBeforeMutation() {
         doAnswer(call -> {
             jdbc.update("UPDATE identity_account SET enabled=0 WHERE canonical_login='synthetic.self'");
@@ -493,6 +523,7 @@ class PasswordChangeIT {
         void login(String login, String password, boolean success) throws Exception {
             assertEquals(200, get("/login").statusCode());
             String before = sessionCookie();
+            assertFalse(before.isBlank(), "Login page must establish a session before authentication");
             String form = "username=" + URLEncoder.encode(login, StandardCharsets.UTF_8)
                     + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
             var response = client.send(HttpRequest.newBuilder(uri("/login"))

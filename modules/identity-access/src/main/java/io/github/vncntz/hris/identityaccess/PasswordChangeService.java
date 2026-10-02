@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import io.github.vncntz.hris.sharedkernel.AuditRecorder;
 import io.github.vncntz.hris.sharedkernel.AuditRequest;
+import jakarta.persistence.EntityManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -18,17 +19,19 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class PasswordChangeService {
     private final CurrentActor actor;
     private final AccountRepository accounts;
+    private final EntityManager entities;
     private final PasswordEncoder encoder;
     private final AuditRecorder audit;
     private final AuthenticatedSessionRevoker sessions;
     private final Clock clock;
     private final TransactionTemplate mutation;
 
-    PasswordChangeService(CurrentActor actor, AccountRepository accounts, PasswordEncoder encoder,
+    PasswordChangeService(CurrentActor actor, AccountRepository accounts, EntityManager entities, PasswordEncoder encoder,
             AuditRecorder audit, AuthenticatedSessionRevoker sessions, Clock clock,
             PlatformTransactionManager transactions) {
         this.actor = actor;
         this.accounts = accounts;
+        this.entities = entities;
         this.encoder = encoder;
         this.audit = audit;
         this.sessions = sessions;
@@ -89,6 +92,9 @@ public class PasswordChangeService {
     private void persist(UUID id, String verified, String replacement) {
         AccountEntity account = accounts.findByPublicId(id).orElseThrow(() ->
                 new PasswordChangeException(PasswordChangeException.Reason.ACCOUNT_UNAVAILABLE));
+        // A servlet-bound persistence context can outlive a transaction. The locking query
+        // may return its already-managed entity; reload under the held lock before rechecks.
+        entities.refresh(account);
         if (!account.enabled()) {
             throw new PasswordChangeException(PasswordChangeException.Reason.ACCOUNT_UNAVAILABLE);
         }
