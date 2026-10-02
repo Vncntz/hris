@@ -107,6 +107,23 @@ class AccountEntity {
         roles.add(role);
     }
 
+    Set<RoleEntity> assignedRoles() {
+        return Set.copyOf(roles);
+    }
+
+    void changeRoleAssignment(RoleEntity role, boolean assigned) {
+        // Validate before advancing; overflow must leave membership untouched.
+        if (roles.contains(role) == assigned) {
+            throw new IllegalStateException("Membership did not change");
+        }
+        advanceAuthenticationGeneration();
+        if (assigned) {
+            roles.add(role);
+        } else {
+            roles.remove(role);
+        }
+    }
+
     boolean isLockedAt(Instant now) {
         return lockedUntilUtc != null && now.isBefore(lockedUntilUtc.toInstant(ZoneOffset.UTC));
     }

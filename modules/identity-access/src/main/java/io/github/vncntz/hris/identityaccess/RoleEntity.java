@@ -57,6 +57,10 @@ class RoleEntity {
         this.enabled = enabled;
     }
 
+    UUID publicId() {
+        return publicId;
+    }
+
     boolean enabled() {
         return enabled;
     }
