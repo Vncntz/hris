@@ -57,11 +57,15 @@ public class AccountAuthenticationService {
             return Optional.empty();
         }
         account.recordSuccess(now);
-        List<String> authorityKeys = accounts.findAssignedRoles(account.id()).stream()
+        List<RoleEntity> assigned = accounts.findAssignedRoles(account.id());
+        RoleGenerations generations = new RoleGenerations(assigned.stream().collect(
+                java.util.stream.Collectors.toMap(RoleEntity::publicId, RoleEntity::authorizationGeneration)));
+        List<String> authorityKeys = assigned.stream()
                 .filter(RoleEntity::enabled)
                 .flatMap(role -> role.authorityKeys().stream())
                 .distinct().sorted().toList();
         return Optional.of(new AuthenticatedAccount(
-                new AccountPrincipal(account.publicId(), account.canonicalLogin()), authorityKeys, account.authenticationGeneration()));
+                new AccountPrincipal(account.publicId(), account.canonicalLogin()), authorityKeys,
+                account.authenticationGeneration(), generations));
     }
 }

@@ -4,11 +4,11 @@ Last updated: 2026-10-02. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md) is `POST_MERGE_VERIFIED` / complete. [TASK-0024](../tasks/TASK-0024.md), authenticated account creation boundary, is `POST_MERGE_VERIFIED` / complete. [TASK-0025](../tasks/TASK-0025.md), authenticated password change and session revocation foundation, is Complete / `POST_MERGE_VERIFIED` after corrective PR #45 and its exact-merge push CI. [TASK-0026](../tasks/TASK-0026.md) is Complete / `POST_MERGE_VERIFIED` after PR #47 and its verified exact-merge push CI. [TASK-0027](../tasks/TASK-0027.md) is Complete / `POST_MERGE_VERIFIED` after PR #49 and exact-merge push run 37007864655. [TASK-0028](../tasks/TASK-0028.md) is PLANNED for Role/Permission administration with Role authority-generation invalidation. IMP-013 remains ACTIVE. Pass the TASK-0028 planning gate before implementation; no implementation is authorized or started in this run. Do not allocate TASK-0029 or advance to IMP-014.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md) is `POST_MERGE_VERIFIED` / complete. [TASK-0024](../tasks/TASK-0024.md), authenticated account creation boundary, is `POST_MERGE_VERIFIED` / complete. [TASK-0025](../tasks/TASK-0025.md), authenticated password change and session revocation foundation, is Complete / `POST_MERGE_VERIFIED` after corrective PR #45 and its exact-merge push CI. [TASK-0026](../tasks/TASK-0026.md) is Complete / `POST_MERGE_VERIFIED` after PR #47 and its verified exact-merge push CI. [TASK-0027](../tasks/TASK-0027.md) is Complete / `POST_MERGE_VERIFIED` after PR #49 and exact-merge push run 37007864655. [TASK-0028](../tasks/TASK-0028.md) is IN PROGRESS for Role/Permission administration with Role authority-generation invalidation. IMP-013 remains ACTIVE. The TASK-0028 planning gate is verified and implementation is authorized by the current operator instruction; local verification is green; exact-head CI and protected integration remain pending. Do not allocate TASK-0029 or advance to IMP-014.
 
 Last completed work order: [TASK-0027](../tasks/TASK-0027.md) under [IMP-013](tasks/IMP-013.md).
 
-Current action: pass the TASK-0028 documentation-only planning gate through exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI before implementation. TASK-0028 is PLANNED; implementation is not authorized or started in this run. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
+Current action: implement and verify TASK-0028 under the current operator authorization and independently verified PR #50 planning gate. Implementation is IN PROGRESS; integration and post-merge verification are pending. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
 
 ## Active implementation decisions
 
@@ -23,7 +23,7 @@ Current action: pass the TASK-0028 documentation-only planning gate through exac
 
 ## Blockers and open verification
 
-- TASK-0027 is Complete / `POST_MERGE_VERIFIED`; no predecessor blocker remains. TASK-0028 is PLANNED and its planning integration/post-merge gate remains open. No TASK-0028 implementation is authorized or started in this run.
+- TASK-0027 is Complete / `POST_MERGE_VERIFIED`; no predecessor blocker remains. TASK-0028 planning integration/post-merge gate is verified from PR #50; implementation is IN PROGRESS and its local gates are green; integration/post-merge gates remain open.
 
 - [TASK-0020](../tasks/TASK-0020.md)'s [post-merge identity-heading finding](https://github.com/Vncntz/hris/pull/34#discussion_r4154527760) was corrected by [TASK-0021](../tasks/TASK-0021.md) / PR #36. The historical [review thread](https://github.com/Vncntz/hris/pull/34#discussion_r4155621507) was resolved after fixing evidence and clean trusted-main TASK-0001 verification. Neither task remains blocked.
 - Historical TASK-0023 successor review: PR #40 exact-head and exact-merge-SHA push CI passed, including 24 real-MySQL tests in both Linux jobs. Fresh-cycle review selects TASK-0024 for authenticated identity:admin account creation, zero implicit roles/authorities, adaptive initial credentials and atomic audit. Lifecycle, assignment administration and privileged MFA/re-authentication remain later slices. No schema change or approved ADR is needed for this focused planning scope.
@@ -88,7 +88,7 @@ non-secret failures, closure and deferred qualification. Implementation [PR #40]
 
 ## Next action
 
-Current action: pass the TASK-0028 documentation-only planning gate through exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI before implementation. TASK-0028 is PLANNED; implementation is not authorized or started in this run. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
+Current action: implement and verify TASK-0028 under the current operator authorization and independently verified PR #50 planning gate. Implementation is IN PROGRESS; integration and post-merge verification are pending. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
 
 ## TASK-0024 local evidence - 2026-10-02
 
@@ -189,7 +189,7 @@ Historical local verification preceded the independently verified completion bel
 
 Implementation [PR #47](https://github.com/Vncntz/hris/pull/47) final head `b21da2b5f9684d639388f0ead70bb36f5ac900a7` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36988841675](https://github.com/Vncntz/hris/actions/runs/36988841675). It merged as `8a44a36e1a7683c36f130f5836b7fb532e3b16f2`; [exact-merge main push run 36989610995](https://github.com/Vncntz/hris/actions/runs/36989610995) passed all three jobs on that exact SHA. Independent GitHub metadata and actual policy/Linux/Windows log review confirmed 42 tooling tests, 90 ordinary reactor tests per platform and 58 real-MySQL integration tests on Linux, with zero failures/errors/skips and BUILD SUCCESS. TASK-0026 is Complete / `POST_MERGE_VERIFIED`.
 
-Current action: pass the TASK-0028 documentation-only planning gate through exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI before implementation. TASK-0028 is PLANNED; implementation is not authorized or started in this run. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
+Current action: implement and verify TASK-0028 under the current operator authorization and independently verified PR #50 planning gate. Implementation is IN PROGRESS; integration and post-merge verification are pending. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
 
 The tracked TASK directory ends at TASK-0026 and fetched Git history has no TASK-0027 allocation. TASK-0027 is the next unused four-digit ID. The preserved supplied work order plans only Account-to-Role membership administration, using V5/V7 and local-session expiry. No code or migration is changed.
 
@@ -223,4 +223,84 @@ Account-to-Role administration is complete. Role enablement and Role-to-Permissi
 
 At allocation, TASK-0027 was the highest tracked ID; fetched Git history, local/remote branches and all PR history contained no TASK-0028 allocation or planning PR. The original untracked candidate remains preserved in the operator checkout. Current migrations end at V7; V8 is only the expected forward Role-generation migration, to be reallocated against refreshed main during implementation. Recovery/reset, privileged recent re-authentication, offline TOTP MFA and final access-management closure review remain deferred.
 
-Current action: pass the TASK-0028 documentation-only planning gate through exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI before implementation. TASK-0028 is PLANNED; implementation is not authorized or started in this run. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
+Current action: implement and verify TASK-0028 under the current operator authorization and independently verified PR #50 planning gate. Implementation is IN PROGRESS; integration and post-merge verification are pending. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
+
+
+## TASK-0028 planning gate verified and implementation started - 2026-10-02
+
+Planning PR #50 is independently verified: head `2b271c34ce553b6e3fb950dfe20a05160e552e94`, pull_request run `37011495034`; merge `2a12594bbb4c788e771eb2ad852443ea386ca448`, push run `37012009156`. Policy, Linux and Windows succeeded on both exact SHAs. Refreshed main equals that merge. The operator authorized TASK-0028 implementation only; local verification and implementation integration remain pending. IMP-013 remains ACTIVE; no TASK-0029 is allocated and IMP-014 is out of scope.
+
+
+## Local verification gate blocked - 2026-10-02
+
+The candidate implements V8 Role authorization_generation, authenticated Role/Permission
+commands, transient assigned-Role freshness, Account-before-ordered-Role serialization,
+targeted set expiry and transactional audit. Completion is not claimed.
+
+Observed verification: focused Identity command `.\mvnw.cmd -B -pl modules/identity-access -am test`
+passed 73 Identity + 9 shared-kernel tests. The focused Windows command
+`.\mvnw.cmd -B -Pmysql-it "-Dit.test=RoleAdministrationIT,RoleGenerationMigrationIT" "-Dfailsafe.failIfNoSpecifiedTests=false" clean verify`
+passed 115 ordinary + 13 real-MySQL/HTTP tests, with zero failures/errors/skips and BUILD SUCCESS.
+The final membership-race assertion strengthening and test-only import cleanup occurred after
+that run compiled tests and require repeat verification before committing.
+Planning-index, 42 tooling tests, 221 local links/anchors, acceptance/non-goal/verification
+preservation and released V1-V7/frozen-source comparisons passed. Logs checked for credential
+encoding and session-cookie patterns had no detections; complete final diff review is still pending.
+
+The isolated Ubuntu 24.04 / Temurin Java 25 `./mvnw -B -o -Pmysql-it clean verify` run failed
+RoleAdministrationIT.selfAdminDisableAndPermissionRemovalRejectPersistedLastAuthority during
+Flyway setup (freshSyntheticIdentity), before the command under test: Communications link failure,
+SQL state 08S01, caused by SocketTimeoutException connecting through Docker Desktop forwarding.
+The suite was stopped after this failed local gate; it has no successful full-run conclusion.
+An attempted ordinary Windows clean verify overlapped an active focused build and failed to
+remove a locked shared-kernel JAR; it must be rerun serially. These failures are not waived.
+
+No commit, push, implementation PR or integration was performed. The branch remains
+`feat/imp-013-task-0028-role-permission-administration`, based on verified planning main
+`2a12594bbb4c788e771eb2ad852443ea386ca448`. Local, final-head, integration and implementation
+post-merge gates remain open. Retry required local verification from the current candidate after
+resolving Docker connectivity; do not advance before every gate passes. IMP-013 remains ACTIVE;
+TASK-0029 is not allocated and IMP-014 is not started.
+
+
+## Resumed local verification - 2026-10-02
+
+Final candidate verification now passes: Windows ordinary `.\mvnw.cmd -B clean verify`
+(115 tests, BUILD SUCCESS, confirmed wrapper exit 0); focused Windows
+`.\mvnw.cmd -B -Pmysql-it "-Dit.test=RoleAdministrationIT,RoleGenerationMigrationIT" "-Dfailsafe.failIfNoSpecifiedTests=false" clean verify`
+(115 ordinary + 13 MySQL/HTTP tests, BUILD SUCCESS). The final membership-race assertions
+are included in this successful focused run. Focused Identity remains 73 + 9 shared-kernel;
+planning-index and all 42 tooling tests passed again. Source/config/migration checks confirm
+the isolated Linux snapshot matches all 141 relevant current files.
+
+The serial isolated Ubuntu/Java 25 full `./mvnw -B -o -Pmysql-it clean verify` attempt
+produced 87 integration-test executions, zero assertion failures, one error and zero skips.
+All 12 RoleAdministrationIT tests and RoleGenerationMigrationIT passed; V7-to-V8 preservation,
+clean V8, nonnegative CHECK enforcement, V6-to-V7 and invalid-history regressions passed.
+The error is AccountLifecycleIT.lateCommitFailureRetainsPreviousDatabaseStateWhileSessionsRemainExpiredForBothDirections,
+during freshSyntheticIdentity Flyway.clean before the test operation, caused by a connection
+timeout through host.docker.internal (SQL state 08S01 / SocketTimeoutException).
+The run was stopped at this failed gate; a successful full Linux conclusion is still required.
+A bridge-gateway verification probe was also stopped because Docker Desktop refused the
+Testcontainers cleanup-service connection. No application configuration was changed.
+
+Actual logs and XML reports were inspected and retained outside source control. Correctly
+decoded log scans found no credential-encoding, password-parameter, session-cookie or private-key
+patterns. No commit, push, PR or integration occurred. TASK-0028 remains incomplete / local
+gate BLOCKED. Resolve the Linux Docker published-port connectivity issue and rerun full
+mysql-it before advancing. IMP-013 remains ACTIVE; no successor TASK or IMP-014 was started.
+
+## TASK-0028 full local verification green - 2026-10-02
+
+The resumed exact Linux `./mvnw -B -Pmysql-it clean verify` passed with BUILD SUCCESS,
+exit 0, 115 ordinary + 87 integration tests and zero failures/errors/skips/flakes.
+AccountLifecycleIT, all TASK-0028 HTTP tests, V8 and existing Identity/Flyway regressions
+passed in a clean Ubuntu/Java 25 verifier with a fresh isolated Linux Docker daemon.
+Windows focused Identity, ordinary (115) and focused MySQL (115 + 13) runs passed again,
+as did planning-index, 42 tooling tests, 221 links/anchors and full diff/privacy/audit/
+migration checks. The prior failed runs remain historical evidence. See
+[TASK-0028](../tasks/TASK-0028.md#full-local-linux-gate-verified---2026-10-02) for commands,
+environment diagnosis, complete counts and retained evidence. No code/test/configuration
+change was needed. Next action is focused implementation commit/PR, exact-head CI and
+trusted-main protected integration followed by exact-merge push CI. TASK-0028 remains
+IN PROGRESS; IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.

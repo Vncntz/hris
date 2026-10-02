@@ -10,6 +10,22 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AuthenticatedSessionRevokerTest {
+    @Test void affectedAccountSetUsesExactlyOneRegistryScanAndPreservesOthers() {
+        var registry = spy(new SessionRegistryImpl());
+        UUID first = UUID.randomUUID(), second = UUID.randomUUID(), other = UUID.randomUUID();
+        var entries = new java.util.ArrayList<SessionInformation>();
+        for (UUID id : List.of(first, second, other)) {
+            for (int i = 0; i < 3; i++) {
+                String session = UUID.randomUUID().toString();
+                registry.registerNewSession(session, new AccountPrincipal(id, "synthetic.account"));
+                entries.add(registry.getSessionInformation(session));
+            }
+        }
+        clearInvocations(registry);
+        new AuthenticatedSessionRevoker(registry).revoke(java.util.Set.of(first, second));
+        verify(registry, times(1)).getAllPrincipals();
+        for (int i = 0; i < entries.size(); i++) { assertEquals(i < 6, entries.get(i).isExpired()); }
+    }
     @Test
     void allPrincipalSnapshotsMatchOnlyPublicUuidAndExpiryIsIdempotent() {
         SessionRegistry registry = new SessionRegistryImpl();

@@ -14,12 +14,14 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class AccountSessionRegistrationService {
     private final AccountRepository accounts;
+    private final RoleRepository roles;
     private final EntityManager entities;
     private final TransactionTemplate registration;
 
-    AccountSessionRegistrationService(AccountRepository accounts, EntityManager entities,
+    AccountSessionRegistrationService(AccountRepository accounts, RoleRepository roles, EntityManager entities,
             PlatformTransactionManager transactions) {
         this.accounts = accounts;
+        this.roles = roles;
         this.entities = entities;
         registration = new TransactionTemplate(transactions);
         registration.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -44,6 +46,20 @@ public class AccountSessionRegistrationService {
                 entities.refresh(account);
                 if (!account.enabled() || generation.value() != account.authenticationGeneration()) {
                     throw rejected();
+                }
+                var assignedIds = account.assignedRoles().stream().map(RoleEntity::publicId)
+                        .collect(java.util.stream.Collectors.toSet());
+                if (!assignedIds.equals(generation.roles().values().keySet())) {
+                    throw rejected();
+                }
+                // One Account first, then every assigned Role in UUID order, including disabled Roles.
+                for (var roleId : assignedIds.stream().sorted().toList()) {
+                    RoleEntity role = roles.findByPublicId(roleId).orElseThrow(
+                            AccountSessionRegistrationService::rejected);
+                    entities.refresh(role);
+                    if (generation.roles().values().get(roleId) != role.authorizationGeneration()) {
+                        throw rejected();
+                    }
                 }
                 registerSession.run();
             });

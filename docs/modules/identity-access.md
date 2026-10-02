@@ -14,13 +14,13 @@ Membership exists only while its join-table row exists. Composite primary keys r
 
 Successful password authentication fetches assigned roles and their permissions in one joined JPA query within the existing short account transaction. Only enabled roles contribute authorities; missing roles, roles without permissions, and disabled roles grant none. Authority keys are deduplicated and sorted, then copied into Spring Security's authenticated token. The principal retains only the stable public account ID and canonical login; token credentials are absent. A lookup failure cannot yield an authenticated token. An account without an assigned permission can authenticate with zero authorities.
 
-Authorities are a login/session snapshot. TASK-0027 Account-to-Role mutations invalidate that snapshot through generation advancement and affected-session expiry, requiring fresh authentication. TASK-0026 does the same for account lifecycle. Future Role enablement and Role-to-Permission administration must separately invalidate all affected Accounts; that fan-out is outside TASK-0027. There is no authorization cache or distributed session invalidation.
+Authorities are a login/session snapshot. TASK-0027 Account-to-Role mutations invalidate that snapshot through generation advancement and affected-session expiry, requiring fresh authentication. TASK-0026 does the same for account lifecycle. TASK-0028 Role enablement and Role-to-Permission administration invalidate affected Accounts through Role generation and targeted session expiry as described below. There is no authorization cache or distributed session invalidation.
 
 TASK-0025 supplies a reusable local revocation primitive for later administrative commands;
 TASK-0027 reuses it for assignment administration and TASK-0026 for lifecycle commands. Password change uses it now
 to expire all tracked sessions belonging to the authenticated account.
 
-Application services may depend on `CurrentActor` to require the authenticated public user ID and test or require a named authority. The normal authentication provider now supplies authorities from persisted assignments; synthetic tests prove both successful enforcement and denial. TASK-0027 now supplies Account-to-Role administration and its assignment audit events. Role metadata/Permission/Role-to-Permission administration, TOTP enrollment/challenge/recovery, privileged re-authentication, and business-module call sites remain later focused work.
+Application services may depend on `CurrentActor` to require the authenticated public user ID and test or require a named authority. The normal authentication provider now supplies authorities from persisted assignments; synthetic tests prove both successful enforcement and denial. TASK-0027 supplies Account-to-Role administration and its assignment audit events; TASK-0028 supplies Role/Permission administration. TOTP enrollment/challenge/recovery, privileged re-authentication, and business-module call sites remain later focused work.
 
 API and dependency choices were checked against [Spring Security 7 password storage](https://docs.spring.io/spring-security/reference/7.0/features/authentication/password-storage.html), [Vaadin Spring Boot security](https://vaadin.com/docs/latest/flow/security/enabling-security), and the [Bouncy Castle 1.86 provider release](https://www.bouncycastle.org/download/bouncy-castle-java/). Bouncy Castle is centrally versioned in the repository because the Spring Boot/Vaadin BOMs do not manage its provider artifact.
 
@@ -151,7 +151,7 @@ Self-removal checks the remaining enabled persisted Roles/Permissions, not Role 
 the session authority snapshot. Harmless self changes expire the actor's own sessions.
 
 A 15-second standalone REQUIRES_NEW READ COMMITTED command locks and refreshes the Account,
-refreshes selected/remaining Roles before validation, mutates only V5 membership and advances
+locks and refreshes selected/remaining Roles in UUID order before validation, mutates only V5 membership and advances
 V7 authentication_generation exactly once. All other Account security and identity fields,
 unrelated memberships and Role/Permission state remain unchanged. No migration is introduced.
 The Account/generation and exact fixed-context IDENTITY_ACCOUNT_ROLE_ASSIGNED/REMOVED event
@@ -166,7 +166,37 @@ login from becoming usable. Deterministic HTTP/MySQL coverage proves both comman
 registration orderings, rollback, late-commit asymmetry, self-admin protection, unrelated-session
 preservation and fresh authority acquisition/removal. The HTTP probe is test-only.
 
-No production adapter or Role/Permission/Role-to-Permission administration is added. Future
-Role or permission changes require their own affected-Account fan-out invalidation design.
+TASK-0027 adds no production adapter. TASK-0028 adds Role/Permission administration as described below.
 Recovery/reset, privileged re-authentication, offline TOTP and password-cost qualification
 remain future IMP-013/production-security scope.
+
+
+## Administrative Roles and Permissions (TASK-0028)
+
+RoleAdministrationService requires CurrentActor identity:admin first and derives the audit actor
+only from requireUserId. createRole returns a public UUID with canonical unique name, disabled
+state, no Permissions and zero authorization_generation. createPermission returns only its
+canonical authority key. enable/disable and assignPermission/removePermission target public UUID
+and canonical key, preserve Role identity, and advance Role generation exactly once. Assignment
+does not enable a Role; no-ops and rejected commands do not advance generations or audit success.
+No rename/delete operation, production transport, future permission catalog or seed is added.
+
+Each short standalone REQUIRES_NEW READ COMMITTED transaction locks one Account first, then
+all needed Roles in UUID order. Membership commands lock their target Account; Role commands
+lock the actor Account and actor's assigned Roles plus the target, to evaluate persisted effective
+self-admin state. Final registration locks its Account and every assigned Role, including disabled
+Roles. No path acquires a subsequent Account lock while holding a Role lock. Affected Account
+UUID discovery is read-only under the target Role lock; membership changes share that lock.
+
+Authentication carries Account generation and an immutable public Role UUID/generation map in
+request-only details. Registration requires an exact assigned-Role set and matching generations,
+refreshes managed entities under locks, and strips all details before context persistence.
+Authorities still come only from enabled Roles. Registration first is seen by mutation expiry;
+mutation first rejects stale registration. Role mutations never write affected Account generations.
+
+Role/generation and exactly one privacy-minimized audit event flush before expiry. Role membership
+audit uses the Role UUID as target and the complete canonical key only in its bounded context.
+One SessionRegistry scan expires all affected UUIDs and leaves unrelated sessions untouched.
+Expiry failure rolls back Role/generation/audit. A late commit failure may leave sessions expired
+with the preceding database state retained; fresh authentication reads that state. This intentional
+safe non-atomic asymmetry does not require distributed transactions.

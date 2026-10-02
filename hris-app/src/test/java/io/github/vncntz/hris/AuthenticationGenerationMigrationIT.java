@@ -36,7 +36,7 @@ class AuthenticationGenerationMigrationIT {
                 + "credential_updated_at_utc,security_updated_at_utc,row_version";
         String before = jdbc.queryForMap("SELECT " + columns + " FROM identity_account").toString();
         Flyway current = Flyway.configure().dataSource(mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword())
-                .cleanDisabled(false).load();
+                .cleanDisabled(false).target("7").load();
         assertEquals(1, current.migrate().migrationsExecuted);
         assertTrue(before.equals(jdbc.queryForMap("SELECT " + columns + " FROM identity_account").toString()));
         assertEquals(0L, jdbc.queryForObject("SELECT authentication_generation FROM identity_account", Long.class));

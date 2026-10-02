@@ -26,4 +26,9 @@ interface AccountRepository extends JpaRepository<AccountEntity, Long> {
     @Query("select distinct role from AccountEntity account join account.roles role "
             + "left join fetch role.permissions where account.id = :accountId")
     List<RoleEntity> findAssignedRoles(@Param("accountId") Long accountId);
+
+    // Read-only discovery while holding the Role lock; never acquire affected Account locks here.
+    @Query("select account.publicId from AccountEntity account join account.roles role "
+            + "where role.publicId = :roleId")
+    java.util.Set<UUID> findPublicIdsAssignedToRole(@Param("roleId") UUID roleId);
 }
