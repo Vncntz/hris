@@ -86,7 +86,7 @@ non-secret failures, closure and deferred qualification. Implementation [PR #40]
 
 ## Next action
 
-Complete only the documentation planning cycle for [IMP-013](tasks/IMP-013.md) / [TASK-0024](../tasks/TASK-0024.md). Require final planning-head policy/Linux/Windows CI, clean trusted-main gates, protected PR merge and successful push CI on the actual planning merge SHA. Pending or failed post-merge CI blocks the planning handoff. TASK-0024 stays PLANNED; implementation requires a separate explicit instruction. IMP-013 remains ACTIVE.
+Integrate only the locally verified implementation for [IMP-013](tasks/IMP-013.md) / [TASK-0024](../tasks/TASK-0024.md). Require exact-final-head policy/Linux/Windows CI, clean trusted-main gates, protected PR merge and successful push CI on the actual implementation merge SHA. Pending or failed gates block completion. Reconcile tracked closeout in the next authorized task PR from GitHub evidence. IMP-013 remains ACTIVE; do not allocate or implement TASK-0025.
 
 ## TASK-0024 local evidence - 2026-10-02
 
