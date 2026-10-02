@@ -4,11 +4,11 @@ Last updated: 2026-10-02. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md), secure first-administrator provisioning, is LOCAL_VERIFIED under explicit operator authorization after verified planning PR #39 and its exact-merge-SHA push CI.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md) is `POST_MERGE_VERIFIED` / complete. [TASK-0024](../tasks/TASK-0024.md), authenticated account creation boundary, is PLANNED next. This run authorizes documentation planning only.
 
-Last completed work order: [TASK-0022](../tasks/TASK-0022.md) under [IMP-013](tasks/IMP-013.md).
+Last completed work order: [TASK-0023](../tasks/TASK-0023.md) under [IMP-013](tasks/IMP-013.md).
 
-Current action: integrate the locally verified TASK-0023 focused implementation PR through all exact-head, trusted-main and exact-merge-SHA gates. IMP-013 remains active and IMP-014 is not selected.
+Current action: integrate the documentation-only TASK-0024 planning PR through exact-head, trusted-main and exact-merge-SHA gates. IMP-013 remains ACTIVE; TASK-0024 implementation requires separate explicit authorization.
 
 ## Active implementation decisions
 
@@ -24,13 +24,13 @@ Current action: integrate the locally verified TASK-0023 focused implementation 
 ## Blockers and open verification
 
 - [TASK-0020](../tasks/TASK-0020.md)'s [post-merge identity-heading finding](https://github.com/Vncntz/hris/pull/34#discussion_r4154527760) was corrected by [TASK-0021](../tasks/TASK-0021.md) / PR #36. The historical [review thread](https://github.com/Vncntz/hris/pull/34#discussion_r4155621507) was resolved after fixing evidence and clean trusted-main TASK-0001 verification. Neither task remains blocked.
-- TASK-0022 has no remaining completion blocker: exact-head and exact-merge-SHA CI passed, including Linux real-MySQL execution. Fresh-cycle IMP-013 review selects TASK-0023 for secure first-administrator provisioning because a newly migrated installation has no usable production login creation path. TASK-0023 implementation is explicitly authorized after planning PR #39 and exact-merge-SHA push run 36941726558 passed; local/platform/MySQL verification passed; implementation integration and exact-SHA CI are pending. Administrative lifecycle/authorization/audit, assignment administration, and privileged-account MFA remain later slices. No approved ADR or unresolved product/architecture decision blocks this focused planning scope.
+- TASK-0023 has no remaining completion blocker: PR #40 exact-head and exact-merge-SHA push CI passed, including 24 real-MySQL tests in both Linux jobs. Fresh-cycle review selects TASK-0024 for authenticated identity:admin account creation, zero implicit roles/authorities, adaptive initial credentials and atomic audit. Lifecycle, assignment administration and privileged MFA/re-authentication remain later slices. No schema change or approved ADR is needed for this focused planning scope.
 - [PR #30 review comment 4145705615](https://github.com/Vncntz/hris/pull/30#discussion_r4145705615) on stale TASK-0017 routing records was [resolved with fixing-merge evidence](https://github.com/Vncntz/hris/pull/30#discussion_r4146157971) after TASK-0018 planning PR #31 and its exact-merge-SHA push CI passed. PR #30's intermittent MySQL deadlock led to [TASK-0018](../tasks/TASK-0018.md); its deterministic contention and real-MySQL regressions and implementation PR #32's exact-head/merge-SHA CI have now passed. The fresh-cycle review has since closed IMP-012. TASK-0015's classpath guard covers all 15 production reactor modules, and eight architecture tests passed locally.
 - Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
 - IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
 - No approved ADRs or open product/architecture decisions are recorded.
 
-## Current TASK-0023 verification
+## TASK-0023 verification and planned successor
 
 Planning PR #39 / head `dcc08be20574bbc06e611e2c5f42ee3b3007c0fc` and merge
 `1b7421d133c6cc5531187408245fdcf12b6ac066` were independently verified with passing
@@ -38,7 +38,7 @@ policy/Linux/Windows runs `36941389484` and `36941726558`; both Linux runs execu
 17 real-MySQL tests without failures/errors/skips. The operator explicitly authorized
 only TASK-0023 implementation.
 
-[TASK-0023](../tasks/TASK-0023.md) is LOCAL_VERIFIED: Windows focused 12 identity +
+[TASK-0023](../tasks/TASK-0023.md) local verification: Windows focused 12 identity +
 9 shared-kernel tests; ordinary Windows reactor 54 tests (8 architecture); Windows and
 isolated Ubuntu 24.04 Docker mysql-it runs each 54 ordinary + 24 real-MySQL tests, all
 with zero failures/errors/skips; tooling 42 tests, planning-index and whitespace checks
@@ -46,10 +46,13 @@ passed. Packaged Windows/Ubuntu terminal probes verified hidden input, success/e
 zero observed TCP listeners and non-terminal refusal. V6 adds only technical once-only
 state; released migrations and frozen plans are unchanged. The
 [runbook](../deployment/first-administrator.md) and TASK record document platform limits,
-non-secret failures, closure and deferred qualification. Exact-head CI, protected
-implementation merge and exact-merge-SHA push CI remain pending; no completion is claimed.
+non-secret failures, closure and deferred qualification. Implementation [PR #40](https://github.com/Vncntz/hris/pull/40) final head `f92183966f1854f9323d2a8c7edce968232002aa` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36945136055](https://github.com/Vncntz/hris/actions/runs/36945136055). It merged as `f0098c9dfc394da583781a4814277c0a58ca1617`; [exact-merge-SHA push run 36945567895](https://github.com/Vncntz/hris/actions/runs/36945567895) passed all three jobs on that exact SHA. Both Linux logs confirm 24 real-MySQL tests (AccountAuthenticationIT 1, AuditPersistenceIT 3, FirstAdministratorProvisioningIT 7, MySqlDatasourceIT 2, IdentityAuthorizationIT 4, AgencyConfigurationIT 7), zero failures/errors/skips, and `BUILD SUCCESS`. Independent migration-stream diff review confirms only V6 was added; V1-V5 were unchanged. Refreshed protected `main` is at the verified merge. TASK-0023 is `POST_MERGE_VERIFIED` / complete.
+
+[TASK-0024](../tasks/TASK-0024.md) is PLANNED next with no implementation in this run.
 
 ## Completed evidence
+
+- Implementation [PR #40](https://github.com/Vncntz/hris/pull/40) final head `f92183966f1854f9323d2a8c7edce968232002aa` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36945136055](https://github.com/Vncntz/hris/actions/runs/36945136055). It merged as `f0098c9dfc394da583781a4814277c0a58ca1617`; [exact-merge-SHA push run 36945567895](https://github.com/Vncntz/hris/actions/runs/36945567895) passed all three jobs on that exact SHA. Both Linux logs confirm 24 real-MySQL tests (AccountAuthenticationIT 1, AuditPersistenceIT 3, FirstAdministratorProvisioningIT 7, MySqlDatasourceIT 2, IdentityAuthorizationIT 4, AgencyConfigurationIT 7), zero failures/errors/skips, and `BUILD SUCCESS`. Independent migration-stream diff review confirms only V6 was added; V1-V5 were unchanged. Refreshed protected `main` is at the verified merge. TASK-0023 is `POST_MERGE_VERIFIED` / complete.
 
 - [TASK-0022](../tasks/TASK-0022.md) planning [PR #37](https://github.com/Vncntz/hris/pull/37) final head `84420d872a34ff73aa05f3ea61cc74dd2011a936` passed policy/Linux/Windows in [run 36867143103](https://github.com/Vncntz/hris/actions/runs/36867143103). It merged as `4242321cf736c0817d4cd3e8593d200e4b9accd0`; [exact-merge-SHA push run 36867516666](https://github.com/Vncntz/hris/actions/runs/36867516666) passed all three jobs. The operator then explicitly authorized implementation. Local focused authentication tests (9), Windows reactor tests (48, including 8 architecture tests), and tooling tests (42) passed without failures/errors/skips. V5 and all four new MySQL integration tests subsequently passed required Linux CI. Implementation [PR #38](https://github.com/Vncntz/hris/pull/38) final head `350468fbfaba342255abd5b0edfcaf7bcf03c4cc` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36938703821](https://github.com/Vncntz/hris/actions/runs/36938703821). It merged as `6e90b7143e1c1cad1c308f88baf265aefe37787e`; [exact-merge-SHA push run 36939112003](https://github.com/Vncntz/hris/actions/runs/36939112003) passed all three jobs on that exact SHA. Both Linux runs executed 17 real-MySQL tests (AccountAuthenticationIT 1, AuditPersistenceIT 3, MySqlDatasourceIT 2, IdentityAuthorizationIT 4, AgencyConfigurationIT 7), with zero failures, errors, or skips. TASK-0022 satisfies its acceptance criteria and completion boundary and is `POST_MERGE_VERIFIED` / complete. Fresh-cycle review keeps IMP-013 ACTIVE with TASK-0023 PLANNED next.
 
@@ -83,4 +86,4 @@ implementation merge and exact-merge-SHA push CI remain pending; no completion i
 
 ## Next action
 
-Complete verification and gated integration of [IMP-013](tasks/IMP-013.md) / [TASK-0023](../tasks/TASK-0023.md) only. Require exact-final-head policy/Linux/Windows CI, real-MySQL execution, clean trusted-main gates, protected merge and passing push CI on the actual implementation merge SHA. Then perform a fresh-cycle remaining-scope review. Do not allocate TASK-0024 in this run; IMP-013 remains ACTIVE.
+Complete only the documentation planning cycle for [IMP-013](tasks/IMP-013.md) / [TASK-0024](../tasks/TASK-0024.md). Require final planning-head policy/Linux/Windows CI, clean trusted-main gates, protected PR merge and successful push CI on the actual planning merge SHA. Pending or failed post-merge CI blocks the planning handoff. TASK-0024 stays PLANNED; implementation requires a separate explicit instruction. IMP-013 remains ACTIVE.
