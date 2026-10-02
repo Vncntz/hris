@@ -46,6 +46,9 @@ class HrisApplicationSmokeTest {
     private io.github.vncntz.hris.identityaccess.PasswordChangeService passwordChangeService;
 
     @MockitoBean
+    private io.github.vncntz.hris.identityaccess.AccountSessionRegistrationService sessionRegistrationService;
+
+    @MockitoBean
     private AgencyConfigurationService agencyConfigurationService;
 
     @Value("${local.server.port}")

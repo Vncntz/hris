@@ -74,14 +74,15 @@ class PasswordChangeIT {
     @Autowired private PasswordChangeService service;
     @Autowired private FirstAdministratorProvisioner bootstrap;
     @Autowired private AccountCreationService creation;
-    @Autowired private AccountAuthenticationProvider provider;
+    @MockitoSpyBean private AccountAuthenticationProvider provider;
     @Autowired private CurrentActor actor;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private Flyway flyway;
-    @Autowired private SessionRegistry registry;
+    @MockitoSpyBean private SessionRegistry registry;
     @Autowired private PlatformTransactionManager transactions;
     @Autowired private EntityManagerFactory entityManagerFactory;
     @Autowired private ProbeCredentials probe;
+    @MockitoSpyBean private AccountSessionRegistrationService registration;
     @MockitoSpyBean private AuditRecorder audit;
     @MockitoSpyBean private PasswordEncoder encoder;
     @MockitoSpyBean private AuthenticatedSessionRevoker revoker;
@@ -373,6 +374,142 @@ class PasswordChangeIT {
         }
     }
 
+    @Test
+    void oldCredentialAuthenticationPausedBeforeRegistrationCannotCreateSessionAfterChange() throws Exception {
+        var verified = new CountDownLatch(1);
+        var resume = new CountDownLatch(1);
+        doAnswer(call -> {
+            Authentication result = (Authentication) call.callRealMethod();
+            verified.countDown();
+            assertTrue(resume.await(30, TimeUnit.SECONDS), "Registration must be released");
+            return result;
+        }).when(provider).authenticate(any());
+        try (Browser delayed = new Browser(); Browser fresh = new Browser();
+                var executor = Executors.newSingleThreadExecutor()) {
+            var login = executor.submit(() -> { delayed.login("synthetic.self", oldPassword, false); return null; });
+            try {
+                assertTrue(verified.await(30, TimeUnit.SECONDS), "Credential authentication must complete first");
+                assertEquals(0, tracked(id).size());
+                String replacement = UUID.randomUUID().toString();
+                change(replacement);
+                assertEvent(1);
+                resume.countDown();
+                login.get(30, TimeUnit.SECONDS);
+                assertEquals(0, tracked(id).size());
+                reset(provider);
+                fresh.login("synthetic.self", replacement, true);
+            } finally { resume.countDown(); }
+        }
+    }
+
+    @Test
+    void registrationCompletingFirstIsRevokedEvenBeforeSecurityContextPersistence() throws Exception {
+        var registered = new CountDownLatch(1);
+        var resume = new CountDownLatch(1);
+        doAnswer(call -> {
+            call.callRealMethod(); // Real transaction/row lock and real servlet registry registration complete.
+            registered.countDown();
+            assertTrue(resume.await(30, TimeUnit.SECONDS), "Context persistence must be released");
+            return null;
+        }).when(registration).register(any(), any());
+        try (Browser delayed = new Browser(); Browser fresh = new Browser();
+                var executor = Executors.newSingleThreadExecutor()) {
+            var login = executor.submit(() -> { delayed.login("synthetic.self", oldPassword, true, false); return null; });
+            try {
+                assertTrue(registered.await(30, TimeUnit.SECONDS), "Registration must finish first");
+                assertEquals(1, tracked(id).size());
+                var prior = tracked(id).getFirst();
+                assertFalse(prior.isExpired());
+                String replacement = UUID.randomUUID().toString();
+                change(replacement);
+                assertTrue(prior.isExpired());
+                resume.countDown();
+                login.get(30, TimeUnit.SECONDS);
+                assertEquals(302, delayed.get("/test/session").statusCode());
+                assertEquals(302, delayed.get("/test/session").statusCode());
+                assertEquals(0, tracked(id).size());
+                reset(registration);
+                fresh.login("synthetic.self", replacement, true);
+                assertEvent(1);
+            } finally { resume.countDown(); }
+        }
+    }
+
+    @Test
+    void ordinaryConcurrentLoginsWithSameGenerationBothRegisterAndKeepUnrelatedSessions() throws Exception {
+        String otherPassword = UUID.randomUUID().toString();
+        UUID other = creation.create("synthetic.other", otherPassword.toCharArray(), otherPassword.toCharArray()).publicId();
+        try (Browser unrelated = new Browser(); Browser first = new Browser(); Browser second = new Browser();
+                var executor = Executors.newFixedThreadPool(2)) {
+            unrelated.login("synthetic.other", otherPassword, true);
+            var verified = new CountDownLatch(2);
+            var resume = new CountDownLatch(1);
+            doAnswer(call -> {
+                Authentication result = (Authentication) call.callRealMethod();
+                verified.countDown();
+                assertTrue(resume.await(30, TimeUnit.SECONDS), "Concurrent registrations must be released");
+                return result;
+            }).when(provider).authenticate(any());
+            var one = executor.submit(() -> { first.login("synthetic.self", oldPassword, true); return null; });
+            var two = executor.submit(() -> { second.login("synthetic.self", oldPassword, true); return null; });
+            try {
+                assertTrue(verified.await(30, TimeUnit.SECONDS), "Both credential authentications must finish");
+                resume.countDown();
+                one.get(30, TimeUnit.SECONDS); two.get(30, TimeUnit.SECONDS);
+                assertEquals(2, tracked(id).size());
+                for (var session : tracked(id)) { assertFalse(session.isExpired()); }
+                change(UUID.randomUUID().toString());
+                assertEquals(302, first.get("/test/session").statusCode());
+                assertEquals(302, second.get("/test/session").statusCode());
+                assertEquals(200, unrelated.get("/test/session").statusCode());
+                assertEquals(1, tracked(other).size());
+                assertFalse(tracked(other).getFirst().isExpired());
+            } finally { resume.countDown(); }
+        }
+    }
+
+    @Test
+    void repeatedPasswordChangesAtFixedClockAdvanceGenerationAndRejectAnEarlierAuthentication() {
+        String first = UUID.randomUUID().toString();
+        change(first);
+        Authentication intermediate = authenticate(first);
+        var firstGeneration = jdbc.queryForObject("SELECT credential_updated_at_utc FROM identity_account "
+                + "WHERE canonical_login='synthetic.self'", java.time.LocalDateTime.class);
+        String second = UUID.randomUUID().toString();
+        service.change(first.toCharArray(), second.toCharArray(), second.toCharArray());
+        var secondGeneration = jdbc.queryForObject("SELECT credential_updated_at_utc FROM identity_account "
+                + "WHERE canonical_login='synthetic.self'", java.time.LocalDateTime.class);
+        assertTrue(secondGeneration.isAfter(firstGeneration));
+        var callback = new AtomicInteger();
+        assertThrows(org.springframework.security.web.authentication.session.SessionAuthenticationException.class,
+                () -> registration.register(intermediate, callback::incrementAndGet));
+        assertEquals(0, callback.get());
+        assertNull(intermediate.getDetails());
+        assertTrue(authenticate(second).isAuthenticated());
+    }
+
+    @Test
+    void realHttpRegistrationCommitFailureRemovesEntryAndCannotPersistAuthenticatedContext() throws Exception {
+        doAnswer(call -> {
+            assertTrue(TransactionSynchronizationManager.isActualTransactionActive(),
+                    "Real registry registration must occur inside the locked transaction");
+            call.callRealMethod();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void beforeCommit(boolean readOnly) {
+                    throw new IllegalStateException("Synthetic registration commit failure");
+                }
+            });
+            return null;
+        }).when(registry).registerNewSession(anyString(), any());
+        try (Browser rejected = new Browser(); Browser retry = new Browser()) {
+            rejected.login("synthetic.self", oldPassword, false);
+            assertEquals(0, tracked(id).size());
+            assertEquals(302, rejected.get("/test/session").statusCode());
+            reset(registry);
+            retry.login("synthetic.self", oldPassword, true);
+        }
+    }
+
     private PasswordChangeException.Reason attempt(String replacement) {
         SecurityContextHolder.getContext().setAuthentication(authenticated);
         try { change(replacement); return null; }
@@ -483,6 +620,10 @@ class PasswordChangeIT {
                 @Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
                         throws java.io.IOException {
                     actor.requireUserId();
+                    Authentication context = SecurityContextHolder.getContext().getAuthentication();
+                    if (context.getCredentials() != null || context.getDetails() != null) {
+                        response.setStatus(500); return;
+                    }
                     if (request.getPathInfo().equals("/csrf")) {
                         response.getWriter().write(((CsrfToken)request.getAttribute(CsrfToken.class.getName())).getToken());
                     } else {
@@ -521,6 +662,9 @@ class PasswordChangeIT {
             return client.send(request.POST(HttpRequest.BodyPublishers.noBody()).build(), HttpResponse.BodyHandlers.ofString());
         }
         void login(String login, String password, boolean success) throws Exception {
+            login(login, password, success, true);
+        }
+        void login(String login, String password, boolean success, boolean probeSession) throws Exception {
             assertEquals(200, get("/login").statusCode());
             String before = sessionCookie();
             assertFalse(before.isBlank(), "Login page must establish a session before authentication");
@@ -532,10 +676,11 @@ class PasswordChangeIT {
             assertEquals(302, response.statusCode());
             if (success) {
                 assertFalse(before.equals(sessionCookie()), "Authentication must change the servlet session identifier");
-                assertEquals(200, get("/test/session").statusCode());
+                if (probeSession) { assertEquals(200, get("/test/session").statusCode()); }
             } else {
+                assertEquals(302, get("/test/session").statusCode(),
+                        "Rejected authentication must not establish a usable authenticated session");
                 assertTrue(response.headers().firstValue("location").orElse("").contains("error"));
-                assertEquals(302, get("/test/session").statusCode());
             }
         }
         String sessionCookie() {

@@ -92,6 +92,10 @@ class AccountEntity {
         return passwordHash;
     }
 
+    LocalDateTime credentialGeneration() {
+        return credentialUpdatedAtUtc;
+    }
+
     boolean enabled() {
         return enabled;
     }
@@ -128,7 +132,11 @@ class AccountEntity {
 
     void changePassword(String encoding, Instant now) {
         passwordHash = encoding;
-        credentialUpdatedAtUtc = utc(now);
+        // DATETIME(6) doubles as a non-secret credential generation. Ensure every
+        // replacement advances it even with a fixed/backwards clock or same-microsecond change.
+        LocalDateTime candidate = utc(now.truncatedTo(java.time.temporal.ChronoUnit.MICROS));
+        credentialUpdatedAtUtc = candidate.isAfter(credentialUpdatedAtUtc)
+                ? candidate : credentialUpdatedAtUtc.plusNanos(1_000);
         recordSuccess(now);
     }
 
