@@ -59,7 +59,9 @@ the same trigger-creation privileges described for V2. V1–V5 remain immutable.
 `V7__add_identity_authentication_generation.sql` adds only the non-secret BIGINT NOT NULL
 DEFAULT 0 authentication_generation on identity_account, with a nonnegative CHECK constraint.
 Existing accounts receive zero. Authentication carries the value transiently; password and
-lifecycle mutations advance it independently of credential timestamps. V1-V6 remain unchanged.
+lifecycle mutations advance it independently of credential timestamps. TASK-0027 advances it
+for each committed Account-to-Role membership change using existing V5/V7 schema; no migration
+is added and released V1-V7 remain unchanged.
 Real MySQL verification compares an existing V6 account's original columns before/after upgrade,
 validates history, and compares upgraded/clean V7 schema. It seeds no identity/security data.
 Application restart discards pre-upgrade local servlet sessions as before.

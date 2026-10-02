@@ -49,6 +49,9 @@ class HrisApplicationSmokeTest {
     private io.github.vncntz.hris.identityaccess.AccountLifecycleService accountLifecycleService;
 
     @MockitoBean
+    private io.github.vncntz.hris.identityaccess.AccountRoleAssignmentService accountRoleAssignmentService;
+
+    @MockitoBean
     private io.github.vncntz.hris.identityaccess.AccountSessionRegistrationService sessionRegistrationService;
 
     @MockitoBean
