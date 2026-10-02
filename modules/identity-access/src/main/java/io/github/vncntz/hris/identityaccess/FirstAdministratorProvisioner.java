@@ -3,7 +3,6 @@ package io.github.vncntz.hris.identityaccess;
 import java.nio.CharBuffer;
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.UUID;
 
 import io.github.vncntz.hris.sharedkernel.AuditRecorder;
@@ -19,8 +18,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 public final class FirstAdministratorProvisioner {
     public static final String ROLE = "administrator";
     public static final String AUTHORITY = "identity:admin";
-    public static final int MIN_PASSWORD_LENGTH = 12;
-    public static final int MAX_PASSWORD_LENGTH = 128;
+    public static final int MIN_PASSWORD_LENGTH = InitialCredentials.MIN_LENGTH;
+    public static final int MAX_PASSWORD_LENGTH = InitialCredentials.MAX_LENGTH;
 
     private final EntityManager entities;
     private final PasswordEncoder encoder;
@@ -50,31 +49,13 @@ public final class FirstAdministratorProvisioner {
             String hash = encoder.encode(CharBuffer.wrap(password));
             return transaction.execute(status -> persist(canonical, hash));
         } finally {
-            clear(password);
-            clear(confirmation);
+            InitialCredentials.clear(password);
+            InitialCredentials.clear(confirmation);
         }
     }
 
     public static void validatePasswords(char[] password, char[] confirmation) {
-        if (password == null || confirmation == null) {
-            throw new IllegalArgumentException("Provisioning cancelled");
-        }
-        int length = Character.codePointCount(password, 0, password.length);
-        if (length < MIN_PASSWORD_LENGTH || length > MAX_PASSWORD_LENGTH) {
-            throw new IllegalArgumentException("Password must contain 12 to 128 Unicode characters");
-        }
-        for (int i = 0; i < password.length; i++) {
-            if (Character.isHighSurrogate(password[i])) {
-                if (++i >= password.length || !Character.isLowSurrogate(password[i])) {
-                    throw new IllegalArgumentException("Password contains invalid Unicode");
-                }
-            } else if (Character.isLowSurrogate(password[i])) {
-                throw new IllegalArgumentException("Password contains invalid Unicode");
-            }
-        }
-        if (!Arrays.equals(password, confirmation)) {
-            throw new IllegalArgumentException("Password confirmation does not match");
-        }
+        InitialCredentials.validate(password, confirmation);
     }
 
     private UUID persist(String login, String hash) {
@@ -104,11 +85,5 @@ public final class FirstAdministratorProvisioner {
                 "IDENTITY_ACCOUNT", accountId.toString(), null, "local-operator-bootstrap"));
         entities.flush();
         return accountId;
-    }
-
-    private static void clear(char[] value) {
-        if (value != null) {
-            Arrays.fill(value, '\0');
-        }
     }
 }
