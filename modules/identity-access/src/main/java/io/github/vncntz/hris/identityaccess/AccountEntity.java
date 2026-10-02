@@ -126,6 +126,12 @@ class AccountEntity {
         securityUpdatedAtUtc = utc(now);
     }
 
+    void changePassword(String encoding, Instant now) {
+        passwordHash = encoding;
+        credentialUpdatedAtUtc = utc(now);
+        recordSuccess(now);
+    }
+
     private static LocalDateTime utc(Instant instant) {
         return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }

@@ -16,6 +16,10 @@ Successful password authentication fetches assigned roles and their permissions 
 
 Authorities are a login/session snapshot. Assignment changes and role disablement take effect on a new authentication; an existing authenticated token keeps its snapshot. Later administrative work must add explicit session revocation/re-authentication behavior where required, including account disablement and privileged operations. There is no authorization cache or distributed session invalidation in TASK-0022.
 
+TASK-0025 supplies a reusable local revocation primitive for later administrative commands;
+it does not implement assignment or lifecycle administration. Password change uses it now
+to expire all tracked sessions belonging to the authenticated account.
+
 Application services may depend on `CurrentActor` to require the authenticated public user ID and test or require a named authority. The normal authentication provider now supplies authorities from persisted assignments; synthetic tests prove both successful enforcement and denial. Role/permission administration, account lifecycle beyond creation, their append-only audit events, TOTP enrollment/challenge/recovery, privileged re-authentication, and business-module call sites remain later focused work.
 
 API and dependency choices were checked against [Spring Security 7 password storage](https://docs.spring.io/spring-security/reference/7.0/features/authentication/password-storage.html), [Vaadin Spring Boot security](https://vaadin.com/docs/latest/flow/security/enabling-security), and the [Bouncy Castle 1.86 provider release](https://www.bouncycastle.org/download/bouncy-castle-java/). Bouncy Castle is centrally versioned in the repository because the Spring Boot/Vaadin BOMs do not manage its provider artifact.
@@ -33,3 +37,48 @@ V6 adds a technical singleton with irreversible completion protected by constrai
 Canonical login validation and the V3 unique constraint remain authoritative. Shared Identity-owned InitialCredentials preserves bootstrap's 12-128 Unicode-code-point validation, malformed-surrogate rejection, exact confirmation and unchanged password code units. Both owned buffers clear on all exits. Existing Argon2id encoding runs before opening a 15-second READ COMMITTED transaction. The service is a standalone command and refuses an active caller transaction before hashing.
 
 Account and exactly one IDENTITY_ACCOUNT_CREATED audit event commit atomically. Actor is the authenticated creator UUID; target type is IDENTITY_ACCOUNT and target is the new UUID. Context is fixed authenticated-account-creation, with no login, request serialization or credential. Duplicate canonical logins return a bounded DUPLICATE_LOGIN reason after rollback; encoder and other persistence failures return fixed reasons without internal causes. Audit failure rolls back creation. No migration, seed, role/permission/membership mutation, UI or HTTP administration route is added. Remaining IMP-013 hardening and administration are deferred as recorded in the TASK.
+
+## Authenticated password change and local session revocation
+
+[TASK-0025](../tasks/TASK-0025.md) supplies `PasswordChangeService.change` in ordinary
+application composition. Its only inputs are three owned mutable character buffers:
+current password, new password and confirmation. `CurrentActor.requireUserId()` rejects
+anonymous/unsupported authentication and provides both actor and target; no authority,
+login or arbitrary-account parameter is accepted. New credentials reuse InitialCredentials
+validation. All three buffers clear on every exit. No credential-bearing request or result
+is serialized, and bounded exceptions retain no underlying infrastructure cause.
+
+The standalone command refuses an ambient transaction before reading/verifying the
+credential. A scalar enabled-account encoding snapshot is read without a write lock;
+current-password verification and replacement Argon2id encoding run outside the mutation
+transaction. A 15-second REQUIRES_NEW, READ COMMITTED transaction locks the public UUID,
+rechecks enabled state and the verified encoding, and rejects stale changes without retry.
+The mutation updates only the encoding, credential/security UTC timestamps from Clock,
+failure count and temporary lock. UUID, canonical login and assignments are preserved.
+
+Exactly one IDENTITY_PASSWORD_CHANGED audit event commits with the credential update.
+Actor/target are the account public UUID, target type is IDENTITY_ACCOUNT and context is
+fixed self-service-password-change. No login, credential, hash or session identifier is
+recorded. A shared persistence-context flush covers both writes before expiry marking.
+Audit or flush failure rolls back without revocation. Revocation failure rolls back the
+database; sessions already marked expired may remain revoked. Likewise, a later commit
+failure can leave sessions expired while the old password remains valid. The user must
+authenticate again with the old credential in that safe failure case; there is no
+distributed transaction between MySQL and servlet memory.
+
+`AuthenticatedSessionRevoker.revoke(UUID)` matches every supported AccountPrincipal
+snapshot by public UUID, ignoring unrelated accounts and unsupported principals. The
+in-memory SessionRegistryImpl, servlet HttpSessionEventPublisher and standard Spring
+Security registration/expiry filter track local authenticated sessions. The resolved
+repository-managed Spring Security version is 7.1.1; its supported maximumSessions(-1)
+configuration retains unlimited concurrent-session semantics. Marked sessions are
+invalidated and require login on their next request, including the caller. Servlet
+destruction/logout events remove registry entries. Idle timeout remains 30 minutes by
+default, with existing fixation protection, CSRF and logout. Restart destroys local
+sessions as before; no distributed-session guarantee is added. APIs were checked against
+the resolved JARs and [Spring Security session documentation](https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html).
+
+No production UI/HTTP adapter, migration, dependency or lifecycle/assignment operation
+is added. The HTTP integration probe is test-only and exercises the production filter
+chain with a narrow authenticated test-route rule. Recovery/reset, privileged MFA and
+re-authentication, administration and password-cost calibration remain deferred.
