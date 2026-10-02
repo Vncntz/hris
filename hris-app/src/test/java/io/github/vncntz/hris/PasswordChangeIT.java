@@ -153,7 +153,7 @@ class PasswordChangeIT {
         assertEquals(other.publicId(), ((AccountPrincipal)unrelated.getPrincipal()).publicId());
         assertTrue(unrelated.getAuthorities().isEmpty());
         flyway.validate();
-        assertEquals(6, count("flyway_schema_history"));
+        assertEquals(7, count("flyway_schema_history"));
     }
 
     @Test
@@ -473,13 +473,15 @@ class PasswordChangeIT {
         String first = UUID.randomUUID().toString();
         change(first);
         Authentication intermediate = authenticate(first);
-        var firstGeneration = jdbc.queryForObject("SELECT credential_updated_at_utc FROM identity_account "
-                + "WHERE canonical_login='synthetic.self'", java.time.LocalDateTime.class);
+        var firstGeneration = jdbc.queryForObject("SELECT authentication_generation FROM identity_account "
+                + "WHERE canonical_login='synthetic.self'", Long.class);
         String second = UUID.randomUUID().toString();
         service.change(first.toCharArray(), second.toCharArray(), second.toCharArray());
-        var secondGeneration = jdbc.queryForObject("SELECT credential_updated_at_utc FROM identity_account "
-                + "WHERE canonical_login='synthetic.self'", java.time.LocalDateTime.class);
-        assertTrue(secondGeneration.isAfter(firstGeneration));
+        var secondGeneration = jdbc.queryForObject("SELECT authentication_generation FROM identity_account "
+                + "WHERE canonical_login='synthetic.self'", Long.class);
+        assertTrue(secondGeneration > firstGeneration);
+        assertEquals(java.time.LocalDateTime.ofInstant(NOW, ZoneOffset.UTC), jdbc.queryForObject(
+                "SELECT credential_updated_at_utc FROM identity_account WHERE canonical_login='synthetic.self'", java.time.LocalDateTime.class));
         var callback = new AtomicInteger();
         assertThrows(org.springframework.security.web.authentication.session.SessionAuthenticationException.class,
                 () -> registration.register(intermediate, callback::incrementAndGet));
@@ -545,7 +547,7 @@ class PasswordChangeIT {
     }
     private String snapshot(String login) {
         return jdbc.queryForMap("SELECT id,HEX(public_id),canonical_login,password_hash,enabled,failed_attempts,"
-                + "locked_until_utc,credential_updated_at_utc,security_updated_at_utc,row_version "
+                + "locked_until_utc,credential_updated_at_utc,authentication_generation,security_updated_at_utc,row_version "
                 + "FROM identity_account WHERE canonical_login=?", login).toString();
     }
     private SessionInformation track() {
@@ -567,7 +569,7 @@ class PasswordChangeIT {
         assertEquals(1, jdbc.queryForObject("SELECT completed FROM identity_bootstrap_state", Integer.class));
         assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM audit_event WHERE action='FIRST_ADMINISTRATOR_PROVISIONED'", Integer.class));
         flyway.validate();
-        assertEquals(6, count("flyway_schema_history"));
+        assertEquals(7, count("flyway_schema_history"));
     }
     private void assertEvent(int expected) {
         assertEquals(expected, jdbc.queryForObject("SELECT COUNT(*) FROM audit_event WHERE action='IDENTITY_PASSWORD_CHANGED'", Integer.class));

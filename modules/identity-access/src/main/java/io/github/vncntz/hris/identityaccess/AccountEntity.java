@@ -51,6 +51,9 @@ class AccountEntity {
     @Column(name = "credential_updated_at_utc", nullable = false, columnDefinition = "DATETIME(6)")
     private LocalDateTime credentialUpdatedAtUtc;
 
+    @Column(name = "authentication_generation", nullable = false)
+    private long authenticationGeneration;
+
     @Column(name = "security_updated_at_utc", nullable = false, columnDefinition = "DATETIME(6)")
     private LocalDateTime securityUpdatedAtUtc;
 
@@ -92,8 +95,8 @@ class AccountEntity {
         return passwordHash;
     }
 
-    LocalDateTime credentialGeneration() {
-        return credentialUpdatedAtUtc;
+    long authenticationGeneration() {
+        return authenticationGeneration;
     }
 
     boolean enabled() {
@@ -131,13 +134,24 @@ class AccountEntity {
     }
 
     void changePassword(String encoding, Instant now) {
+        advanceAuthenticationGeneration();
         passwordHash = encoding;
-        // DATETIME(6) doubles as a non-secret credential generation. Ensure every
-        // replacement advances it even with a fixed/backwards clock or same-microsecond change.
-        LocalDateTime candidate = utc(now.truncatedTo(java.time.temporal.ChronoUnit.MICROS));
-        credentialUpdatedAtUtc = candidate.isAfter(credentialUpdatedAtUtc)
-                ? candidate : credentialUpdatedAtUtc.plusNanos(1_000);
+        credentialUpdatedAtUtc = utc(now.truncatedTo(java.time.temporal.ChronoUnit.MICROS));
         recordSuccess(now);
+    }
+
+    void changeEnabled(boolean enabled, Instant now) {
+        advanceAuthenticationGeneration();
+        this.enabled = enabled;
+        securityUpdatedAtUtc = utc(now);
+        if (enabled) {
+            recordSuccess(now);
+        }
+    }
+
+    private void advanceAuthenticationGeneration() {
+        // Never wrap and reuse an old authentication generation.
+        authenticationGeneration = Math.incrementExact(authenticationGeneration);
     }
 
     private static LocalDateTime utc(Instant instant) {

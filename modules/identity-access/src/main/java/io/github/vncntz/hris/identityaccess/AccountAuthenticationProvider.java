@@ -24,7 +24,7 @@ public class AccountAuthenticationProvider implements AuthenticationProvider {
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
         var token = UsernamePasswordAuthenticationToken.authenticated(account.principal(), null,
                 account.authorityKeys().stream().map(SimpleGrantedAuthority::new).toList());
-        token.setDetails(new CredentialGeneration(account.credentialGeneration()));
+        token.setDetails(new AuthenticationGeneration(account.authenticationGeneration()));
         return token;
     }
 

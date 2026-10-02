@@ -73,7 +73,7 @@ class AccountAuthenticationIT {
     @Test
     void authenticationStateRoundTripsThroughMigratedMySql() throws Exception {
         assertTrue(mysql.isRunning());
-        assertEquals(6, jdbc.queryForObject("SELECT COUNT(*) FROM flyway_schema_history", Integer.class));
+        assertEquals(7, jdbc.queryForObject("SELECT COUNT(*) FROM flyway_schema_history", Integer.class));
 
         String login = "synthetic." + UUID.randomUUID().toString().substring(0, 8);
         String syntheticPassword = UUID.randomUUID().toString();

@@ -28,7 +28,7 @@ class AccountSessionRegistrationServiceTest {
     private UsernamePasswordAuthenticationToken token() {
         var token = UsernamePasswordAuthenticationToken.authenticated(
                 new AccountPrincipal(account.publicId(), account.canonicalLogin()), null, List.of());
-        token.setDetails(new CredentialGeneration(account.credentialGeneration()));
+        token.setDetails(new AuthenticationGeneration(account.authenticationGeneration()));
         return token;
     }
 
@@ -97,13 +97,27 @@ class AccountSessionRegistrationServiceTest {
 
     @Test
     void generationStrictlyAdvancesWithSameOrBackwardsClockWithoutChangingIdentity() {
-        var original = account.credentialGeneration();
+        var original = account.authenticationGeneration();
         account.changePassword(UUID.randomUUID().toString(), Instant.EPOCH);
-        var first = account.credentialGeneration();
+        var first = account.authenticationGeneration();
         account.changePassword(UUID.randomUUID().toString(), Instant.EPOCH.minusSeconds(1));
-        assertTrue(first.isAfter(original));
-        assertTrue(account.credentialGeneration().isAfter(first));
+        assertTrue(first > original);
+        assertTrue(account.authenticationGeneration() > first);
         assertEquals("synthetic.login", account.canonicalLogin());
+        assertEquals(java.time.LocalDateTime.ofInstant(Instant.EPOCH.minusSeconds(1), java.time.ZoneOffset.UTC),
+                ReflectionTestUtils.getField(account, "credentialUpdatedAtUtc"));
+    }
+
+    @Test
+    void authenticationBeforeDisableEnableIsStaleEvenThoughAccountIsEnabledAgain() {
+        ready();
+        var before = token();
+        account.changeEnabled(false, Instant.EPOCH);
+        account.changeEnabled(true, Instant.EPOCH);
+        rejected(before);
+        verifyNoInteractions(callback);
+        service.register(token(), callback);
+        verify(callback).run();
     }
 
     private void rejected(UsernamePasswordAuthenticationToken token) {
