@@ -4,11 +4,11 @@ Last updated: 2026-10-02. Planning and compilation are complete; implementation 
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md) is `POST_MERGE_VERIFIED` / complete. [TASK-0024](../tasks/TASK-0024.md), authenticated account creation boundary, is `POST_MERGE_VERIFIED` / complete. [TASK-0025](../tasks/TASK-0025.md), authenticated password change and session revocation foundation, is Complete / `POST_MERGE_VERIFIED` after corrective PR #45 and its exact-merge push CI. [TASK-0026](../tasks/TASK-0026.md) is Complete / `POST_MERGE_VERIFIED` after PR #47 and its verified exact-merge push CI. [TASK-0027](../tasks/TASK-0027.md) is LOCAL_VERIFIED for Account-to-Role assignment administration; exact-final-head CI, protected integration and exact-merge push CI remain pending. Planning PR #48 and its exact-merge push run 37002032152 passed. IMP-013 remains ACTIVE. Do not allocate TASK-0028 or advance to IMP-014.
+M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md) is `POST_MERGE_VERIFIED` / complete. [TASK-0024](../tasks/TASK-0024.md), authenticated account creation boundary, is `POST_MERGE_VERIFIED` / complete. [TASK-0025](../tasks/TASK-0025.md), authenticated password change and session revocation foundation, is Complete / `POST_MERGE_VERIFIED` after corrective PR #45 and its exact-merge push CI. [TASK-0026](../tasks/TASK-0026.md) is Complete / `POST_MERGE_VERIFIED` after PR #47 and its verified exact-merge push CI. [TASK-0027](../tasks/TASK-0027.md) is Complete / `POST_MERGE_VERIFIED` after PR #49 and exact-merge push run 37007864655. [TASK-0028](../tasks/TASK-0028.md) is PLANNED for Role/Permission administration with Role authority-generation invalidation. IMP-013 remains ACTIVE. Pass the TASK-0028 planning gate before implementation; no implementation is authorized or started in this run. Do not allocate TASK-0029 or advance to IMP-014.
 
-Last completed work order: [TASK-0026](../tasks/TASK-0026.md) under [IMP-013](tasks/IMP-013.md).
+Last completed work order: [TASK-0027](../tasks/TASK-0027.md) under [IMP-013](tasks/IMP-013.md).
 
-Current action: integrate only locally verified TASK-0027 through exact-head CI and trusted-main gates, then verify its exact-merge push CI. IMP-013 remains ACTIVE. Do not allocate TASK-0028 or advance to IMP-014.
+Current action: pass the TASK-0028 documentation-only planning gate through exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI before implementation. TASK-0028 is PLANNED; implementation is not authorized or started in this run. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
 
 ## Active implementation decisions
 
@@ -23,7 +23,7 @@ Current action: integrate only locally verified TASK-0027 through exact-head CI 
 
 ## Blockers and open verification
 
-- TASK-0026 is complete. TASK-0027 planning gates passed on PR #48 and its exact-merge push SHA; implementation is separately authorized. Local verification passed as recorded in TASK-0027; final-head CI, protected integration and exact-merge push CI remain pending.
+- TASK-0027 is Complete / `POST_MERGE_VERIFIED`; no predecessor blocker remains. TASK-0028 is PLANNED and its planning integration/post-merge gate remains open. No TASK-0028 implementation is authorized or started in this run.
 
 - [TASK-0020](../tasks/TASK-0020.md)'s [post-merge identity-heading finding](https://github.com/Vncntz/hris/pull/34#discussion_r4154527760) was corrected by [TASK-0021](../tasks/TASK-0021.md) / PR #36. The historical [review thread](https://github.com/Vncntz/hris/pull/34#discussion_r4155621507) was resolved after fixing evidence and clean trusted-main TASK-0001 verification. Neither task remains blocked.
 - Historical TASK-0023 successor review: PR #40 exact-head and exact-merge-SHA push CI passed, including 24 real-MySQL tests in both Linux jobs. Fresh-cycle review selects TASK-0024 for authenticated identity:admin account creation, zero implicit roles/authorities, adaptive initial credentials and atomic audit. Lifecycle, assignment administration and privileged MFA/re-authentication remain later slices. No schema change or approved ADR is needed for this focused planning scope.
@@ -88,7 +88,7 @@ non-secret failures, closure and deferred qualification. Implementation [PR #40]
 
 ## Next action
 
-Current action: integrate only locally verified TASK-0027 through exact-head CI and trusted-main gates, then verify its exact-merge push CI. IMP-013 remains ACTIVE. Do not allocate TASK-0028 or advance to IMP-014.
+Current action: pass the TASK-0028 documentation-only planning gate through exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI before implementation. TASK-0028 is PLANNED; implementation is not authorized or started in this run. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
 
 ## TASK-0024 local evidence - 2026-10-02
 
@@ -189,7 +189,7 @@ Historical local verification preceded the independently verified completion bel
 
 Implementation [PR #47](https://github.com/Vncntz/hris/pull/47) final head `b21da2b5f9684d639388f0ead70bb36f5ac900a7` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36988841675](https://github.com/Vncntz/hris/actions/runs/36988841675). It merged as `8a44a36e1a7683c36f130f5836b7fb532e3b16f2`; [exact-merge main push run 36989610995](https://github.com/Vncntz/hris/actions/runs/36989610995) passed all three jobs on that exact SHA. Independent GitHub metadata and actual policy/Linux/Windows log review confirmed 42 tooling tests, 90 ordinary reactor tests per platform and 58 real-MySQL integration tests on Linux, with zero failures/errors/skips and BUILD SUCCESS. TASK-0026 is Complete / `POST_MERGE_VERIFIED`.
 
-Current action: integrate only locally verified TASK-0027 through exact-head CI and trusted-main gates, then verify its exact-merge push CI. IMP-013 remains ACTIVE. Do not allocate TASK-0028 or advance to IMP-014.
+Current action: pass the TASK-0028 documentation-only planning gate through exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI before implementation. TASK-0028 is PLANNED; implementation is not authorized or started in this run. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
 
 The tracked TASK directory ends at TASK-0026 and fetched Git history has no TASK-0027 allocation. TASK-0027 is the next unused four-digit ID. The preserved supplied work order plans only Account-to-Role membership administration, using V5/V7 and local-session expiry. No code or migration is changed.
 
@@ -204,13 +204,23 @@ The operator separately authorized only TASK-0027. See its work order for implem
 and verification evidence. Historical planning-only entries describe prior cycles.
 IMP-013 remains ACTIVE; remaining Role/Permission and Role-to-Permission administration
 with fan-out invalidation, recovery/reset, privileged recent re-authentication and offline
-TOTP MFA require future focused scope review. No TASK-0028 or IMP-014 work is authorized.
+TOTP MFA require future focused scope review. That implementation cycle authorized no successor TASK or IMP-014 work; the later TASK-0028 planning allocation below supersedes that historical boundary.
 
 
 TASK-0027 local verification passed: 60 Identity + 9 shared-kernel focused tests, Windows
 ordinary reactor 102, Windows focused MySQL/HTTP 102 ordinary + 17 integration, Ubuntu
 full mysql-it 102 ordinary + 74 integration, and 42 tooling tests. All final counts have
 zero failures/errors/skips. XML, logs, source manifest, V1-V7/frozen preservation, 215 links,
-acceptance preservation and complete diff were reviewed. TASK-0027 is LOCAL_VERIFIED;
-exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI
-remain pending. See TASK-0027 for commands and evidence. No later task is allocated.
+acceptance preservation and complete diff were reviewed. This historical local verification
+preceded TASK-0027 completion; its exact-head and exact-merge gates now passed as recorded
+below. See TASK-0027 for preserved commands and evidence.
+
+## TASK-0027 verified closeout and TASK-0028 planning - 2026-10-02
+
+Implementation [PR #49](https://github.com/Vncntz/hris/pull/49) final head `b00dd5d7aa5f51c00c0015d33582decdeb26c761` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 37007056476](https://github.com/Vncntz/hris/actions/runs/37007056476). It merged through protected `main` as `c0807b0df23efa6f4799793c5a289d76d77ccbd5`; [exact-merge main push run 37007864655](https://github.com/Vncntz/hris/actions/runs/37007864655) passed the same three jobs on that exact SHA. GitHub metadata, job steps and actual policy/Linux/Windows logs were independently inspected. Policy ran 42 tooling tests; both build jobs reported BUILD SUCCESS, and each Linux run executed 74 real-MySQL integration tests with zero failures, errors or skips. TASK-0027 is Complete / `POST_MERGE_VERIFIED`.
+
+Account-to-Role administration is complete. Role enablement and Role-to-Permission changes still require fan-out authority invalidation and protection of in-flight authentication. TASK-0028 plans authenticated CurrentActor boundaries, disabled-by-default Role creation, canonical Permission creation, membership mutation, Role generation capture/final-registration validation, deterministic locking coordinated with Account membership, one bounded affected-session registry scan, persisted-state self-admin protection and privacy-minimized transactional audit. No per-Account generation mass rewrite or new infrastructure is planned.
+
+At allocation, TASK-0027 was the highest tracked ID; fetched Git history, local/remote branches and all PR history contained no TASK-0028 allocation or planning PR. The original untracked candidate remains preserved in the operator checkout. Current migrations end at V7; V8 is only the expected forward Role-generation migration, to be reallocated against refreshed main during implementation. Recovery/reset, privileged recent re-authentication, offline TOTP MFA and final access-management closure review remain deferred.
+
+Current action: pass the TASK-0028 documentation-only planning gate through exact-final-head CI, trusted-main gates, protected integration and exact-merge push CI before implementation. TASK-0028 is PLANNED; implementation is not authorized or started in this run. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
