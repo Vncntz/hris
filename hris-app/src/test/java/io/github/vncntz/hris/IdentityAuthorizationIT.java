@@ -192,7 +192,7 @@ class IdentityAuthorizationIT {
             insertAccount(upgrade, publicId, login, encoder.encode(UUID.randomUUID().toString()));
             Flyway current = Flyway.configure()
                     .dataSource(prior.getJdbcUrl(), prior.getUsername(), prior.getPassword()).load();
-            assertEquals(1, current.migrate().migrationsExecuted);
+            assertEquals(2, current.migrate().migrationsExecuted);
             assertEquals(1, upgrade.queryForObject("SELECT COUNT(*) FROM identity_account WHERE public_id = ?",
                     Integer.class, uuidBytes(publicId)));
             for (String table : List.of("identity_role", "identity_permission", "identity_account_role",
