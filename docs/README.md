@@ -34,9 +34,8 @@ Use this index to find authoritative sources; current execution status and prede
 These indexes route to focused records as work is implemented and verified. The planning index and task packets are derived routing aids, never authority or gate evidence. Read repository rules directly; operator prompts need only supply task authorization and specific constraints rather than repeat governance, source code, or full frozen plans.
 
 Current authorized product work is [IMP-013](implementation/tasks/IMP-013.md) /
-[TASK-0032](tasks/TASK-0032.md), corrective recent credential re-authentication lockout implementation
-after the verified planning gate and separate operator authorization.
-[TASK-0029](tasks/TASK-0029.md) is reopened for the confirmed PR #55 security finding;
-its valid CI/integration evidence and current gates are routed through implementation state.
-[TASK-0031](tasks/TASK-0031.md)'s verified correction closes TASK-0030's failed post-merge
-chain and IMP-012 reopening; current evidence is routed through implementation state.
+[TASK-0033](tasks/TASK-0033.md), correcting ordinary HTTP form-login failure accounting.
+[TASK-0032](tasks/TASK-0032.md) is independently complete and corrects
+[TASK-0029](tasks/TASK-0029.md)'s recent-proof lockout finding. Current evidence and
+integration gates are routed through implementation state. TASK-0031's verified correction
+closes TASK-0030's failed post-merge chain and IMP-012 reopening.

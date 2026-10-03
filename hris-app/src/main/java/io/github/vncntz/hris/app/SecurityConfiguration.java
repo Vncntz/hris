@@ -2,7 +2,6 @@ package io.github.vncntz.hris.app;
 
 import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 import io.github.vncntz.hris.app.ui.LoginView;
-import io.github.vncntz.hris.identityaccess.AccountAuthenticationProvider;
 import io.github.vncntz.hris.identityaccess.AccountSessionRegistrationService;
 import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
@@ -24,11 +23,12 @@ class SecurityConfiguration {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, AccountAuthenticationProvider provider,
+    SecurityFilterChain securityFilterChain(HttpSecurity http,
             SessionRegistry sessions, AccountSessionRegistrationService registration,
             ServletRecentAuthenticationSession recent)
             throws Exception {
-        http.authenticationProvider(provider);
+        // Spring discovers the sole provider bean in the global parent manager.
+        // Registering it here too retries failed credentials through the same provider twice.
         http.with(VaadinSecurityConfigurer.vaadin(),
                 configurer -> configurer.loginView(LoginView.class, "/login"));
         // -1 is unlimited: installs standard registration/expiry support without a session cap.

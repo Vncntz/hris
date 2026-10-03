@@ -48,7 +48,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "vaadin.productionMode=true")
+        properties = {"vaadin.productionMode=true", "hris.security.max-failed-attempts=3",
+                "hris.security.lock-duration=PT7M"})
 class AccountAuthenticationIT {
     @Container
     @ServiceConnection
@@ -69,6 +70,73 @@ class AccountAuthenticationIT {
 
     @Value("${local.server.port}")
     private int port;
+
+    @Test
+    void eachFailedHttpSubmissionCountsOnceAndLocksAtExactThreshold() throws Exception {
+        String login = "synthetic." + UUID.randomUUID().toString().substring(0, 8);
+        String password = UUID.randomUUID().toString();
+        Instant start = Instant.parse("2026-01-02T03:04:05Z");
+        clock.set(start);
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.ofInstant(start, ZoneOffset.UTC));
+        jdbc.update("INSERT INTO identity_account "
+                        + "(public_id, canonical_login, password_hash, enabled, failed_attempts, "
+                        + "credential_updated_at_utc, security_updated_at_utc, row_version) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                uuidBytes(UUID.randomUUID()), login, encoder.encode(password), true, 0, timestamp, timestamp, 0);
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            verifyHttpFailure(login, UUID.randomUUID().toString());
+            assertEquals(attempt, jdbc.queryForObject(
+                    "SELECT failed_attempts FROM identity_account WHERE canonical_login = ?", Integer.class, login));
+            Timestamp expiry = jdbc.queryForObject(
+                    "SELECT locked_until_utc FROM identity_account WHERE canonical_login = ?", Timestamp.class, login);
+            if (attempt < 3) {
+                assertNull(expiry);
+            } else {
+                assertEquals(Timestamp.valueOf(LocalDateTime.ofInstant(start.plusSeconds(420), ZoneOffset.UTC)), expiry);
+            }
+        }
+        verifyHttpFailure(login, password);
+        verifyHttpFailure(login, UUID.randomUUID().toString());
+        assertEquals(3, jdbc.queryForObject(
+                "SELECT failed_attempts FROM identity_account WHERE canonical_login = ?", Integer.class, login));
+        assertEquals(Timestamp.valueOf(LocalDateTime.ofInstant(start.plusSeconds(420), ZoneOffset.UTC)),
+                jdbc.queryForObject("SELECT locked_until_utc FROM identity_account WHERE canonical_login = ?",
+                        Timestamp.class, login));
+        clock.set(start.plusSeconds(420));
+        verifyHttpLogin(login, password);
+        assertEquals(0, jdbc.queryForObject(
+                "SELECT failed_attempts FROM identity_account WHERE canonical_login = ?", Integer.class, login));
+        assertNull(jdbc.queryForObject("SELECT locked_until_utc FROM identity_account WHERE canonical_login = ?",
+                Timestamp.class, login));
+        verifyHttpFailure("absent." + login, password);
+        verifyHttpFailure("bad login", password);
+        jdbc.update("UPDATE identity_account SET enabled = 0 WHERE canonical_login = ?", login);
+        verifyHttpFailure(login, password);
+        verifyHttpFailure(login, UUID.randomUUID().toString());
+        assertEquals(0, jdbc.queryForObject(
+                "SELECT failed_attempts FROM identity_account WHERE canonical_login = ?", Integer.class, login));
+        assertNull(jdbc.queryForObject("SELECT locked_until_utc FROM identity_account WHERE canonical_login = ?",
+                Timestamp.class, login));
+    }
+
+    private void verifyHttpFailure(String login, String password) throws Exception {
+        CookieManager cookies = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+        try (HttpClient client = HttpClient.newBuilder().cookieHandler(cookies)
+                .followRedirects(HttpClient.Redirect.NEVER).build()) {
+            URI base = URI.create("http://127.0.0.1:" + port);
+            assertEquals(200, client.send(HttpRequest.newBuilder(base.resolve("/login")).GET().build(),
+                    HttpResponse.BodyHandlers.discarding()).statusCode());
+            String form = "username=" + URLEncoder.encode(login, StandardCharsets.UTF_8)
+                    + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
+            HttpResponse<Void> rejected = client.send(HttpRequest.newBuilder(base.resolve("/login"))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString(form)).build(), HttpResponse.BodyHandlers.discarding());
+            assertEquals(302, rejected.statusCode());
+            assertTrue(rejected.headers().firstValue("Location").orElseThrow().endsWith("/login?error"));
+            assertEquals(302, client.send(HttpRequest.newBuilder(base.resolve("/")).GET().build(),
+                    HttpResponse.BodyHandlers.discarding()).statusCode());
+        }
+    }
 
     @Test
     void authenticationStateRoundTripsThroughMigratedMySql() throws Exception {
@@ -109,10 +177,10 @@ class AccountAuthenticationIT {
         verifyHttpLogin(login, syntheticPassword);
 
         assertBadCredentials("absent." + login, syntheticPassword);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             assertBadCredentials(login, UUID.randomUUID().toString());
         }
-        assertEquals(5, jdbc.queryForObject("SELECT failed_attempts FROM identity_account WHERE canonical_login = ?",
+        assertEquals(3, jdbc.queryForObject("SELECT failed_attempts FROM identity_account WHERE canonical_login = ?",
                 Integer.class, login));
         assertNotNull(jdbc.queryForObject("SELECT locked_until_utc FROM identity_account WHERE canonical_login = ?",
                 Timestamp.class, login));

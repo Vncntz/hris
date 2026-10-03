@@ -6,6 +6,14 @@
 
 Authentication uses a short transaction and a pessimistic row lock per known account. Five consecutive failed password attempts lock the account for 15 minutes by default; the count and UTC lock instant survive process restart. Disabled, locked, unknown, and wrong-password accounts receive the same ordinary external failure. Unknown and unsupported login names trigger a dummy hash verification. Successful authentication after lock expiry clears failure state. `HRIS_MAX_FAILED_ATTEMPTS` and `HRIS_LOCK_DURATION` configure the bounded defaults. The injectable `Clock` controls security instants; `DATETIME(6)` columns hold UTC wall time by explicit conversion.
 
+[TASK-0033](../tasks/TASK-0033.md) keeps the Account provider as the sole Spring-managed
+authentication provider, discovered by the global authentication manager. The servlet
+filter chain does not register it again in its child manager: otherwise a credential
+rejection retries the same provider through the parent and doubles eligible failure
+bookkeeping. One wrong HTTP form submission now contributes one persisted failure;
+the configured threshold locks on exactly that request count. Account policy and
+TASK-0032 recent-proof behavior remain unchanged.
+
 Vaadin's `VaadinSecurityConfigurer` handles the anonymous login view, form login, navigation access, CSRF exceptions required for Vaadin internals, and logout. The root view requires an authenticated principal; an unannotated view is denied by Vaadin navigation access control. Standard Spring Security session fixation, CSRF, and logout behavior remain enabled. Servlet session idle timeout defaults to 30 minutes through `server.servlet.session.timeout`; `HRIS_SESSION_IDLE_TIMEOUT` can override it. Sessions stay in the local servlet container. HTTPS provisioning and distributed sessions are outside this task.
 
 V5 adds the internal JPA Role and Permission model and account-role/role-permission join tables. A role has a stable binary public UUID, unique canonical ASCII name, enabled flag, and optimistic row version. Role names are stripped and folded with `Locale.ROOT`; canonical names start with an ASCII letter or digit and contain only lowercase ASCII letters, digits, `.`, `_`, and `-`, up to 128 characters. Permission authority keys are stable identifiers, starting with a lowercase ASCII letter and otherwise allowing lowercase ASCII letters, digits, `.`, `_`, `:`, and `-`, up to 128 characters. Application constructors canonicalize these values and database CHECK/unique constraints enforce their stored forms. Neither a complete permission catalog nor any authorization seed is introduced.

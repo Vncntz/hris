@@ -192,7 +192,7 @@ class CredentialReauthenticationIT {
         try (Browser browser = new Browser(); Browser login = new Browser()) {
             browser.login("synthetic.admin", credential); assertEquals(204, browser.prove(credential).statusCode());
             for (int attempt = 1; attempt <= 3; attempt++) {
-                rejectOrdinaryCredential(); assertEquals(attempt, failures());
+                login.rejectedLogin(UUID.randomUUID().toString()); assertEquals(attempt, failures());
             }
             login.rejectedLogin(credential);
             assertEquals(403, browser.prove(credential).statusCode());
