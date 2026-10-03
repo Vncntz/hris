@@ -83,5 +83,29 @@ class RepoPolicyTests(unittest.TestCase):
         self.assertEqual([], self.errors())
 
 
+    def test_explicit_html_anchor_is_supported(self):
+        guide = self.root / "docs/reference/guide.md"
+        guide.write_text(
+            '# Guide\n\n<a id="compat-anchor"></a>\n\n## Current Heading\n',
+            encoding="utf-8",
+        )
+        task = self.root / "docs/tasks/TASK-0001.md"
+        task.write_text(
+            task.read_text(encoding="utf-8").replace("#safe-mode", "#compat-anchor"),
+            encoding="utf-8",
+        )
+        self.assertEqual([], self.errors())
+
+    def test_legacy_parent_exception_is_limited_to_historical_tasks(self):
+        task = self.root / "docs/tasks/TASK-0001.md"
+        task.write_text(
+            task.read_text(encoding="utf-8").replace(
+                "Parent implementation item: [IMP-001](../implementation/tasks/IMP-001.md)",
+                "Status: COMPLETE. Parent: [IMP-001](../implementation/tasks/IMP-001.md).",
+            ),
+            encoding="utf-8",
+        )
+        self.assertTrue(any("expected exactly one parent IMP link" in error for error in self.errors()))
+
 if __name__ == "__main__":
     unittest.main()
