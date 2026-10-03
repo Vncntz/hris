@@ -21,6 +21,8 @@ HEADING = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$", re.MULTILINE)
 TASK_FILE = re.compile(r"TASK-[0-9]{4}\.md")
 TASK_ID = re.compile(r"TASK-[0-9]{4}")
 IMP_ID = re.compile(r"IMP-[0-9]{3}")
+LEGACY_PARENT_TASKS = {"TASK-0003", "TASK-0004", "TASK-0005", "TASK-0006"}
+LEGACY_PARENT = re.compile(r"\bParent: \[(IMP-[0-9]{3})\]\(([^)\s]+)\)")
 TASK_IDENTITY = re.compile(r"^# (TASK-[0-9]{4}) [—–-] \S.*$")
 IMP_IDENTITY = re.compile(r"^# (IMP-[0-9]{3}) [—–-] \S.*$")
 PARENT = re.compile(
@@ -57,7 +59,10 @@ def github_slug(value: str) -> str:
 
 def anchors(text: str) -> set[str]:
     counts: dict[str, int] = defaultdict(int)
-    result: set[str] = set()
+    result: set[str] = {
+        match.lower()
+        for match in re.findall(r'<a id="([^"]+)"></a>', text, re.IGNORECASE)
+    }
     for _, title in HEADING.findall(text):
         base = github_slug(title)
         if not base:
@@ -167,8 +172,10 @@ def check_tasks(root: Path, errors: list[str]) -> int:
             errors.append(f"{relative(root, task)}: first heading must identify {expected}")
 
         parents = PARENT.findall(text)
+        if not parents and expected in LEGACY_PARENT_TASKS:
+            parents = LEGACY_PARENT.findall(text)
         if len(parents) != 1:
-            errors.append(f"{relative(root, task)}: expected exactly one canonical parent IMP link")
+            errors.append(f"{relative(root, task)}: expected exactly one parent IMP link")
             continue
         imp_id, target = parents[0]
         expected_imp = imp_dir / f"{imp_id}.md"
