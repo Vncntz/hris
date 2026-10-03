@@ -25,7 +25,8 @@ class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, AccountAuthenticationProvider provider,
-            SessionRegistry sessions, AccountSessionRegistrationService registration)
+            SessionRegistry sessions, AccountSessionRegistrationService registration,
+            ServletRecentAuthenticationSession recent)
             throws Exception {
         http.authenticationProvider(provider);
         http.with(VaadinSecurityConfigurer.vaadin(),
@@ -43,6 +44,7 @@ class SecurityConfiguration {
                         public void onAuthentication(Authentication authentication, HttpServletRequest request,
                                 HttpServletResponse response) {
                             try {
+                                recent.clearOnAuthentication(request);
                                 registration.register(authentication,
                                         () -> super.onAuthentication(authentication, request, response));
                             } catch (RuntimeException failure) {

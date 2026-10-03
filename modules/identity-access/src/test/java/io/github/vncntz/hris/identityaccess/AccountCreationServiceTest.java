@@ -26,6 +26,7 @@ import static org.mockito.Mockito.*;
 
 class AccountCreationServiceTest {
     private final CurrentActor actor = mock(CurrentActor.class);
+    private final RecentAuthenticationGuard recent = mock(RecentAuthenticationGuard.class);
     private final AccountRepository accounts = mock(AccountRepository.class);
     private final PasswordEncoder encoder = mock(PasswordEncoder.class);
     private final AuditRecorder audit = mock(AuditRecorder.class);
@@ -34,7 +35,7 @@ class AccountCreationServiceTest {
     private final AccountCreationService service = service(actor);
 
     private AccountCreationService service(CurrentActor current) {
-        return new AccountCreationService(current, accounts, encoder, audit, Clock.systemUTC(), transactions);
+        return new AccountCreationService(current, recent, accounts, encoder, audit, Clock.systemUTC(), transactions);
     }
 
     @AfterEach
@@ -235,5 +236,17 @@ class AccountCreationServiceTest {
             for (char item : buffer) { cleared &= item == 0; }
             assertTrue(cleared, "Owned secret buffer must be cleared");
         }
+    }
+
+    @Test void recentProofDenialPrecedesCredentialWorkAndMutation() {
+        doThrow(new RecentAuthenticationException(RecentAuthenticationException.Reason.PROOF_REQUIRED))
+                .when(recent).requireRecentAuthentication();
+        char[] password = UUID.randomUUID().toString().toCharArray(), confirmation = password.clone();
+        assertThrows(RecentAuthenticationException.class, () -> service.create("synthetic.new", password, confirmation));
+        var order = inOrder(actor, recent);
+        order.verify(actor).requireAuthority("identity:admin");
+        order.verify(recent).requireRecentAuthentication();
+        verifyNoInteractions(encoder, transactions, accounts, audit);
+        assertCleared(password, confirmation);
     }
 }

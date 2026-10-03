@@ -65,7 +65,7 @@ import static org.mockito.Mockito.*;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"vaadin.productionMode=true", "logging.level.root=OFF"})
-@Import({LocalProvisioningIdentityConfiguration.class, PasswordChangeIT.ProbeConfiguration.class})
+@Import({LocalProvisioningIdentityConfiguration.class, AdministrativeTestSessionConfiguration.class, PasswordChangeIT.ProbeConfiguration.class})
 class PasswordChangeIT {
     @Container @ServiceConnection
     static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
@@ -76,6 +76,7 @@ class PasswordChangeIT {
     @Autowired private AccountCreationService creation;
     @MockitoSpyBean private AccountAuthenticationProvider provider;
     @Autowired private CurrentActor actor;
+    @Autowired private CredentialReauthenticationService reauthentication;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private Flyway flyway;
     @MockitoSpyBean private SessionRegistry registry;
@@ -105,6 +106,7 @@ class PasswordChangeIT {
         id = bootstrap.provision("synthetic.self", oldPassword.toCharArray(), oldPassword.toCharArray());
         authenticated = authenticate(oldPassword);
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+        reauthentication.reauthenticate(oldPassword.toCharArray());
         clearInvocations(audit, encoder, revoker);
     }
 

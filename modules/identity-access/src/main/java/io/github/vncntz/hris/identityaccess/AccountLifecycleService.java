@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class AccountLifecycleService {
     private final CurrentActor actor;
+    private final RecentAuthenticationGuard recent;
     private final AccountRepository accounts;
     private final EntityManager entities;
     private final AuditRecorder audit;
@@ -23,10 +24,11 @@ public class AccountLifecycleService {
     private final Clock clock;
     private final TransactionTemplate mutation;
 
-    AccountLifecycleService(CurrentActor actor, AccountRepository accounts, EntityManager entities,
+    AccountLifecycleService(CurrentActor actor, RecentAuthenticationGuard recent, AccountRepository accounts, EntityManager entities,
             AuditRecorder audit, AuthenticatedSessionRevoker sessions, Clock clock,
             PlatformTransactionManager transactions) {
         this.actor = actor;
+        this.recent = recent;
         this.accounts = accounts;
         this.entities = entities;
         this.audit = audit;
@@ -48,6 +50,7 @@ public class AccountLifecycleService {
 
     private void change(UUID target, boolean enabled) {
         actor.requireAuthority("identity:admin");
+        recent.requireRecentAuthentication();
         UUID administrator = actor.requireUserId();
         if (target == null) {
             throw new AccountLifecycleException(AccountLifecycleException.Reason.INVALID_TARGET);

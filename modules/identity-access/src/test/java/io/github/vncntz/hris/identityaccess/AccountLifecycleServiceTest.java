@@ -29,6 +29,7 @@ import static org.mockito.Mockito.*;
 
 class AccountLifecycleServiceTest {
     private final CurrentActor actor = mock(CurrentActor.class);
+    private final RecentAuthenticationGuard recent = mock(RecentAuthenticationGuard.class);
     private final AccountRepository accounts = mock(AccountRepository.class);
     private final EntityManager entities = mock(EntityManager.class);
     private final AuditRecorder audit = mock(AuditRecorder.class);
@@ -41,7 +42,7 @@ class AccountLifecycleServiceTest {
     private final AccountLifecycleService service = service(actor);
 
     private AccountLifecycleService service(CurrentActor current) {
-        return new AccountLifecycleService(current, accounts, entities, audit, sessions,
+        return new AccountLifecycleService(current, recent, accounts, entities, audit, sessions,
                 Clock.fixed(now, ZoneOffset.UTC), transactions);
     }
 
@@ -198,5 +199,16 @@ class AccountLifecycleServiceTest {
         assertEquals("Account lifecycle failed: " + reason, failure.getMessage());
         assertNull(failure.getCause());
         assertEquals(0, failure.getSuppressed().length);
+    }
+
+    @Test void recentProofDenialPrecedesCredentialWorkAndMutation() {
+        doThrow(new RecentAuthenticationException(RecentAuthenticationException.Reason.PROOF_REQUIRED))
+                .when(recent).requireRecentAuthentication();
+        assertThrows(RecentAuthenticationException.class, () -> service.disable(UUID.randomUUID()));
+        var order = inOrder(actor, recent);
+        order.verify(actor).requireAuthority("identity:admin");
+        order.verify(recent).requireRecentAuthentication();
+        verifyNoInteractions(transactions, accounts, audit, sessions);
+
     }
 }

@@ -30,7 +30,8 @@ class AuthenticationSecurityConfiguration {
     @Bean
     SecurityPolicy securityPolicy(
             @Value("${hris.security.max-failed-attempts:5}") int maxFailedAttempts,
-            @Value("${hris.security.lock-duration:PT15M}") Duration lockDuration) {
-        return new SecurityPolicy(maxFailedAttempts, lockDuration);
+            @Value("${hris.security.lock-duration:PT15M}") Duration lockDuration,
+            @Value("${hris.security.reauthentication-window:PT5M}") Duration reauthenticationWindow) {
+        return new SecurityPolicy(maxFailedAttempts, lockDuration, reauthenticationWindow);
     }
 }

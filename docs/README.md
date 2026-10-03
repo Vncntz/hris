@@ -32,3 +32,8 @@ Use this index to find authoritative sources; current execution status and prede
 | Known issues | [Known issues index](known-issues/README.md) |
 
 These indexes route to focused records as work is implemented and verified. The planning index and task packets are derived routing aids, never authority or gate evidence. Read repository rules directly; operator prompts need only supply task authorization and specific constraints rather than repeat governance, source code, or full frozen plans.
+
+Current authorized product work is [IMP-013](implementation/tasks/IMP-013.md) /
+[TASK-0029](tasks/TASK-0029.md), recent credential re-authentication.
+[TASK-0031](tasks/TASK-0031.md)'s verified correction closes TASK-0030's failed post-merge
+chain and IMP-012 reopening; current evidence is routed through implementation state.

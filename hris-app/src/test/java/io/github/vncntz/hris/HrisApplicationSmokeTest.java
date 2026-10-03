@@ -45,6 +45,9 @@ class HrisApplicationSmokeTest {
     private io.github.vncntz.hris.identityaccess.AccountCreationService accountCreationService;
 
     @MockitoBean
+    private io.github.vncntz.hris.identityaccess.CredentialReauthenticationService credentialReauthenticationService;
+
+    @MockitoBean
     private io.github.vncntz.hris.identityaccess.PasswordChangeService passwordChangeService;
 
     @MockitoBean

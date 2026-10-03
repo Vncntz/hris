@@ -16,6 +16,7 @@ import static io.github.vncntz.hris.identityaccess.RoleAdministrationException.R
 @Service
 public class RoleAdministrationService {
     private final CurrentActor actor;
+    private final RecentAuthenticationGuard recent;
     private final AccountRepository accounts;
     private final RoleRepository roles;
     private final PermissionRepository permissions;
@@ -24,10 +25,11 @@ public class RoleAdministrationService {
     private final AuthenticatedSessionRevoker sessions;
     private final TransactionTemplate mutation;
 
-    RoleAdministrationService(CurrentActor actor, AccountRepository accounts, RoleRepository roles,
+    RoleAdministrationService(CurrentActor actor, RecentAuthenticationGuard recent, AccountRepository accounts, RoleRepository roles,
             PermissionRepository permissions, EntityManager entities, AuditRecorder audit,
             AuthenticatedSessionRevoker sessions, PlatformTransactionManager transactions) {
         this.actor = actor;
+        this.recent = recent;
         this.accounts = accounts;
         this.roles = roles;
         this.permissions = permissions;
@@ -152,6 +154,7 @@ public class RoleAdministrationService {
 
     private UUID authorize() {
         actor.requireAuthority("identity:admin");
+        recent.requireRecentAuthentication();
         return actor.requireUserId();
     }
 

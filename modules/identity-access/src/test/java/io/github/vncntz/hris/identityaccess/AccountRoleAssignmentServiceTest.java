@@ -28,6 +28,7 @@ import static io.github.vncntz.hris.identityaccess.AccountRoleAssignmentExceptio
 
 class AccountRoleAssignmentServiceTest {
     private final CurrentActor actor = mock(CurrentActor.class);
+    private final RecentAuthenticationGuard recent = mock(RecentAuthenticationGuard.class);
     private final AccountRepository accounts = mock(AccountRepository.class);
     private final RoleRepository roles = mock(RoleRepository.class);
     private final EntityManager entities = mock(EntityManager.class);
@@ -41,7 +42,7 @@ class AccountRoleAssignmentServiceTest {
     private final AccountRoleAssignmentService service = service(actor);
 
     private AccountRoleAssignmentService service(CurrentActor current) {
-        return new AccountRoleAssignmentService(current, accounts, roles, entities, audit, sessions, transactions);
+        return new AccountRoleAssignmentService(current, recent, accounts, roles, entities, audit, sessions, transactions);
     }
 
     @AfterEach void clear() {
@@ -268,5 +269,16 @@ class AccountRoleAssignmentServiceTest {
         assertEquals("Account role assignment failed: " + reason, failure.getMessage());
         assertNull(failure.getCause());
         assertEquals(0, failure.getSuppressed().length);
+    }
+
+    @Test void recentProofDenialPrecedesCredentialWorkAndMutation() {
+        doThrow(new RecentAuthenticationException(RecentAuthenticationException.Reason.PROOF_REQUIRED))
+                .when(recent).requireRecentAuthentication();
+        assertThrows(RecentAuthenticationException.class, () -> service.assign(UUID.randomUUID(), UUID.randomUUID()));
+        var order = inOrder(actor, recent);
+        order.verify(actor).requireAuthority("identity:admin");
+        order.verify(recent).requireRecentAuthentication();
+        verifyNoInteractions(transactions, accounts, roles, audit, sessions);
+
     }
 }

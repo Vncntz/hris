@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {"vaadin.productionMode=true", "logging.level.root=OFF"})
-@Import(LocalProvisioningIdentityConfiguration.class)
+@Import({LocalProvisioningIdentityConfiguration.class, AdministrativeTestSessionConfiguration.class})
 class AccountCreationIT {
     @Container @ServiceConnection
     static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
@@ -49,6 +49,7 @@ class AccountCreationIT {
     @Autowired private FirstAdministratorProvisioner bootstrap;
     @Autowired private AccountAuthenticationProvider provider;
     @Autowired private CurrentActor actor;
+    @Autowired private CredentialReauthenticationService reauthentication;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private Flyway flyway;
     @Autowired private PlatformTransactionManager transactions;
@@ -56,6 +57,7 @@ class AccountCreationIT {
     @MockitoSpyBean private PasswordEncoder encoder;
     private Authentication administrator;
     private UUID creator;
+    private String administratorCredential;
 
     @BeforeEach
     void freshBootstrapAndRealAuthentication() {
@@ -63,9 +65,11 @@ class AccountCreationIT {
                 .cleanDisabled(false).load().clean();
         flyway.migrate();
         String secret = UUID.randomUUID().toString();
+        administratorCredential = secret;
         creator = bootstrap.provision("synthetic.creator", secret.toCharArray(), secret.toCharArray());
         administrator = authenticate("synthetic.creator", secret);
         SecurityContextHolder.getContext().setAuthentication(administrator);
+        reauthentication.reauthenticate(administratorCredential.toCharArray());
         actor.requireAuthority("identity:admin");
         clearInvocations(audit, encoder);
     }
@@ -117,6 +121,7 @@ class AccountCreationIT {
         assertThrows(AccessDeniedException.class, () -> actor.requireAuthority("identity:admin"));
         assertDenied(AccessDeniedException.class);
         SecurityContextHolder.getContext().setAuthentication(administrator);
+        reauthentication.reauthenticate(administratorCredential.toCharArray());
         assertEquals(creator, actor.requireUserId());
         actor.requireAuthority("identity:admin");
         flyway.validate();
@@ -231,6 +236,7 @@ class AccountCreationIT {
 
     private boolean attempt(String login) {
         SecurityContextHolder.getContext().setAuthentication(administrator);
+        reauthentication.reauthenticate(administratorCredential.toCharArray());
         char[] password = UUID.randomUUID().toString().toCharArray(), confirmation = password.clone();
         try { service.create(login, password, confirmation); return true; }
         catch (AccountCreationException failure) {

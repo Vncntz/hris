@@ -22,6 +22,7 @@ import static io.github.vncntz.hris.identityaccess.RoleAdministrationException.R
 
 class RoleAdministrationServiceTest {
     private final CurrentActor actor = mock(CurrentActor.class);
+    private final RecentAuthenticationGuard recent = mock(RecentAuthenticationGuard.class);
     private final AccountRepository accounts = mock(AccountRepository.class);
     private final RoleRepository roles = mock(RoleRepository.class);
     private final PermissionRepository permissions = mock(PermissionRepository.class);
@@ -35,7 +36,7 @@ class RoleAdministrationServiceTest {
     private final RoleEntity role = new RoleEntity(UUID.randomUUID(), "synthetic.role", false);
     private final PermissionEntity permission = new PermissionEntity("test:read");
     private final Set<UUID> affected = Set.of(UUID.randomUUID(), UUID.randomUUID());
-    private final RoleAdministrationService service = new RoleAdministrationService(actor, accounts, roles,
+    private final RoleAdministrationService service = new RoleAdministrationService(actor, recent, accounts, roles,
             permissions, entities, audit, sessions, transactions);
 
     private void ready() {
@@ -247,5 +248,16 @@ class RoleAdministrationServiceTest {
         assertEquals("Role administration failed: " + reason, failure.getMessage());
         assertNull(failure.getCause());
         assertEquals(0, failure.getSuppressed().length);
+    }
+
+    @Test void recentProofDenialPrecedesCredentialWorkAndMutation() {
+        doThrow(new RecentAuthenticationException(RecentAuthenticationException.Reason.PROOF_REQUIRED))
+                .when(recent).requireRecentAuthentication();
+        assertThrows(RecentAuthenticationException.class, () -> service.createRole("synthetic.new"));
+        var order = inOrder(actor, recent);
+        order.verify(actor).requireAuthority("identity:admin");
+        order.verify(recent).requireRecentAuthentication();
+        verifyNoInteractions(transactions, accounts, roles, permissions, audit, sessions);
+
     }
 }
