@@ -255,3 +255,30 @@ unusable even before the next request invalidates the servlet session.
 Startup rejects non-positive durations and durations above `PT30M`. Exact expiry and a future
 proof timestamp fail closed. Ordinary session idle timeout remains independent. No migration,
 new dependency, production HTTP endpoint or administration view is introduced.
+
+## Authenticated administrative credential reset
+
+[TASK-0034](../tasks/TASK-0034.md) adds `PasswordResetService.reset(UUID, char[], char[])`.
+The standalone command requires `identity:admin`, recent credential proof, then the
+administrator UUID before validating the target. Self reset is rejected; self changes
+continue through `PasswordChangeService`. Both owned buffers clear on every exit, with
+the existing 12-128 Unicode-code-point policy and exact confirmation semantics.
+
+An ambient caller transaction is refused before adaptive encoding. A non-secret scalar
+target generation snapshot includes disabled Accounts. Encoding runs outside database
+transactions and target locks. The 15-second REQUIRES_NEW READ COMMITTED mutation locks
+and refreshes the target Account, rejects a changed generation without retry, and uses
+`changePassword` to advance generation, update credential/security timestamps and clear
+failed attempts/temporary lock. Disabled state, UUID, login and assignments are preserved.
+Concurrent resets or self changes cannot overwrite a credential using stale preparation.
+
+Exactly one `IDENTITY_PASSWORD_RESET` event commits with administrator actor UUID,
+target Account UUID, target type `IDENTITY_ACCOUNT`, null reason and fixed context
+`administrative-password-reset`. No credential, encoding, login, session identifier or
+authority dump is recorded. Credential and audit flush precede target-session expiry;
+expiry failure rolls back database writes. A later commit failure may leave sessions
+expired while the preceding database credential remains, as with self password change.
+The existing Account lock/generation final-registration check closes in-flight-login
+races in both orderings. Reset adds no schema, dependency or production transport.
+Anonymous recovery, total administrator access loss, offline TOTP and supported-hardware
+password-cost qualification remain deferred.

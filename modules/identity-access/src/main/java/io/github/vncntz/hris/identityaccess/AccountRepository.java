@@ -12,6 +12,10 @@ import org.springframework.data.repository.query.Param;
 import jakarta.persistence.LockModeType;
 
 interface AccountRepository extends JpaRepository<AccountEntity, Long> {
+    // Non-secret scalar includes disabled Accounts; reset must not enable them.
+    @Query("select account.authenticationGeneration from AccountEntity account where account.publicId = :publicId")
+    Optional<Long> findAuthenticationGeneration(@Param("publicId") UUID publicId);
+
     interface AuthenticationState {
         String getPasswordHash();
         java.time.LocalDateTime getLockedUntilUtc();
