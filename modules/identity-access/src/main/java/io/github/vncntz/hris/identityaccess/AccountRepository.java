@@ -12,6 +12,16 @@ import org.springframework.data.repository.query.Param;
 import jakarta.persistence.LockModeType;
 
 interface AccountRepository extends JpaRepository<AccountEntity, Long> {
+    interface AuthenticationState {
+        String getPasswordHash();
+        java.time.LocalDateTime getLockedUntilUtc();
+    }
+
+    // Both scalars come from one statement; no managed Account or row lock during hashing.
+    @Query("select account.passwordHash as passwordHash, account.lockedUntilUtc as lockedUntilUtc "
+            + "from AccountEntity account where account.publicId = :publicId and account.enabled = true")
+    Optional<AuthenticationState> findEnabledAuthenticationState(@Param("publicId") UUID publicId);
+
     // Scalar snapshot avoids retaining a stale managed entity before the mutation lock.
     @Query("select account.passwordHash from AccountEntity account "
             + "where account.publicId = :publicId and account.enabled = true")

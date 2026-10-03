@@ -210,9 +210,20 @@ previous session proof before validation; failure cannot refresh it. No login na
 UUID is accepted. Authentication and proof failures carry fixed outcomes without internal causes.
 
 The existing adaptive encoder verifies an enabled-account scalar snapshot without a caller
-transaction. A 15-second REQUIRES_NEW READ COMMITTED transaction then locks and refreshes the
-Account, rechecks enabled state and the exact verified encoding, and captures the injected
-Clock instant. No credential, failure/lock state, generation, membership or audit data changes.
+transaction or Account row lock. [TASK-0032](../tasks/TASK-0032.md) adds the shared Account
+lockout policy: an observed active lock rejects proof before adaptive comparison. A 15-second
+REQUIRES_NEW READ COMMITTED transaction then locks and refreshes the Account and rechecks
+enabled state, the exact compared encoding and current lock state using the injected Clock.
+An unchanged wrong credential records one failed attempt and the configured threshold creates
+the same temporary lock used by ordinary login. The transaction commits before credential
+rejection; commit failure exposes only a bounded persistence failure. Concurrent attempts in
+distinct sessions serialize on the Account row. Active locks reject correct credentials too,
+without extending the lock or incrementing failures. After expiry, common authentication
+bookkeeping clears expired state; successful proof resets failures. Only failure count, lock
+expiry, security timestamp and normal row version may change. Credential, credential timestamp,
+enabled state, generations, identity, memberships and business audit data remain unchanged.
+Ordinary-login locks block proof in existing sessions, and proof-created locks block ordinary
+login. Lockout alone does not revoke sessions.
 The session adapter publishes proof only after successful commit. Concurrent replacement
 before the locked recheck rejects stale proof; replacement after it expires registered sessions.
 The adapter checks registry expiry before publication and each read, closing the commit-to-publication gap.

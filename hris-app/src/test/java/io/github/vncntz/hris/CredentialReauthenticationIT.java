@@ -32,7 +32,8 @@ import static org.mockito.Mockito.*;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"vaadin.productionMode=true", "logging.level.root=OFF", "hris.security.reauthentication-window=PT2M"})
+        properties = {"vaadin.productionMode=true", "logging.level.root=OFF", "hris.security.reauthentication-window=PT2M",
+                "hris.security.max-failed-attempts=3", "hris.security.lock-duration=PT7M"})
 @Import({LocalProvisioningIdentityConfiguration.class, CredentialReauthenticationIT.ProbeConfiguration.class})
 class CredentialReauthenticationIT {
     @Container @ServiceConnection static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
@@ -44,6 +45,7 @@ class CredentialReauthenticationIT {
     @Autowired SessionRegistry registry;
     @Autowired AuthenticatedSessionRevoker revoker;
     @Autowired TestClock clock;
+    @Autowired AccountAuthenticationProvider authentication;
     @MockitoSpyBean PasswordEncoder encoder;
     @Value("${local.server.port}") int port;
     UUID id;
@@ -64,9 +66,10 @@ class CredentialReauthenticationIT {
             assertEquals(428, first.post("role", "").statusCode());
             assertEquals(403, first.post("proof", "credential=" + encode(UUID.randomUUID().toString())).statusCode());
             assertEquals(428, first.post("role", "").statusCode());
-            long audits = count("audit_event"); String before = accountState();
+            long audits = count("audit_event"); var before = immutableAccountState();
             assertEquals(204, first.prove(credential).statusCode());
-            assertTrue(before.equals(accountState()), "Proof must not mutate Account security state");
+            assertTrue(before.equals(immutableAccountState()), "Proof must preserve identity, credential and authorization state");
+            assertEquals(0, failures()); assertNull(lockExpiry());
             assertEquals(audits, count("audit_event"));
             assertEquals(204, first.post("role", "").statusCode());
             assertEquals(428, second.post("permission", "").statusCode());
@@ -123,7 +126,9 @@ class CredentialReauthenticationIT {
             assertEquals(403, ordinary.post("role", "").statusCode());
         }
     }
-    @Test void concurrentPasswordReplacementRejectsVerifiedOldCredentialWithoutUsableProof() throws Exception {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {true, false})
+    void concurrentPasswordReplacementRejectsStaleComparisonWithoutProofOrFailureIncrement(boolean correct) throws Exception {
         CountDownLatch verified = new CountDownLatch(1), release = new CountDownLatch(1);
         AtomicBoolean pause = new AtomicBoolean(true);
         doAnswer(call -> {
@@ -137,13 +142,14 @@ class CredentialReauthenticationIT {
         String replacement = UUID.randomUUID().toString();
         try (Browser proof = new Browser(); Browser change = new Browser(); var executor = Executors.newSingleThreadExecutor()) {
             proof.login("synthetic.admin", credential); change.login("synthetic.admin", credential);
-            var result = executor.submit(() -> proof.prove(credential));
+            var result = executor.submit(() -> proof.prove(correct ? credential : UUID.randomUUID().toString()));
             try {
                 assertTrue(verified.await(30, TimeUnit.SECONDS));
                 assertEquals(204, change.post("password", "current=" + encode(credential) + "&replacement=" + encode(replacement)).statusCode());
             } finally { release.countDown(); }
             assertEquals(403, result.get(30, TimeUnit.SECONDS).statusCode());
             assertEquals(302, proof.post("role", "").statusCode());
+            assertEquals(0, failures()); assertNull(lockExpiry());
             proof.login("synthetic.admin", replacement); assertEquals(428, proof.post("role", "").statusCode());
         } finally { release.countDown(); }
     }
@@ -157,8 +163,107 @@ class CredentialReauthenticationIT {
             proof.login("synthetic.admin", replacement); assertEquals(428, proof.post("role", "").statusCode());
         }
     }
+    @Test void wrongProofPersistsEachAttemptLocksAtExactThresholdAndBlocksOrdinaryLoginUntilExpiry() throws Exception {
+        try (Browser browser = new Browser(); Browser login = new Browser()) {
+            browser.login("synthetic.admin", credential);
+            assertEquals(204, browser.prove(credential).statusCode());
+            var before = immutableAccountState(); long audits = count("audit_event");
+            for (int attempt = 1; attempt <= 3; attempt++) {
+                assertEquals(403, browser.prove(UUID.randomUUID().toString()).statusCode());
+                assertEquals(attempt, failures());
+                if (attempt < 3) { assertNull(lockExpiry()); }
+                assertEquals(428, browser.post("role", "").statusCode());
+            }
+            assertEquals(LocalDateTime.ofInstant(NOW.plusSeconds(420), ZoneOffset.UTC), lockExpiry());
+            assertTrue(before.equals(immutableAccountState())); assertEquals(audits, count("audit_event"));
+            assertEquals(403, browser.prove(credential).statusCode());
+            assertEquals(403, browser.prove(UUID.randomUUID().toString()).statusCode());
+            assertEquals(3, failures());
+            assertEquals(LocalDateTime.ofInstant(NOW.plusSeconds(420), ZoneOffset.UTC), lockExpiry());
+            login.rejectedLogin(credential);
+            clock.now = NOW.plusSeconds(419); assertEquals(403, browser.prove(credential).statusCode());
+            clock.now = NOW.plusSeconds(420); assertEquals(204, browser.prove(credential).statusCode());
+            assertEquals(0, failures()); assertNull(lockExpiry());
+            assertEquals(204, browser.post("role", "").statusCode());
+            login.login("synthetic.admin", credential);
+        }
+    }
+    @Test void ordinaryLoginLockBlocksProofInExistingSessionAndWrongProofAfterExpiryStartsAtOne() throws Exception {
+        try (Browser browser = new Browser(); Browser login = new Browser()) {
+            browser.login("synthetic.admin", credential); assertEquals(204, browser.prove(credential).statusCode());
+            for (int attempt = 1; attempt <= 3; attempt++) {
+                rejectOrdinaryCredential(); assertEquals(attempt, failures());
+            }
+            login.rejectedLogin(credential);
+            assertEquals(403, browser.prove(credential).statusCode());
+            assertEquals(428, browser.post("role", "").statusCode());
+            assertEquals(3, failures());
+            clock.now = NOW.plusSeconds(420);
+            assertEquals(403, browser.prove(UUID.randomUUID().toString()).statusCode());
+            assertEquals(1, failures()); assertNull(lockExpiry());
+            assertEquals(204, browser.prove(credential).statusCode()); assertEquals(0, failures());
+        }
+    }
+    @Test void concurrentWrongProofsFromDistinctSessionsSerializeWithoutLostIncrements() throws Exception {
+        CountDownLatch compared = new CountDownLatch(3), release = new CountDownLatch(1);
+        doAnswer(call -> {
+            boolean matched = (boolean) call.callRealMethod();
+            if (call.getArgument(0) instanceof CharBuffer) {
+                assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
+                compared.countDown(); await(release);
+            }
+            return matched;
+        }).when(encoder).matches(any(), anyString());
+        try (Browser first = new Browser(); Browser second = new Browser(); Browser third = new Browser();
+                var executor = Executors.newFixedThreadPool(3)) {
+            first.login("synthetic.admin", credential); second.login("synthetic.admin", credential); third.login("synthetic.admin", credential);
+            var a = executor.submit(() -> first.prove(UUID.randomUUID().toString()));
+            var b = executor.submit(() -> second.prove(UUID.randomUUID().toString()));
+            var c = executor.submit(() -> third.prove(UUID.randomUUID().toString()));
+            try { assertTrue(compared.await(30, TimeUnit.SECONDS)); } finally { release.countDown(); }
+            assertEquals(403, a.get(30, TimeUnit.SECONDS).statusCode());
+            assertEquals(403, b.get(30, TimeUnit.SECONDS).statusCode());
+            assertEquals(403, c.get(30, TimeUnit.SECONDS).statusCode());
+            assertEquals(3, failures());
+            assertEquals(LocalDateTime.ofInstant(NOW.plusSeconds(420), ZoneOffset.UTC), lockExpiry());
+            for (Browser browser : java.util.List.of(first, second, third)) {
+                assertEquals(428, browser.post("role", "").statusCode());
+            }
+        } finally { release.countDown(); }
+    }
+    @Test void ordinaryLoginLockCreatedAfterSuccessfulComparisonRejectsProofAtLockedRecheck() throws Exception {
+        CountDownLatch compared = new CountDownLatch(1), release = new CountDownLatch(1);
+        doAnswer(call -> {
+            boolean matched = (boolean) call.callRealMethod();
+            if (call.getArgument(0) instanceof CharBuffer) {
+                assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
+                compared.countDown(); await(release);
+            }
+            return matched;
+        }).when(encoder).matches(any(), anyString());
+        try (Browser browser = new Browser(); Browser login = new Browser(); var executor = Executors.newSingleThreadExecutor()) {
+            browser.login("synthetic.admin", credential);
+            var result = executor.submit(() -> browser.prove(credential));
+            try {
+                assertTrue(compared.await(30, TimeUnit.SECONDS));
+                for (int attempt = 0; attempt < 3; attempt++) { rejectOrdinaryCredential(); }
+                login.rejectedLogin(credential);
+            } finally { release.countDown(); }
+            assertEquals(403, result.get(30, TimeUnit.SECONDS).statusCode());
+            assertEquals(3, failures()); assertEquals(428, browser.post("role", "").statusCode());
+        } finally { release.countDown(); }
+    }
     long count(String table) { return jdbc.queryForObject("SELECT COUNT(*) FROM " + table, Long.class); }
-    String accountState() { return jdbc.queryForList("SELECT id,HEX(public_id),canonical_login,password_hash,enabled,authentication_generation,credential_updated_at_utc,security_updated_at_utc,failed_attempts,locked_until_utc,row_version FROM identity_account").toString(); }
+    int failures() { return jdbc.queryForObject("SELECT failed_attempts FROM identity_account", Integer.class); }
+    void rejectOrdinaryCredential() {
+        assertThrows(org.springframework.security.authentication.BadCredentialsException.class,
+                () -> authentication.authenticate(org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+                        .unauthenticated("synthetic.admin", UUID.randomUUID().toString())));
+    }
+    LocalDateTime lockExpiry() { return jdbc.queryForObject("SELECT locked_until_utc FROM identity_account", LocalDateTime.class); }
+    java.util.List<java.util.Map<String, Object>> immutableAccountState() {
+        return jdbc.queryForList("SELECT id,HEX(public_id),canonical_login,password_hash,enabled,authentication_generation,credential_updated_at_utc FROM identity_account");
+    }
     static String encode(String value) { return URLEncoder.encode(value, StandardCharsets.UTF_8); }
     static void await(CountDownLatch latch) {
         try { if (!latch.await(30, TimeUnit.SECONDS)) { throw new IllegalStateException("Test barrier timed out"); } }
@@ -244,6 +349,15 @@ class CredentialReauthenticationIT {
                     .POST(HttpRequest.BodyPublishers.ofString("username=" + encode(login) + "&password=" + encode(password))).build(),
                     HttpResponse.BodyHandlers.discarding());
             assertEquals(302, response.statusCode()); assertEquals(200, get("/test/csrf").statusCode());
+        }
+        void rejectedLogin(String password) throws Exception {
+            assertEquals(200, get("/login").statusCode());
+            var response = client.send(HttpRequest.newBuilder(uri("/login")).header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString("username=synthetic.admin&password=" + encode(password))).build(),
+                    HttpResponse.BodyHandlers.discarding());
+            assertEquals(302, response.statusCode());
+            assertTrue(response.headers().firstValue("Location").orElseThrow().contains("error"));
+            assertEquals(302, get("/test/csrf").statusCode());
         }
         @Override public void close() { client.close(); }
     }
