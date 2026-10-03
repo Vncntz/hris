@@ -6,18 +6,24 @@ Last updated: 2026-10-03. Current execution snapshot; historical verification be
 
 - M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md).
 - M1 — Workforce Foundation: [IMP-012](tasks/IMP-012.md) is complete after TASK-0031 corrective verification; [IMP-013](tasks/IMP-013.md) remains ACTIVE. TASK-0022 through TASK-0028 are Complete / `POST_MERGE_VERIFIED`; see the [task index](../tasks/README.md).
-- Active work: [IMP-013](tasks/IMP-013.md) / [TASK-0029](../tasks/TASK-0029.md), recent credential re-authentication, explicitly authorized as one combined TASK/implementation PR. Status: **LOCAL_VERIFIED**; 136 ordinary and 100 MySQL integration tests passed locally. Exact-head CI and integration gates remain required.
+- Active work: [IMP-013](tasks/IMP-013.md) / [TASK-0032](../tasks/TASK-0032.md), corrective recent re-authentication lockout planning. Status: **PLANNED - corrective**. Only the six-file planning PR and gated integration are authorized in this cycle; no implementation.
+- [TASK-0029](../tasks/TASK-0029.md) is **REOPENED - security correction required**. Valid exact-head and exact-merge CI does not establish full completion after the independently confirmed lockout finding.
 - [IMP-012](tasks/IMP-012.md)'s corrective reopening is closed by TASK-0031, Complete / `POST_MERGE_VERIFIED`.
 
 ## Immediately relevant predecessor
 
-[TASK-0031](../tasks/TASK-0031.md) / [PR #54](https://github.com/Vncntz/hris/pull/54)
-final head `074f9fb8fd5b1cf7af58b24990f184aafbbe8a1c` passed policy/Linux/Windows
-in [run 37083718233](https://github.com/Vncntz/hris/actions/runs/37083718233).
-Protected merge `109fa7eb5e7c5e306904deada5c52eb199857754` passed all three jobs
-in exact-merge-SHA [push run 37084121330](https://github.com/Vncntz/hris/actions/runs/37084121330).
-The Agency correction closes TASK-0030's failed PR #53 / push run 37080929900 chain.
-TASK-0028's Role/Permission administration, Role generation invalidation, and V8 remain integrated.
+[TASK-0029](../tasks/TASK-0029.md) / [PR #55](https://github.com/Vncntz/hris/pull/55)
+final head `b33cee888d0a15a57201bd69fefbb9e06b8f872e` passed policy/Linux/Windows
+in exact-head `pull_request` [run 37091776395](https://github.com/Vncntz/hris/actions/runs/37091776395).
+Protected merge `6b6a9d0f433352f36a8b7be7b360a26c5f9296d1` passed all three jobs
+in exact-merge main `push` [run 37092203330](https://github.com/Vncntz/hris/actions/runs/37092203330).
+Actual logs confirm 136 ordinary tests per platform, 100 Linux MySQL integration tests
+and 42 tooling tests, with zero failures/errors/skips. Head and merge trees are identical.
+Fetched main matches this merge at cycle start. The unresolved
+[PR #55 finding](https://github.com/Vncntz/hris/pull/55#discussion_r4171478811)
+is confirmed: recent proof bypasses active temporary locks and failed-attempt bookkeeping.
+TASK-0029's CI/integration chain is valid, but security completion requires TASK-0032.
+TASK-0031 remains complete and closes TASK-0030's failed chain / IMP-012 reopening.
 
 ## Active durable decisions
 
@@ -32,11 +38,15 @@ TASK-0028's Role/Permission administration, Role generation invalidation, and V8
 
 ## Blockers and open verification
 
-No predecessor gate remains open. TASK-0029 requires all acceptance and verification gates;
-completion is not yet claimed. Recovery/reset, offline TOTP MFA, password-cost qualification,
-final access-management closure, `repo-policy.py`, and IMP-014 remain outside this task.
+The predecessor CI/integration gates passed, but TASK-0029's lockout security finding
+remains open until TASK-0032 corrective implementation is independently integrated and
+post-merge verified. TASK-0032 planning requires exact-final-head policy/Linux/Windows,
+every trusted-main integration gate, protected merge and exact-merge main push CI.
+Recovery/reset, offline TOTP MFA, password-cost qualification, final access-management
+closure, `repo-policy.py` and IMP-014 remain deferred.
 
 ## Next action
 
-Integrate only locally verified IMP-013 / TASK-0029 through exact-head CI, fresh trusted-main
-integration, protected merge and exact-merge push verification. Stop after TASK-0029.
+Integrate only the six-file IMP-013 / TASK-0032 planning PR, verify exact planning merge-SHA
+push CI, and stop. Do not implement TASK-0032 in this cycle. After the planning gate,
+implementation requires separate operator authorization; do not allocate another TASK.
