@@ -1,306 +1,37 @@
 # HRIS implementation state
 
-Last updated: 2026-10-02. Planning and compilation are complete; implementation is in progress.
+Last updated: 2026-10-03. Current execution snapshot; historical verification belongs in linked TASK records and Git/PR evidence.
 
 ## Current milestone and task
 
-M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md). M1 — Workforce Foundation has [IMP-012](tasks/IMP-012.md) complete after fresh-cycle closure review: [TASK-0016](../tasks/TASK-0016.md), [TASK-0017](../tasks/TASK-0017.md), and [TASK-0018](../tasks/TASK-0018.md) are `POST_MERGE_VERIFIED`. Maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0019](../tasks/TASK-0019.md), [TASK-0020](../tasks/TASK-0020.md), and [TASK-0021](../tasks/TASK-0021.md) are `POST_MERGE_VERIFIED`. [IMP-013](tasks/IMP-013.md) is ACTIVE with [TASK-0022](../tasks/TASK-0022.md) `POST_MERGE_VERIFIED` / complete. [TASK-0023](../tasks/TASK-0023.md) is `POST_MERGE_VERIFIED` / complete. [TASK-0024](../tasks/TASK-0024.md), authenticated account creation boundary, is `POST_MERGE_VERIFIED` / complete. [TASK-0025](../tasks/TASK-0025.md), authenticated password change and session revocation foundation, is Complete / `POST_MERGE_VERIFIED` after corrective PR #45 and its exact-merge push CI. [TASK-0026](../tasks/TASK-0026.md) is Complete / `POST_MERGE_VERIFIED` after PR #47 and its verified exact-merge push CI. [TASK-0027](../tasks/TASK-0027.md) is Complete / `POST_MERGE_VERIFIED` after PR #49 and exact-merge push run 37007864655. [TASK-0028](../tasks/TASK-0028.md) is IN PROGRESS for Role/Permission administration with Role authority-generation invalidation. IMP-013 remains ACTIVE. The TASK-0028 planning gate is verified and implementation is authorized by the current operator instruction; local verification is green; exact-head CI and protected integration remain pending. Do not allocate TASK-0029 or advance to IMP-014.
+- M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md).
+- M1 — Workforce Foundation: [IMP-012](tasks/IMP-012.md) is complete after fresh-cycle closure review; [IMP-013](tasks/IMP-013.md) remains ACTIVE. TASK-0022 through TASK-0028 are Complete / `POST_MERGE_VERIFIED`; see the [task index](../tasks/README.md).
+- Active work: maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0030](../tasks/TASK-0030.md), simplify AI workflow and execution-state context. Status: **LOCAL_VERIFIED**; exact-head, integration, and exact-merge push gates remain required before completion. Local evidence is in its work order.
+- TASK-0029 is reserved by the operator for IMP-013 recent credential re-authentication. Its existing untracked local draft is preserved outside this PR; this maintenance task grants no product implementation authority.
 
-Last completed work order: [TASK-0027](../tasks/TASK-0027.md) under [IMP-013](tasks/IMP-013.md).
+## Immediately relevant predecessor
 
-Current action: implement and verify TASK-0028 under the current operator authorization and independently verified PR #50 planning gate. Implementation is IN PROGRESS; integration and post-merge verification are pending. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
+[TASK-0028](../tasks/TASK-0028.md) / [PR #51](https://github.com/Vncntz/hris/pull/51) is Complete / `POST_MERGE_VERIFIED`. Final head `237251ced7faa8c422dd66af75f7fb5715d2e3af` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [run 37022286478](https://github.com/Vncntz/hris/actions/runs/37022286478). Merge `5abd75b168bc517a7e8f828d1b1a66208f237b65` passed the same three jobs in exact-merge-SHA [push run 37023143564](https://github.com/Vncntz/hris/actions/runs/37023143564). Refreshed `origin/main` equals that merge at TASK-0030 allocation; no predecessor gate remains open.
 
-## Active implementation decisions
+Role/Permission administration, Role authority-generation invalidation, affected-session expiry, self-admin protection, and V8 are integrated. Detailed behavior, tests, and historical diagnostics remain in TASK-0028 and its PR; no product behavior changes in TASK-0030.
 
-- The operator requested implementation of the repository-specific coding-agent workflow recommendations; IMP-088 / TASK-0019 is the first completed maintenance slice. The operator explicitly authorized IMP-088 / TASK-0020 for the context-packet recommendation. Remote governance settings remain unchanged pending a specific decision.
-- The latest explicit operator instruction authorizes gated automatic merge for ordinary eligible PRs. A later explicit instruction or task can require human merge.
-- The operator authorized a single combined PR for each complete local IMP/TASK pair and its implementation after an explicit implementation prompt. Codex commits the work orders with the code; a separate planning PR is not required. The next task PR reconciles verified predecessor closeout.
-- [Governance PR #19](https://github.com/Vncntz/hris/pull/19) merged as `ea880d1ada243deec86e9a3a2c3e5c167c6a44dc`; [post-merge `push` run 36657908607](https://github.com/Vncntz/hris/actions/runs/36657908607) passed policy, Linux, and Windows on that exact SHA, making the combined-PR workflow effective.
-- The repository is public by the user's explicit decision, overriding the frozen private-repository baseline for this repository. Frozen planning sources remain unchanged.
-- Protected `main` requires PR integration, applies to administrators, and disallows force-push and deletion. The user directed that protection remain unchanged after IMP-003; `ci / build-linux` and `ci / build-windows` are policy checks but are not GitHub-required status checks. Do not change remote settings without a separate explicit decision.
-- The dedicated Git Integration Agent may merge only after independently passing all current [integration gates](GIT_INTEGRATION_AGENT.md). This does not grant protection bypass. Dependabot PRs remain human-reviewed unless separately authorized later.
-- The operator accepted a one-time exception for PR #11 / merge commit `ca8ca7e5d54cc490d6723e9f7fbe22b85fe717d1`: exact-head PR policy/Linux/Windows CI and manual CI on that merge SHA close its missing post-merge `push` run gate. The PR policy job, rather than the manual policy self-comparison, supplies independent frozen-plan evidence. Future PRs retain the normal post-merge `push` CI requirement.
+## Active durable decisions
+
+- The operator authorized sequential IMP-088 workflow-efficiency maintenance. TASK-0019/0020/0021 are post-merge verified; later slices require separate focused authorization. Context packets never select work or establish gates.
+- The external planner/reviewer handles selection, architecture reasoning, work-order preparation, and independent completion review. Codex implements authorized work and then enters the dedicated trusted-main integration procedure; development conclusions do not prove integration gates.
+- Normal work uses one combined IMP/TASK + implementation PR after explicit authorization of the exact pair. No recurring planning PR or standalone closeout-only PR is required. The next combined PR reconciles verified predecessor completion. [Governance PR #19](https://github.com/Vncntz/hris/pull/19), merge `ea880d1ada243deec86e9a3a2c3e5c167c6a44dc`, and successful exact-merge [push run 36657908607](https://github.com/Vncntz/hris/actions/runs/36657908607) established this workflow.
+- The latest operator authorization permits gated automatic protected-PR merge for eligible ordinary PRs only after independently passing every [integration gate](GIT_INTEGRATION_AGENT.md). A later instruction/task can require human merge. Dependabot remains human-reviewed/merged unless separately authorized. No protection bypass is granted.
+- The repository is public by explicit operator decision, overriding D-131's private baseline for this repository. Frozen planning sources remain unchanged.
+- Protected `main` requires PR integration, applies to administrators, and forbids force-push/deletion. Zero approving reviews are required in the solo-developer phase. The operator directed remote settings remain unchanged; Linux/Windows checks are mandatory repository policy even though not GitHub-required checks. Verify actual remote protection at integration; this snapshot is not enforcement evidence.
+- The one-time PR #11 exception remains limited to merge `ca8ca7e5d54cc490d6723e9f7fbe22b85fe717d1`: exact-head policy/Linux/Windows CI plus manual CI on that merge closed its missing push gate. PR policy supplied independent frozen-plan evidence. Future PRs still require exact-merge `push` CI.
+- No post-planning ADR is approved; use the [ADR index](../architecture/adr/README.md) and targeted [planning index](../planning/INDEX.md). Product ownership and architecture decisions remain unchanged.
 
 ## Blockers and open verification
 
-- TASK-0027 is Complete / `POST_MERGE_VERIFIED`; no predecessor blocker remains. TASK-0028 planning integration/post-merge gate is verified from PR #50; implementation is IN PROGRESS and its local gates are green; integration/post-merge gates remain open.
+No predecessor blocker remains. TASK-0030's exact-head CI, protected integration, and post-merge verification remain pending until independently evidenced. Failed/pending required checks block completion and any next task.
 
-- [TASK-0020](../tasks/TASK-0020.md)'s [post-merge identity-heading finding](https://github.com/Vncntz/hris/pull/34#discussion_r4154527760) was corrected by [TASK-0021](../tasks/TASK-0021.md) / PR #36. The historical [review thread](https://github.com/Vncntz/hris/pull/34#discussion_r4155621507) was resolved after fixing evidence and clean trusted-main TASK-0001 verification. Neither task remains blocked.
-- Historical TASK-0023 successor review: PR #40 exact-head and exact-merge-SHA push CI passed, including 24 real-MySQL tests in both Linux jobs. Fresh-cycle review selects TASK-0024 for authenticated identity:admin account creation, zero implicit roles/authorities, adaptive initial credentials and atomic audit. Lifecycle, assignment administration and privileged MFA/re-authentication remain later slices. No schema change or approved ADR is needed for this focused planning scope.
-- [PR #30 review comment 4145705615](https://github.com/Vncntz/hris/pull/30#discussion_r4145705615) on stale TASK-0017 routing records was [resolved with fixing-merge evidence](https://github.com/Vncntz/hris/pull/30#discussion_r4146157971) after TASK-0018 planning PR #31 and its exact-merge-SHA push CI passed. PR #30's intermittent MySQL deadlock led to [TASK-0018](../tasks/TASK-0018.md); its deterministic contention and real-MySQL regressions and implementation PR #32's exact-head/merge-SHA CI have now passed. The fresh-cycle review has since closed IMP-012. TASK-0015's classpath guard covers all 15 production reactor modules, and eight architecture tests passed locally.
-- Official Spring Boot/Testcontainers/MySQL image sources were checked. Boot 4.1.1 manages Testcontainers 2.0.5 and Connector/J 9.7.0; the test uses the official `mysql:8.4.11` image tag.
-- IMP-011 owns architecture tests; TASK-0007 established the first real-MySQL integration test and verified it locally and in Ubuntu CI.
-- No approved ADRs or open product/architecture decisions are recorded.
-
-## TASK-0023 verification and planned successor
-
-Planning PR #39 / head `dcc08be20574bbc06e611e2c5f42ee3b3007c0fc` and merge
-`1b7421d133c6cc5531187408245fdcf12b6ac066` were independently verified with passing
-policy/Linux/Windows runs `36941389484` and `36941726558`; both Linux runs executed
-17 real-MySQL tests without failures/errors/skips. The operator explicitly authorized
-only TASK-0023 implementation.
-
-[TASK-0023](../tasks/TASK-0023.md) local verification: Windows focused 12 identity +
-9 shared-kernel tests; ordinary Windows reactor 54 tests (8 architecture); Windows and
-isolated Ubuntu 24.04 Docker mysql-it runs each 54 ordinary + 24 real-MySQL tests, all
-with zero failures/errors/skips; tooling 42 tests, planning-index and whitespace checks
-passed. Packaged Windows/Ubuntu terminal probes verified hidden input, success/exit,
-zero observed TCP listeners and non-terminal refusal. V6 adds only technical once-only
-state; released migrations and frozen plans are unchanged. The
-[runbook](../deployment/first-administrator.md) and TASK record document platform limits,
-non-secret failures, closure and deferred qualification. Implementation [PR #40](https://github.com/Vncntz/hris/pull/40) final head `f92183966f1854f9323d2a8c7edce968232002aa` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36945136055](https://github.com/Vncntz/hris/actions/runs/36945136055). It merged as `f0098c9dfc394da583781a4814277c0a58ca1617`; [exact-merge-SHA push run 36945567895](https://github.com/Vncntz/hris/actions/runs/36945567895) passed all three jobs on that exact SHA. Both Linux logs confirm 24 real-MySQL tests (AccountAuthenticationIT 1, AuditPersistenceIT 3, FirstAdministratorProvisioningIT 7, MySqlDatasourceIT 2, IdentityAuthorizationIT 4, AgencyConfigurationIT 7), zero failures/errors/skips, and `BUILD SUCCESS`. Independent migration-stream diff review confirms only V6 was added; V1-V5 were unchanged. Refreshed protected `main` is at the verified merge. TASK-0023 is `POST_MERGE_VERIFIED` / complete.
-
-[TASK-0024](../tasks/TASK-0024.md) now implements authorized ordinary account creation, zero implicit memberships/authorities, shared initial-credential validation and atomic authenticated audit. No migration was added; V1-V6 and frozen planning remain unchanged. Final verification/integration evidence is independently reconciled in its work order and below.
-
-## Completed evidence
-
-- Implementation [PR #40](https://github.com/Vncntz/hris/pull/40) final head `f92183966f1854f9323d2a8c7edce968232002aa` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36945136055](https://github.com/Vncntz/hris/actions/runs/36945136055). It merged as `f0098c9dfc394da583781a4814277c0a58ca1617`; [exact-merge-SHA push run 36945567895](https://github.com/Vncntz/hris/actions/runs/36945567895) passed all three jobs on that exact SHA. Both Linux logs confirm 24 real-MySQL tests (AccountAuthenticationIT 1, AuditPersistenceIT 3, FirstAdministratorProvisioningIT 7, MySqlDatasourceIT 2, IdentityAuthorizationIT 4, AgencyConfigurationIT 7), zero failures/errors/skips, and `BUILD SUCCESS`. Independent migration-stream diff review confirms only V6 was added; V1-V5 were unchanged. Refreshed protected `main` is at the verified merge. TASK-0023 is `POST_MERGE_VERIFIED` / complete.
-
-- [TASK-0022](../tasks/TASK-0022.md) planning [PR #37](https://github.com/Vncntz/hris/pull/37) final head `84420d872a34ff73aa05f3ea61cc74dd2011a936` passed policy/Linux/Windows in [run 36867143103](https://github.com/Vncntz/hris/actions/runs/36867143103). It merged as `4242321cf736c0817d4cd3e8593d200e4b9accd0`; [exact-merge-SHA push run 36867516666](https://github.com/Vncntz/hris/actions/runs/36867516666) passed all three jobs. The operator then explicitly authorized implementation. Local focused authentication tests (9), Windows reactor tests (48, including 8 architecture tests), and tooling tests (42) passed without failures/errors/skips. V5 and all four new MySQL integration tests subsequently passed required Linux CI. Implementation [PR #38](https://github.com/Vncntz/hris/pull/38) final head `350468fbfaba342255abd5b0edfcaf7bcf03c4cc` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36938703821](https://github.com/Vncntz/hris/actions/runs/36938703821). It merged as `6e90b7143e1c1cad1c308f88baf265aefe37787e`; [exact-merge-SHA push run 36939112003](https://github.com/Vncntz/hris/actions/runs/36939112003) passed all three jobs on that exact SHA. Both Linux runs executed 17 real-MySQL tests (AccountAuthenticationIT 1, AuditPersistenceIT 3, MySqlDatasourceIT 2, IdentityAuthorizationIT 4, AgencyConfigurationIT 7), with zero failures, errors, or skips. TASK-0022 satisfies its acceptance criteria and completion boundary and is `POST_MERGE_VERIFIED` / complete. Fresh-cycle review keeps IMP-013 ACTIVE with TASK-0023 PLANNED next.
-
-- [TASK-0021](../tasks/TASK-0021.md) implementation [PR #36](https://github.com/Vncntz/hris/pull/36) final head `13c971d392cf451a5e41bda126a9d8ed4591abfa` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36862928301](https://github.com/Vncntz/hris/actions/runs/36862928301). It merged as `9782032cd382e3de6b995043fc5b3c94674313d6`; [exact-merge-SHA push run 36863449413](https://github.com/Vncntz/hris/actions/runs/36863449413) passed all three jobs. Linux completed 13 MySQL integration tests with zero failures, errors, or skips. On clean trusted `main`, TASK-0001 packets succeeded twice identically and all seven emitted reference byte counts and SHA-256 hashes matched independent source reads. TASK-0021 and the corrected TASK-0020 are `POST_MERGE_VERIFIED` / complete.
-- [IMP-012](tasks/IMP-012.md) fresh-cycle closure review found the single Agency enforced by V4 and application behavior, no V4 seed, a stable public ID, explicit actor, atomic audit/rollback, optimistic update/version checks, deterministic bounded contention handling, and real-MySQL concurrency coverage. TASK-0016/0017/0018's exact-merge-SHA push runs `36710076118`, `36728840447`, and `36792294156` each passed policy/Linux/Windows on their actual merge SHAs. IMP-012 is complete; IMP-013 may begin with TASK-0022 after its planning gate.
-- [TASK-0020](../tasks/TASK-0020.md) [PR #34](https://github.com/Vncntz/hris/pull/34) final head `139f79cbc1eaf8cf3322b636aadeccb8cfe01001` passed policy/Linux/Windows in [exact-head run 36850591081](https://github.com/Vncntz/hris/actions/runs/36850591081). It merged as `29049cd04b46637e2cbebdad2ea1cfde16512184`; [push run 36850912547](https://github.com/Vncntz/hris/actions/runs/36850912547) passed all three jobs on that exact SHA. The later identity-heading defect was fixed by TASK-0021 and verified above.
-- [TASK-0019](../tasks/TASK-0019.md) [PR #33](https://github.com/Vncntz/hris/pull/33) final head `d90ce54ccd030041b566182483c40f655ac53e03` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36817863949](https://github.com/Vncntz/hris/actions/runs/36817863949). It merged through protected `main` as `af094b72d3d0ae6392f8229890cc722224f4fa9b`; [actual merge-SHA push run 36819892901](https://github.com/Vncntz/hris/actions/runs/36819892901) passed those three jobs on that SHA. TASK-0019 is `POST_MERGE_VERIFIED` / complete.
-- [TASK-0018](../tasks/TASK-0018.md) implementation [PR #32](https://github.com/Vncntz/hris/pull/32) final head `1ea3db6ce8e389afb0be45ab0f5987141b647fcd` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36737850496](https://github.com/Vncntz/hris/actions/runs/36737850496). It merged to protected `main` as `42e16c4b4292bef50c8d5b1a49cc45c9958fa00b`; [exact-merge-SHA push run 36792294156](https://github.com/Vncntz/hris/actions/runs/36792294156) passed the same jobs. TASK-0018 is `POST_MERGE_VERIFIED` / complete. The subsequent fresh-cycle review closed IMP-012.
-- [TASK-0018](../tasks/TASK-0018.md) planning [PR #31](https://github.com/Vncntz/hris/pull/31) final head `12cc883a70b374a352f0f9f460be7fd1db7878da` passed policy, Linux, and Windows in [exact-head run 36733623709](https://github.com/Vncntz/hris/actions/runs/36733623709). It merged to protected `main` as `8457a4b6f09acd34824266a16486659450e8d840`; [exact-merge-SHA push run 36734083837](https://github.com/Vncntz/hris/actions/runs/36734083837) passed the same jobs. Local TASK-0018 implementation verification passed before PR #32.
-- [IMP-012](tasks/IMP-012.md) / [TASK-0017](../tasks/TASK-0017.md) implementation [PR #30](https://github.com/Vncntz/hris/pull/30) final head `32c6381d65165418cd2afc249db37e1057ee8a8a` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36728288068](https://github.com/Vncntz/hris/actions/runs/36728288068). It merged to protected `main` as `b32dc8e8cab6cfd615b3be4d77d7202e225de8c4`; [exact-merge-SHA push run 36728840447](https://github.com/Vncntz/hris/actions/runs/36728840447) passed the same three jobs. The [PR #28 no-seed finding](https://github.com/Vncntz/hris/pull/28#discussion_r4144224385) was [resolved with fixing evidence](https://github.com/Vncntz/hris/pull/28#discussion_r4145713700). TASK-0017 is `POST_MERGE_VERIFIED` / complete; IMP-012 remains active for TASK-0018's observed contention follow-up.
-- [TASK-0017](../tasks/TASK-0017.md) planning [PR #29](https://github.com/Vncntz/hris/pull/29) final head `aa6c19dcbba26bcef1b3e6ed351498bde0254682` passed policy/Linux/Windows in [exact-head run 36713360392](https://github.com/Vncntz/hris/actions/runs/36713360392). It merged to protected `main` as `36cb2b755db9ef6279859b8815103ad2b82ceceb`; [exact-merge-SHA push run 36713909037](https://github.com/Vncntz/hris/actions/runs/36713909037) passed all three jobs. This opened the TASK-0017 implementation gate subsequently completed by PR #30.
-- [IMP-012](tasks/IMP-012.md) / [TASK-0016](../tasks/TASK-0016.md) implementation [PR #28](https://github.com/Vncntz/hris/pull/28) final head `a313d0d2aac1f38687939c28152de07e8325fbd3` passed policy/Linux/Windows in [exact-head run 36709556688](https://github.com/Vncntz/hris/actions/runs/36709556688). It merged to protected `main` as `a50e03e617e8e07fe003a769bed814cb84b422ac`; [exact-merge-SHA push run 36710076118](https://github.com/Vncntz/hris/actions/runs/36710076118) passed all three jobs. TASK-0016 is `POST_MERGE_VERIFIED` / complete; IMP-012 remains active for the TASK-0017 review follow-up and later closure review.
-- [IMP-011](tasks/IMP-011.md) / [TASK-0015](../tasks/TASK-0015.md) implementation [PR #26](https://github.com/Vncntz/hris/pull/26) final head `ab93a7a31a7213c8c7178efb80afcafdbaee878d` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head PR run 36700965762](https://github.com/Vncntz/hris/actions/runs/36700965762). It merged to protected `main` as `ff8b2655a93bcb4e433f89a47e45e8350c40a728`; [exact-merge-SHA push run 36701364403](https://github.com/Vncntz/hris/actions/runs/36701364403) passed all three jobs. The all-15-production-module guard and all eight architecture tests are on `main`. The [PR #24 coverage thread](https://github.com/Vncntz/hris/pull/24#discussion_r4141610636) is historical evidence addressed by TASK-0015. IMP-011 / TASK-0015 is `POST_MERGE_VERIFIED` / complete.
-- [TASK-0015](../tasks/TASK-0015.md) planning [PR #25](https://github.com/Vncntz/hris/pull/25) final head `963010ce0befb763b776ec7493947303e29e057c` passed policy/Linux/Windows in [exact-head PR run 36698034846](https://github.com/Vncntz/hris/actions/runs/36698034846). It merged as `fbf1d13b0638169aa19e29615dee2f801533abcd`; [exact-merge-SHA push run 36698351224](https://github.com/Vncntz/hris/actions/runs/36698351224) passed all three jobs. The implementation gate passed.
-- [IMP-011](tasks/IMP-011.md) / [TASK-0014](../tasks/TASK-0014.md) [implementation PR #24](https://github.com/Vncntz/hris/pull/24) final head `903aec4a040fea3d943f2da3ec3bb78184f961da` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head PR run 36679651944](https://github.com/Vncntz/hris/actions/runs/36679651944). It merged as `3f5de3d5544f6cc3fc6f8ea897f6d633066f7283`; [exact-merge-SHA push run 36679928125](https://github.com/Vncntz/hris/actions/runs/36679928125) passed all three jobs. TASK-0014 is `POST_MERGE_VERIFIED` / complete. IMP-011 stays active for TASK-0015's coverage hardening.
-- [IMP-010](tasks/IMP-010.md) / [TASK-0013](../tasks/TASK-0013.md) [PR #22](https://github.com/Vncntz/hris/pull/22) final head `4d7d537fd2911831fb1ad105c7c98ab63f5bcb36` passed policy/Linux/Windows in [exact-head PR run 36675258199](https://github.com/Vncntz/hris/actions/runs/36675258199). It merged as `712818a3f320f50692b05af1f167d1babdcb34f7`; [exact-merge-SHA push run 36675558743](https://github.com/Vncntz/hris/actions/runs/36675558743) passed all three jobs. The generator skeleton now has explicit versioning, S/M/L/XL population targets, deterministic seed/scenario/options handling, canonical SHA-256 dataset identity, visibly fictional deterministic record IDs, lazy XL generation through 100,000 records, tests, and extension documentation. Post-task review found no further IMP-010 foundation task; business-domain loaders, persistence, scenario expansion, and performance qualification remain later-owned. IMP-010 / TASK-0013 is `POST_MERGE_VERIFIED` / complete.
-
-- [IMP-009](tasks/IMP-009.md) / [TASK-0012](../tasks/TASK-0012.md) [PR #21](https://github.com/Vncntz/hris/pull/21) final head `e6d14fda52a5eef4c138a967d9f93b4ba48abf32` passed policy/Linux/Windows in [exact-head PR run 36672125046](https://github.com/Vncntz/hris/actions/runs/36672125046). It merged as `4ad9c46c13729b2e8b1baba74baf602e9eab19e5`; [exact-merge-SHA push run 36672409587](https://github.com/Vncntz/hris/actions/runs/36672409587) passed all three jobs on that SHA. Both Linux runs passed `AccountAuthenticationIT` (1), `AuditPersistenceIT` (3), and `MySqlDatasourceIT` (2) against MySQL 8.4.11 with zero failures, errors, or skips. IMP-009's post-merge scope review found no additional IMP-009 TASK is required; later ownership of TOTP, privileged re-authentication, password calibration, and security-event audit integration remains as recorded in its control file. IMP-009 / TASK-0012 is `POST_MERGE_VERIFIED` / complete.
-
-- [IMP-008](tasks/IMP-008.md) / [TASK-0011](../tasks/TASK-0011.md) [PR #20](https://github.com/Vncntz/hris/pull/20) final head `38d4372c92e9fd0cc7f68f4a78853efb6b9751fd` passed policy/Linux/Windows in [PR run 36668524580](https://github.com/Vncntz/hris/actions/runs/36668524580). It merged as `529e21301ab2c53d86992cae532e51bb05984da7`; [post-merge push run 36668727407](https://github.com/Vncntz/hris/actions/runs/36668727407) passed all three jobs on that SHA. Linux ran `AuditPersistenceIT` (3 tests) and `MySqlDatasourceIT` (2 tests) against MySQL 8.4.11 without failures, errors, or skips. IMP-008 / TASK-0011 is `POST_MERGE_VERIFIED` / complete.
-
-- [IMP-007](tasks/IMP-007.md) / [TASK-0010](../tasks/TASK-0010.md) [PR #18](https://github.com/Vncntz/hris/pull/18) final head `dc95e95ac2b932d51fd7fa72cc268975f31bb578` passed policy/Linux/Windows [PR run 36658388543](https://github.com/Vncntz/hris/actions/runs/36658388543). It merged as `fcc5ebfb99b44d419cd392b54aa8d31c47042fac`; [post-merge `push` run 36658621739](https://github.com/Vncntz/hris/actions/runs/36658621739) passed all three jobs on that SHA. Linux executed `MySqlDatasourceIT` against MySQL 8.4.11 with zero failures/errors/skips. IMP-007 / TASK-0010 is `POST_MERGE_VERIFIED` / complete.
-
-- [IMP-001](tasks/IMP-001.md) records the Maven skeleton, full local reactor, application startup, HTTP, shutdown, and wrapper verification.
-- [IMP-002](tasks/IMP-002.md) / [TASK-0001](../tasks/TASK-0001.md) record repository governance and branch-protection evidence.
-- [IMP-003](tasks/IMP-003.md) / [TASK-0002](../tasks/TASK-0002.md) record the Linux/Windows CI baseline and passing post-merge `main` CI.
-- [IMP-087](tasks/IMP-087.md) is complete; [TASK-0003](../tasks/TASK-0003.md) through [TASK-0006](../tasks/TASK-0006.md) merged in order with required post-merge verification.
-- [IMP-004](tasks/IMP-004.md) / [TASK-0007](../tasks/TASK-0007.md) established disposable MySQL 8.4.11 testing. [PR #12](https://github.com/Vncntz/hris/pull/12) exact head `847228f5f67b9212ae77d5459e73728d560666ff` passed policy/Linux/Windows [PR CI](https://github.com/Vncntz/hris/actions/runs/36592276188). It merged as `00b59954db6c13a031d78434ea36ed8f0c744425`, and [post-merge `push` run 36592772489](https://github.com/Vncntz/hris/actions/runs/36592772489) passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` on that merge SHA. Linux ran `./mvnw -B -Pmysql-it clean verify` and `MySqlDatasourceIT` against `mysql:8.4.11` with zero failures/errors/skips; Windows ran ordinary `.\mvnw.cmd -B clean verify` and passed the HTTP smoke test. This satisfies IMP-004's acceptance direction and closes the predecessor without a standalone closeout PR.
-- [IMP-005](tasks/IMP-005.md) / [TASK-0008](../tasks/TASK-0008.md) established the global Flyway migration stream and technical V1 baseline. [Implementation PR #14](https://github.com/Vncntz/hris/pull/14) exact head `f11eb3663bcc0cc2b386849931b163291faa0c93` passed policy/Linux/Windows in [PR run 36647193876](https://github.com/Vncntz/hris/actions/runs/36647193876). It merged as `024143ee931c63a0c1847e1b4cf5fa4ca1288f98`; [post-merge `push` run 36647440772](https://github.com/Vncntz/hris/actions/runs/36647440772) on `main` at that SHA passed all three required jobs. IMP-005 / TASK-0008 is `POST_MERGE_VERIFIED` / complete.
-- [IMP-006](tasks/IMP-006.md) / [TASK-0009](../tasks/TASK-0009.md) planning [PR #15](https://github.com/Vncntz/hris/pull/15) merged as `a1f0b52b490ad7e4c34870db29a9514b18b827ad`, with passing exact-SHA [post-merge `push` run 36650227495](https://github.com/Vncntz/hris/actions/runs/36650227495). Local implementation verification: `.\mvnw.cmd -B -pl shared-kernel test` passed 7 tests; `.\mvnw.cmd -B clean verify` passed all 17 modules, with 7 shared-kernel and 1 app smoke test in Surefire reports; `.\mvnw.cmd -B -pl shared-kernel dependency:tree` showed only test-scope JUnit dependencies; `python tools/plan-index.py --check` passed. [Implementation PR #16](https://github.com/Vncntz/hris/pull/16) exact head `745ac47b2b2e82b49e32fb76106de1c3e953f1df` passed policy/Linux/Windows [PR run 36651069582](https://github.com/Vncntz/hris/actions/runs/36651069582), merged as `2b95e6d609333b09605d392e6d141dc168de1f2f`, and passed [post-merge `push` run 36651279934](https://github.com/Vncntz/hris/actions/runs/36651279934) on that exact SHA. IMP-006 / TASK-0009 is `POST_MERGE_VERIFIED` / complete.
+IMP-013 remains open for its remaining secure-access obligations; consult its parent control record and prepare any future work order through fresh review. TASK-0030 does not authorize IMP-013 behavior or IMP-014 advancement. `repo-policy.py` is deferred to separate maintenance, conceptually TASK-0031 only if a fresh post-TASK-0030 review confirms ID availability and receives authorization.
 
 ## Next action
 
-Current action: implement and verify TASK-0028 under the current operator authorization and independently verified PR #50 planning gate. Implementation is IN PROGRESS; integration and post-merge verification are pending. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
-
-## TASK-0024 local evidence - 2026-10-02
-
-Preserved local verification for completed authenticated account creation: Windows focused 21 Identity + 9 shared-kernel tests; ordinary Windows reactor 63 tests (8 architecture); Windows and isolated Ubuntu 24.04 Docker mysql-it each 63 ordinary + 31 real-MySQL tests. All have zero failures/errors/skips. Final focused tests also pass on Windows/Ubuntu. Tooling 42 tests, planning-index, whitespace, documentation links, acceptance-criteria preservation and full scope/security diff review passed. V1-V6 and both frozen sources match clean trusted main byte-for-byte. [TASK-0024](../tasks/TASK-0024.md) records actual behavior, commands, regression/concurrency coverage and deferred scope. Remote completion is independently verified below. IMP-013 stays ACTIVE; TASK-0025 was PLANNED at that historical handoff.
-
-## TASK-0024 verified completion and TASK-0025 planning - 2026-10-02
-
-Implementation [PR #42](https://github.com/Vncntz/hris/pull/42) final head `bc761d2bad9c9e5ac7a5f8f8b695d48b2ae5107c` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36955368576](https://github.com/Vncntz/hris/actions/runs/36955368576). It merged as `4dec302ded629a03802e71c3e7ba230bfc656043`; [exact-merge-SHA push run 36955721444](https://github.com/Vncntz/hris/actions/runs/36955721444) passed all three jobs on `main` at that exact SHA. Both Linux logs confirm 31 real-MySQL tests with zero failures/errors/skips and `BUILD SUCCESS`. The final head is an ancestor of the merge, their trees have no file differences, and refreshed `origin/main` is exactly that merge SHA. TASK-0024 is `POST_MERGE_VERIFIED` / complete.
-
-Fresh-cycle review selects [TASK-0025](../tasks/TASK-0025.md) for self-service authenticated password change and reusable local session revocation before later lifecycle/assignment revocation. TASK-0024 has no remaining completion blocker. TASK-0025 planning integration and exact-merge-SHA push CI passed as independently verified below; the operator explicitly authorized implementation. No schema change or approved ADR is needed for this planning scope.
-
-TASK-0025 implementation is explicitly authorized after independent verification of planning PR #43 and successful exact-merge-SHA push CI. Local verification passed as recorded below; implementation PR integration and post-merge verification remain open. IMP-013 remains ACTIVE; do not allocate TASK-0026 or advance to IMP-014.
-
-## TASK-0025 planning gate and implementation authorization - 2026-10-02
-
-Planning [PR #43](https://github.com/Vncntz/hris/pull/43), final head `bdfe4647e79ddcda9ebbb70881bbea612124edb8`, merged as `2f4e3a3259152f116b84adf39cf6d6c72b3d847f`. [Exact-head run 36963714302](https://github.com/Vncntz/hris/actions/runs/36963714302) and [exact-merge main push run 36967911646](https://github.com/Vncntz/hris/actions/runs/36967911646) passed ci / policy, ci / build-linux and ci / build-windows on their exact respective SHAs. Refreshed main starts at that planning merge; TASK-0024 is independently post-merge verified. The operator now explicitly authorizes only TASK-0025 implementation and protected integration. Local verification passed as recorded below, implementation merge gates remain open, and IMP-013 remains ACTIVE. No TASK-0026 allocation or IMP-014 advancement is authorized.
-
-## Historical TASK-0025 / PR #44 local verification - 2026-10-02
-
-[TASK-0025](../tasks/TASK-0025.md) now provides self-only current-credential proof, adaptive replacement outside locks, stale/enabled rechecks in a short REQUIRES_NEW READ COMMITTED transaction with an explicit locked refresh, Clock timestamp/lock-state reset, atomic fixed-context audit and pre-commit local session expiry. Standard in-memory tracking preserves unlimited concurrency, 30-minute idle timeout, fixation, CSRF and logout. Audit/flush/expiry rollback and the later-commit safe asymmetry are tested. No migration, dependency, production adapter or frozen-source change is introduced.
-
-Final local verification passed: focused 34 Identity + 9 shared-kernel tests; Windows ordinary reactor 76 (8 architecture); focused Windows MySQL/HTTP 11 plus 76 ordinary; isolated Ubuntu 24.04 Docker mysql-it 76 ordinary + 42 real-MySQL tests; tooling 42. All counts have zero failures/errors/skips and Maven reports BUILD SUCCESS. Reports, 211 local links, backlinks, preserved work-order criteria/non-goals, final Linux source manifest, released/frozen-source preservation and full scope/security diff were reviewed. The TASK record contains exact commands and HTTP/concurrency/failure evidence. TASK-0025 is LOCAL_VERIFIED with implementation PR gates, protected merge and exact-merge push CI pending. IMP-013 remains ACTIVE; do not allocate TASK-0026 or advance to IMP-014.
-
-## Historical PR #44 acceptance blocker and corrective implementation - 2026-10-02
-
-Implementation [PR #44](https://github.com/Vncntz/hris/pull/44) final head
-`7dbb93d2904a6d6f9ef111514b3bec7cd3bf7ca9` merged as
-`d9dfc46752b982ecbc43c3f90dae2b3026a2e1ee`. Independent GitHub queries confirmed
-[exact-head run 36972914846](https://github.com/Vncntz/hris/actions/runs/36972914846)
-and [exact-merge push run 36974258494](https://github.com/Vncntz/hris/actions/runs/36974258494)
-passed policy/Linux/Windows on their respective exact SHAs. Protected main was refreshed
-to that merge; PR integration is enforced for administrators, with force-push/deletion
-disallowed and unchanged remote settings.
-
-Those green runs did not prove the missing registration ordering. The unresolved
-[P1 finding](https://github.com/Vncntz/hris/pull/44#discussion_r4163413568) correctly
-identifies an old-credential authentication finishing before password replacement,
-then registering its session after revocation. TASK-0025 remains incomplete while this
-acceptance blocker is corrected on `fix/imp-013-task-0025-session-registration-race`.
-This is corrective implementation of the existing work order; no TASK-0026 is allocated
-and IMP-014 is not advanced.
-
-### Corrective local verification and integration boundary
-
-The existing TASK-0025 correction revalidates a strictly advancing, non-secret credential
-update generation while holding the account row lock through final servlet registration.
-Transient metadata is removed before context persistence; AccountPrincipal is unchanged.
-The original merged defect was deterministically reproduced as an authenticated HTTP 200
-after password change, then corrected with latch-controlled real HTTP/MySQL tests for
-both orderings, normal concurrent logins, unrelated session preservation, fixed-clock
-generation advancement and real registration-commit failure cleanup.
-
-Corrective local checks passed: 39 Identity + 9 shared-kernel focused tests; Windows
-ordinary reactor 81 (8 architecture); Windows focused MySQL/HTTP 16 plus 81 ordinary;
-isolated Ubuntu 24.04/Java 25 offline full mysql-it 81 ordinary + 47 integration;
-tooling 42, planning-index and whitespace. All counts have zero failures/errors/skips.
-XML reports, final Linux runtime manifest, preserved acceptance criteria/non-goals,
-local links/backlinks, full security/privacy diff, V1-V6 and frozen sources were reviewed.
-TASK-0025 is LOCAL_VERIFIED for the correction and still incomplete pending corrective
-exact-head policy/Linux/Windows CI, trusted-main gates, protected merge and exact-merge
-push CI. The original PR #44 finding is not dismissed by its historical green runs.
-IMP-013 remains ACTIVE; no TASK-0026 or IMP-014 work is authorized.
-
-## TASK-0025 verified completion and TASK-0026 planning - 2026-10-02
-
-Corrective [PR #45](https://github.com/Vncntz/hris/pull/45) final head `8668ad6da15b81260758c1821452381535860b9d` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36979448732](https://github.com/Vncntz/hris/actions/runs/36979448732). It merged as `d5e0cc99ffc88ee909f145b817de23c888b2f596`. [Exact-merge push run 36979936228](https://github.com/Vncntz/hris/actions/runs/36979936228) completed successfully as a `push` on `main` at that exact SHA with all three jobs successful. Independent GitHub metadata and actual policy/Linux/Windows job-log inspection confirmed these results. Both Linux runs executed 47 real-MySQL integration tests, including 16 PasswordChangeIT tests, with zero failures/errors/skips and BUILD SUCCESS; both Windows reactors passed, including 39 Identity and 9 shared-kernel tests. Policy logs confirm planning-index validation and 42 tooling tests passed.
-
-The corrective final head is an ancestor of the merge and their tree comparison contains no file changes. Refreshed origin/main was exactly the corrective merge SHA before this planning branch was created. The correction proves both session-registration/password-replacement orderings and closes TASK-0025's acceptance blocker; PR #44's historical green CI alone was insufficient. TASK-0025 is Complete / `POST_MERGE_VERIFIED`.
-
-IMP-013 remains ACTIVE. TASK-0026 is PLANNED only for administrative account enable/disable lifecycle and stale-authentication invalidation. Its supplied acceptance criteria are preserved. This cycle authorizes only the six-file documentation planning PR and protected integration; implementation requires successful planning merge-SHA push CI and separate operator authorization. Do not start TASK-0026 implementation or IMP-014.
-
-The tracked TASK directory and fetched Git history contain no prior TASK-0026 work order or conflicting allocation. Earlier PR references explicitly deferred allocation; TASK-0026 is the next unused four-digit ID. Existing local session revocation and registration serialization provide the dependency for lifecycle work. TASK-0026 plans a dedicated persisted authentication generation so disable/enable transitions invalidate in-flight authentication without repurposing credential-update timestamps. V7 is expected only during separately authorized implementation; no migration is added here. Worker linkage, assignment administration, recovery/reset, privileged MFA/re-authentication and other remaining IMP-013 obligations remain future scope.
-
-## TASK-0026 authorized implementation - 2026-10-02
-
-Planning PR #46 final head `36c1d3e1ba98a5181f1fed1388cd83611902cb9b` passed
-policy/Linux/Windows in exact-head run 36983959271; merge
-`3686e6afa46c342004aae0f10204a81c7fbbff68` passed the same jobs in exact-merge
-main push run 36984312660. GitHub metadata and actual logs were independently inspected.
-The operator separately authorized only TASK-0026 implementation and gated integration.
-The historical planning-only instructions above describe that earlier cycle.
-
-The administrative lifecycle boundary, V7 authentication-generation counter, password-change
-regression update and deterministic MySQL/HTTP race/rollback tests are implemented. See
-[TASK-0026](../tasks/TASK-0026.md) for behavior and verification. IMP-013 remains ACTIVE.
-Assignment administration and its authority invalidation, credential recovery/reset,
-privileged MFA/re-authentication and other remaining access-management scope require a fresh
-post-merge review. No successor TASK is allocated and IMP-014 is not started.
-
-TASK-0026 local verification passed: focused 48 Identity + 9 shared-kernel; Windows ordinary
-90; Windows focused MySQL/HTTP 90 ordinary + 27 integration; serial Ubuntu 24.04/Java 25
-full mysql-it 90 ordinary + 58 integration; tooling 42. All counts have zero failures/errors/skips.
-V6-to-V7/clean schema comparison, Flyway validation, source manifest, links, work-order
-preservation, full security/privacy diff, planning-index and whitespace checks passed.
-Historical local verification preceded the independently verified completion below. IMP-013 remains ACTIVE.
-
-## TASK-0026 completion and TASK-0027 planning - 2026-10-02
-
-Implementation [PR #47](https://github.com/Vncntz/hris/pull/47) final head `b21da2b5f9684d639388f0ead70bb36f5ac900a7` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 36988841675](https://github.com/Vncntz/hris/actions/runs/36988841675). It merged as `8a44a36e1a7683c36f130f5836b7fb532e3b16f2`; [exact-merge main push run 36989610995](https://github.com/Vncntz/hris/actions/runs/36989610995) passed all three jobs on that exact SHA. Independent GitHub metadata and actual policy/Linux/Windows log review confirmed 42 tooling tests, 90 ordinary reactor tests per platform and 58 real-MySQL integration tests on Linux, with zero failures/errors/skips and BUILD SUCCESS. TASK-0026 is Complete / `POST_MERGE_VERIFIED`.
-
-Current action: implement and verify TASK-0028 under the current operator authorization and independently verified PR #50 planning gate. Implementation is IN PROGRESS; integration and post-merge verification are pending. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
-
-The tracked TASK directory ends at TASK-0026 and fetched Git history has no TASK-0027 allocation. TASK-0027 is the next unused four-digit ID. The preserved supplied work order plans only Account-to-Role membership administration, using V5/V7 and local-session expiry. No code or migration is changed.
-
-
-## TASK-0027 authorized implementation - 2026-10-02
-
-Planning PR #48 head `43c82bc9205f20f7d43daec81ebd0655665cf99c` passed the three
-policy/Linux/Windows jobs in run 37001602266. Merge
-`02374327bbdf8a0112ed2a37d8354e283146a4b8` passed them in exact-SHA main push run
-37002032152. Metadata and actual logs were independently inspected before implementation.
-The operator separately authorized only TASK-0027. See its work order for implementation
-and verification evidence. Historical planning-only entries describe prior cycles.
-IMP-013 remains ACTIVE; remaining Role/Permission and Role-to-Permission administration
-with fan-out invalidation, recovery/reset, privileged recent re-authentication and offline
-TOTP MFA require future focused scope review. That implementation cycle authorized no successor TASK or IMP-014 work; the later TASK-0028 planning allocation below supersedes that historical boundary.
-
-
-TASK-0027 local verification passed: 60 Identity + 9 shared-kernel focused tests, Windows
-ordinary reactor 102, Windows focused MySQL/HTTP 102 ordinary + 17 integration, Ubuntu
-full mysql-it 102 ordinary + 74 integration, and 42 tooling tests. All final counts have
-zero failures/errors/skips. XML, logs, source manifest, V1-V7/frozen preservation, 215 links,
-acceptance preservation and complete diff were reviewed. This historical local verification
-preceded TASK-0027 completion; its exact-head and exact-merge gates now passed as recorded
-below. See TASK-0027 for preserved commands and evidence.
-
-## TASK-0027 verified closeout and TASK-0028 planning - 2026-10-02
-
-Implementation [PR #49](https://github.com/Vncntz/hris/pull/49) final head `b00dd5d7aa5f51c00c0015d33582decdeb26c761` passed `ci / policy`, `ci / build-linux`, and `ci / build-windows` in [exact-head run 37007056476](https://github.com/Vncntz/hris/actions/runs/37007056476). It merged through protected `main` as `c0807b0df23efa6f4799793c5a289d76d77ccbd5`; [exact-merge main push run 37007864655](https://github.com/Vncntz/hris/actions/runs/37007864655) passed the same three jobs on that exact SHA. GitHub metadata, job steps and actual policy/Linux/Windows logs were independently inspected. Policy ran 42 tooling tests; both build jobs reported BUILD SUCCESS, and each Linux run executed 74 real-MySQL integration tests with zero failures, errors or skips. TASK-0027 is Complete / `POST_MERGE_VERIFIED`.
-
-Account-to-Role administration is complete. Role enablement and Role-to-Permission changes still require fan-out authority invalidation and protection of in-flight authentication. TASK-0028 plans authenticated CurrentActor boundaries, disabled-by-default Role creation, canonical Permission creation, membership mutation, Role generation capture/final-registration validation, deterministic locking coordinated with Account membership, one bounded affected-session registry scan, persisted-state self-admin protection and privacy-minimized transactional audit. No per-Account generation mass rewrite or new infrastructure is planned.
-
-At allocation, TASK-0027 was the highest tracked ID; fetched Git history, local/remote branches and all PR history contained no TASK-0028 allocation or planning PR. The original untracked candidate remains preserved in the operator checkout. Current migrations end at V7; V8 is only the expected forward Role-generation migration, to be reallocated against refreshed main during implementation. Recovery/reset, privileged recent re-authentication, offline TOTP MFA and final access-management closure review remain deferred.
-
-Current action: implement and verify TASK-0028 under the current operator authorization and independently verified PR #50 planning gate. Implementation is IN PROGRESS; integration and post-merge verification are pending. IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
-
-
-## TASK-0028 planning gate verified and implementation started - 2026-10-02
-
-Planning PR #50 is independently verified: head `2b271c34ce553b6e3fb950dfe20a05160e552e94`, pull_request run `37011495034`; merge `2a12594bbb4c788e771eb2ad852443ea386ca448`, push run `37012009156`. Policy, Linux and Windows succeeded on both exact SHAs. Refreshed main equals that merge. The operator authorized TASK-0028 implementation only; local verification and implementation integration remain pending. IMP-013 remains ACTIVE; no TASK-0029 is allocated and IMP-014 is out of scope.
-
-
-## Local verification gate blocked - 2026-10-02
-
-The candidate implements V8 Role authorization_generation, authenticated Role/Permission
-commands, transient assigned-Role freshness, Account-before-ordered-Role serialization,
-targeted set expiry and transactional audit. Completion is not claimed.
-
-Observed verification: focused Identity command `.\mvnw.cmd -B -pl modules/identity-access -am test`
-passed 73 Identity + 9 shared-kernel tests. The focused Windows command
-`.\mvnw.cmd -B -Pmysql-it "-Dit.test=RoleAdministrationIT,RoleGenerationMigrationIT" "-Dfailsafe.failIfNoSpecifiedTests=false" clean verify`
-passed 115 ordinary + 13 real-MySQL/HTTP tests, with zero failures/errors/skips and BUILD SUCCESS.
-The final membership-race assertion strengthening and test-only import cleanup occurred after
-that run compiled tests and require repeat verification before committing.
-Planning-index, 42 tooling tests, 221 local links/anchors, acceptance/non-goal/verification
-preservation and released V1-V7/frozen-source comparisons passed. Logs checked for credential
-encoding and session-cookie patterns had no detections; complete final diff review is still pending.
-
-The isolated Ubuntu 24.04 / Temurin Java 25 `./mvnw -B -o -Pmysql-it clean verify` run failed
-RoleAdministrationIT.selfAdminDisableAndPermissionRemovalRejectPersistedLastAuthority during
-Flyway setup (freshSyntheticIdentity), before the command under test: Communications link failure,
-SQL state 08S01, caused by SocketTimeoutException connecting through Docker Desktop forwarding.
-The suite was stopped after this failed local gate; it has no successful full-run conclusion.
-An attempted ordinary Windows clean verify overlapped an active focused build and failed to
-remove a locked shared-kernel JAR; it must be rerun serially. These failures are not waived.
-
-No commit, push, implementation PR or integration was performed. The branch remains
-`feat/imp-013-task-0028-role-permission-administration`, based on verified planning main
-`2a12594bbb4c788e771eb2ad852443ea386ca448`. Local, final-head, integration and implementation
-post-merge gates remain open. Retry required local verification from the current candidate after
-resolving Docker connectivity; do not advance before every gate passes. IMP-013 remains ACTIVE;
-TASK-0029 is not allocated and IMP-014 is not started.
-
-
-## Resumed local verification - 2026-10-02
-
-Final candidate verification now passes: Windows ordinary `.\mvnw.cmd -B clean verify`
-(115 tests, BUILD SUCCESS, confirmed wrapper exit 0); focused Windows
-`.\mvnw.cmd -B -Pmysql-it "-Dit.test=RoleAdministrationIT,RoleGenerationMigrationIT" "-Dfailsafe.failIfNoSpecifiedTests=false" clean verify`
-(115 ordinary + 13 MySQL/HTTP tests, BUILD SUCCESS). The final membership-race assertions
-are included in this successful focused run. Focused Identity remains 73 + 9 shared-kernel;
-planning-index and all 42 tooling tests passed again. Source/config/migration checks confirm
-the isolated Linux snapshot matches all 141 relevant current files.
-
-The serial isolated Ubuntu/Java 25 full `./mvnw -B -o -Pmysql-it clean verify` attempt
-produced 87 integration-test executions, zero assertion failures, one error and zero skips.
-All 12 RoleAdministrationIT tests and RoleGenerationMigrationIT passed; V7-to-V8 preservation,
-clean V8, nonnegative CHECK enforcement, V6-to-V7 and invalid-history regressions passed.
-The error is AccountLifecycleIT.lateCommitFailureRetainsPreviousDatabaseStateWhileSessionsRemainExpiredForBothDirections,
-during freshSyntheticIdentity Flyway.clean before the test operation, caused by a connection
-timeout through host.docker.internal (SQL state 08S01 / SocketTimeoutException).
-The run was stopped at this failed gate; a successful full Linux conclusion is still required.
-A bridge-gateway verification probe was also stopped because Docker Desktop refused the
-Testcontainers cleanup-service connection. No application configuration was changed.
-
-Actual logs and XML reports were inspected and retained outside source control. Correctly
-decoded log scans found no credential-encoding, password-parameter, session-cookie or private-key
-patterns. No commit, push, PR or integration occurred. TASK-0028 remains incomplete / local
-gate BLOCKED. Resolve the Linux Docker published-port connectivity issue and rerun full
-mysql-it before advancing. IMP-013 remains ACTIVE; no successor TASK or IMP-014 was started.
-
-## TASK-0028 full local verification green - 2026-10-02
-
-The resumed exact Linux `./mvnw -B -Pmysql-it clean verify` passed with BUILD SUCCESS,
-exit 0, 115 ordinary + 87 integration tests and zero failures/errors/skips/flakes.
-AccountLifecycleIT, all TASK-0028 HTTP tests, V8 and existing Identity/Flyway regressions
-passed in a clean Ubuntu/Java 25 verifier with a fresh isolated Linux Docker daemon.
-Windows focused Identity, ordinary (115) and focused MySQL (115 + 13) runs passed again,
-as did planning-index, 42 tooling tests, 221 links/anchors and full diff/privacy/audit/
-migration checks. The prior failed runs remain historical evidence. See
-[TASK-0028](../tasks/TASK-0028.md#full-local-linux-gate-verified---2026-10-02) for commands,
-environment diagnosis, complete counts and retained evidence. No code/test/configuration
-change was needed. Next action is focused implementation commit/PR, exact-head CI and
-trusted-main protected integration followed by exact-merge push CI. TASK-0028 remains
-IN PROGRESS; IMP-013 remains ACTIVE. Do not allocate TASK-0029 or advance to IMP-014.
+Verify and integrate only IMP-088 / TASK-0030 through its combined PR, exact-head CI, fresh trusted-main review, protected merge, and exact-merge push CI. Stop after TASK-0030. The next authorized task PR will reconcile its completion from GitHub evidence; do not pre-mark it complete.

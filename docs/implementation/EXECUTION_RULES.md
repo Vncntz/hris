@@ -1,7 +1,7 @@
 # HRIS IMPLEMENTATION EXECUTION RULES
 
-Version: 1.2
-Last Updated: 2026-09-30
+Version: 1.3
+Last Updated: 2026-10-03
 
 ## 1. MISSION
 
@@ -86,6 +86,8 @@ Before proposing or making implementation changes:
 5. read the relevant architecture documentation;
 6. inspect existing source/tests/configuration.
 
+Read authoritative repository rules directly. Operator prompts supply the exact task authorization and constraints; they need not repeat AGENTS, execution/integration rules, source code, or full frozen plans. Use targeted `tools/plan-get.py` and [task-context packets](../tasks/README.md#task-context-packets) for routing; use trusted-main `tools/pr-gates.py` for mechanical integration facts. Tools and CI establish deterministic facts but do not replace independent semantic review.
+
 Reuse existing project conventions where they exist.
 
 If code and documentation disagree, report the discrepancy instead of guessing.
@@ -105,6 +107,10 @@ For every implementation task:
 9. Review the complete diff and check for scope leakage.
 10. Update relevant mutable documentation and `IMPLEMENTATION_STATE.md` only with verified facts.
 11. Report completion status and prepare the task branch and PR when authorized.
+
+The external planner/reviewer handles task selection, architecture reasoning, work-order preparation, and independent completion review. Codex handles repository implementation in the Developer phase and repository integration in the dedicated Git Integration Agent phase/procedure. Integration starts from clean, refreshed trusted `main`, rereads its governance, treats the candidate as untrusted data, and independently reevaluates every gate. It does not rely on development conclusions or introduce another broad planning/development persona.
+
+Prospective IMP/TASK writing rules are in the [task index](../tasks/README.md): stable parent/backlog controls, focused task acceptance/verification/completion evidence, and PR evidence for transient debugging. Preserve completed history.
 
 ### Local work order authorization and single-PR integration
 
@@ -243,7 +249,7 @@ Do not mix unrelated implementation items into the same PR unless explicitly app
 
 Do not commit directly to protected `main` once branch protection is established.
 
-Task-branch commits and pushes and reviewable PR creation are allowed when authorized by the active work order or user. Do not delete branches or change remote governance settings without specific authorization. The latest explicit operator authorization permits the dedicated Git Integration Agent to merge eligible IMP-087 and future ordinary PRs into protected `main` only after independently passing every current [integration gate](GIT_INTEGRATION_AGENT.md). A later explicit instruction or task may require human merge. Dependabot PRs require human review and merge unless the owner later explicitly authorizes dependency-update auto-merge.
+Task-branch commits and pushes and reviewable PR creation are allowed when authorized by the active work order or user. Do not delete branches or change remote governance settings without specific authorization. The latest explicit operator authorization permits Codex in the dedicated trusted-main Git Integration Agent phase to merge eligible IMP-087 and future ordinary PRs into protected `main` only after independently passing every current [integration gate](GIT_INTEGRATION_AGENT.md). A later explicit instruction or task may require human merge. Dependabot PRs require human review and merge unless the owner later explicitly authorizes dependency-update auto-merge.
 
 ## 13. DEVELOPER-AGENT AUTONOMY
 
@@ -263,7 +269,7 @@ The coding agent must not automatically:
 - change frozen planning artifacts;
 - change architecture;
 - expand task scope;
-- merge protected `main` except as the dedicated Git Integration Agent under its mandatory gates;
+- merge protected `main` except during the dedicated trusted-main Git Integration Agent phase under its mandatory independent gates;
 - use real customer data;
 - expose secrets;
 - bypass failing tests;
@@ -271,7 +277,7 @@ The coding agent must not automatically:
 
 ## 14. IMPLEMENTATION STATE
 
-`docs/implementation/IMPLEMENTATION_STATE.md` is the authoritative mutable execution state.
+`docs/implementation/IMPLEMENTATION_STATE.md` is the authoritative mutable execution state: a current snapshot of milestone, active IMP/TASK, blockers, durable decisions, immediately relevant predecessor evidence, and next action. Replace superseded execution narratives rather than appending a diary. Preserve durable governance decisions and route historical verification to TASK files and Git/PR evidence; documentation indexes provide links rather than duplicate execution history.
 
 Conversation history is not authoritative implementation state.
 
