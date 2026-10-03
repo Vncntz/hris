@@ -85,7 +85,7 @@ only V7 and the application-service lifecycle boundary. The HTTP integration pro
 chain with a narrow authenticated test-route rule. Recovery/reset, privileged MFA, re-authentication and password-cost calibration remain deferred.
 TASK-0027 supplies the separately authorized assignment boundary below.
 
-## Authentication-generation check at final session registration
+<a id="credential-generation-check-at-final-session-registration"></a>\n\n## Authentication-generation check at final session registration
 
 TASK-0025's original PR #44 left a gap between successful credential verification and
 servlet session registration. A password-change registry scan could miss a login paused
