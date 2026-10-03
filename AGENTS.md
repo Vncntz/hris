@@ -20,4 +20,6 @@ For an explicitly assigned TASK, `python tools/task-context.py TASK-0020` builds
 - Preserve released migrations and data integrity. Verify Philippine statutory requirements from authoritative sources; never invent formulas, rates, deadlines, forms, or legal requirements.
 - Run the required tests and relevant regressions, review the full diff, and update mutable state only with verified evidence. Apply the [Definition of Done](docs/implementation/EXECUTION_RULES.md#6-definition-of-done).
 
-Create module `AGENTS.md` files only when a concrete module invariant warrants one.
+The external planner/reviewer selects work, prepares work orders, reasons about architecture, and independently reviews completion. Codex implements authorized work, then uses the dedicated trusted-main integration phase with fresh source/evidence review under the [integration procedure](docs/implementation/GIT_INTEGRATION_AGENT.md). Development conclusions do not establish integration gates. Read repository rules directly; prompts need not restate them.
+
+Create module `AGENTS.md` files only when a concrete module invariant warrants one; do not build a specialized agent hierarchy.
