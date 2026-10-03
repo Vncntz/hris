@@ -16,6 +16,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.time.ZoneId;
 
@@ -25,6 +26,7 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -221,20 +223,48 @@ class AgencyConfigurationIT {
         assertEquals(before + 1, auditCount());
     }
 
-    @Test
+    @RepeatedTest(5)
     void concurrentInitializationCommitsExactlyOneRootAndOneAudit() throws Exception {
+        assertConcurrentInitialization(false);
+    }
+
+    @Test
+    void callerWhoseEmptyCheckPrecedesWinnerCommitCannotMergeOverWinner() throws Exception {
+        assertConcurrentInitialization(true);
+    }
+
+    private void assertConcurrentInitialization(boolean commitBeforeLoserSave) throws Exception {
         int before = auditCount();
         CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch bothCheckedEmpty = new CountDownLatch(2);
+        CountDownLatch winnerFinished = new CountDownLatch(1);
+        AgencyConfiguration winner = null;
         try (var executor = Executors.newFixedThreadPool(2)) {
             List<Future<Object>> results = new ArrayList<>();
             for (int index = 0; index < 2; index++) {
                 final int attempt = index;
                 Callable<Object> command = () -> {
                     start.await();
+                    if (commitBeforeLoserSave) {
+                        // initialize reads the clock after its empty check and before save.
+                        // Both checks see empty; caller 1 saves only after caller 0 commits.
+                        clock.beforeNextRead.set(() -> {
+                            bothCheckedEmpty.countDown();
+                            await(bothCheckedEmpty);
+                            if (attempt == 1) {
+                                await(winnerFinished);
+                            }
+                        });
+                    }
                     try {
                         return agency.initialize("Agency " + attempt, MANILA, ACTOR);
                     } catch (RuntimeException failure) {
                         return failure;
+                    } finally {
+                        clock.beforeNextRead.remove();
+                        if (attempt == 0) {
+                            winnerFinished.countDown();
+                        }
                     }
                 };
                 results.add(executor.submit(command));
@@ -243,23 +273,37 @@ class AgencyConfigurationIT {
             int successes = 0;
             int failures = 0;
             for (Future<Object> result : results) {
-                Object outcome = result.get();
-                if (outcome instanceof AgencyConfiguration) {
+                Object outcome = result.get(30, TimeUnit.SECONDS);
+                if (outcome instanceof AgencyConfiguration created) {
+                    winner = created;
                     successes++;
                 } else if (outcome instanceof RuntimeException failure) {
-                    assertTrue(failure.getMessage().contains("already initialized"),
-                            failure.getMessage());
+                    assertEquals("Agency configuration is already initialized", failure.getMessage());
                     failures++;
                 }
             }
             assertEquals(1, successes);
             assertEquals(1, failures);
         }
-        assertTrue(agency.current().isPresent());
+        assertEquals(winner, agency.current().orElseThrow());
+        assertEquals(0, winner.version());
+        if (commitBeforeLoserSave) {
+            assertEquals("Agency 0", winner.displayName());
+        }
         assertEquals(before + 1, auditCount());
+        assertAudit(winner.publicId(), "AGENCY_CONFIGURATION_INITIALIZED", ACTOR);
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             assertEquals(1, count(statement, "SELECT COUNT(*) FROM agency_configuration"));
+        }
+    }
+
+    private static void await(CountDownLatch latch) {
+        try {
+            assertTrue(latch.await(20, TimeUnit.SECONDS), "Agency synchronization timed out");
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(interrupted);
         }
     }
 
@@ -339,6 +383,7 @@ class AgencyConfigurationIT {
 
     static final class TestClock extends Clock {
         private final AtomicReference<Instant> current = new AtomicReference<>(FIXED_TIME);
+        private final ThreadLocal<Runnable> beforeNextRead = new ThreadLocal<>();
 
         void set(Instant instant) {
             current.set(instant);
@@ -356,6 +401,11 @@ class AgencyConfigurationIT {
 
         @Override
         public Instant instant() {
+            Runnable hook = beforeNextRead.get();
+            beforeNextRead.remove();
+            if (hook != null) {
+                hook.run();
+            }
             return current.get();
         }
     }

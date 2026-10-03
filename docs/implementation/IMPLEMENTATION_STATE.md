@@ -5,8 +5,8 @@ Last updated: 2026-10-03. Current execution snapshot; historical verification be
 ## Current milestone and task
 
 - M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md).
-- M1 — Workforce Foundation: [IMP-012](tasks/IMP-012.md) is complete after fresh-cycle closure review; [IMP-013](tasks/IMP-013.md) remains ACTIVE. TASK-0022 through TASK-0028 are Complete / `POST_MERGE_VERIFIED`; see the [task index](../tasks/README.md).
-- Active work: maintenance [IMP-088](tasks/IMP-088.md) / [TASK-0030](../tasks/TASK-0030.md), simplify AI workflow and execution-state context. Status: **LOCAL_VERIFIED**; exact-head, integration, and exact-merge push gates remain required before completion. Local evidence is in its work order.
+- M1 — Workforce Foundation: [IMP-012](tasks/IMP-012.md) was complete after fresh-cycle closure review and is now reopened for TASK-0031; [IMP-013](tasks/IMP-013.md) remains ACTIVE. TASK-0022 through TASK-0028 are Complete / `POST_MERGE_VERIFIED`; see the [task index](../tasks/README.md).
+- Active work: corrective [IMP-012](tasks/IMP-012.md) / [TASK-0031](../tasks/TASK-0031.md), correct Agency concurrent initialization. Status: **LOCAL_VERIFIED**; exact-head CI, independent integration, and exact-merge push verification remain required. IMP-012 is reopened for this regression; historical closure and verified tasks remain preserved.
 - TASK-0029 is reserved by the operator for IMP-013 recent credential re-authentication. Its existing untracked local draft is preserved outside this PR; this maintenance task grants no product implementation authority.
 
 ## Immediately relevant predecessor
@@ -28,10 +28,10 @@ Role/Permission administration, Role authority-generation invalidation, affected
 
 ## Blockers and open verification
 
-No predecessor blocker remains. TASK-0030's exact-head CI, protected integration, and post-merge verification remain pending until independently evidenced. Failed/pending required checks block completion and any next task.
+TASK-0030 merged through [PR #53](https://github.com/Vncntz/hris/pull/53): final head `af75040063c0184b745bdfc987f58750647e314c` passed all three jobs in [run 37080447796](https://github.com/Vncntz/hris/actions/runs/37080447796); actual merge `a647975fa7fd4a6ef2e6d0919fea70eacf7ee6b6` failed Linux in exact-merge [push run 37080929900](https://github.com/Vncntz/hris/actions/runs/37080929900), while policy and Windows passed. Agency concurrent initialization returned two successes. TASK-0030 is **post-merge blocked**, not POST_MERGE_VERIFIED. The operator explicitly authorized TASK-0031 as the corrective slice despite this failed predecessor; later work remains blocked until corrective exact-merge push CI passes.
 
-IMP-013 remains open for its remaining secure-access obligations; consult its parent control record and prepare any future work order through fresh review. TASK-0030 does not authorize IMP-013 behavior or IMP-014 advancement. `repo-policy.py` is deferred to separate maintenance, conceptually TASK-0031 only if a fresh post-TASK-0030 review confirms ID availability and receives authorization.
+IMP-013 remains open for its remaining secure-access obligations. TASK-0031 authorizes no IMP-013 behavior or IMP-014 advancement. TASK-0029 stays reserved and untouched. `repo-policy.py` remains deferred without a TASK allocation.
 
 ## Next action
 
-Verify and integrate only IMP-088 / TASK-0030 through its combined PR, exact-head CI, fresh trusted-main review, protected merge, and exact-merge push CI. Stop after TASK-0030. The next authorized task PR will reconcile its completion from GitHub evidence; do not pre-mark it complete.
+Integrate only IMP-012 / TASK-0031 through exact-head CI, fresh trusted-main review, protected merge, and exact-merge push CI. Reconcile the TASK-0030 failed chain only after successful corrective post-merge verification; the next authorized task PR carries tracked completion metadata under normal governance. Stop after TASK-0031.

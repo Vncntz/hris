@@ -35,11 +35,12 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0027](TASK-0027.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Account-to-Role assignment administration and stale-authority session invalidation |
 | [TASK-0028](TASK-0028.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Administer Roles and Role-to-Permission assignments with authority-generation invalidation |
 | TASK-0029 (local reservation; untracked) | [IMP-013](../implementation/tasks/IMP-013.md) | Reserved; no implementation authorized here | Recent credential re-authentication |
-| [TASK-0030](TASK-0030.md) | [IMP-088](../implementation/tasks/IMP-088.md) | LOCAL_VERIFIED; CI/integration pending | Simplify AI workflow and execution-state context |
+| [TASK-0030](TASK-0030.md) | [IMP-088](../implementation/tasks/IMP-088.md) | Merged; post-merge blocked by Agency regression | Simplify AI workflow and execution-state context |
+| [TASK-0031](TASK-0031.md) | [IMP-012](../implementation/tasks/IMP-012.md) | LOCAL_VERIFIED; corrective integration pending | Correct Agency concurrent initialization regression |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. The frozen backlog reserves IMP-001 through IMP-086; IMP-087 and IMP-088 are separately authorized maintenance parents. Current execution routing and verified predecessor evidence live in [implementation state](../implementation/IMPLEMENTATION_STATE.md).
 
-TASK-0029 is reserved by explicit operator resolution; its local draft remains untouched and is not included in TASK-0030. A conceptual `repo-policy.py` follow-up is deferred; TASK-0031 requires a fresh availability check and separate authorization after TASK-0030.
+TASK-0029 is reserved by explicit operator resolution; its local draft remains untouched. TASK-0031 was independently checked as unused and explicitly authorized for the IMP-012 correction. A conceptual `repo-policy.py` follow-up remains deferred and has no TASK allocation or implementation authority here.
 
 Use the normal [combined work-order + implementation PR workflow](../implementation/EXECUTION_RULES.md#local-work-order-authorization-and-single-pr-integration); recurring planning PRs and standalone closeout-only PRs are not required. The next combined PR reconciles its verified predecessor. Operator prompts supply authorization and constraints; Codex reads authoritative rules directly.
 
