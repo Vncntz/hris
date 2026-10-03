@@ -6,21 +6,21 @@ Last updated: 2026-10-03. Current execution snapshot; historical verification be
 
 - M0 — Engineering Foundation is complete through [IMP-011](tasks/IMP-011.md).
 - M1 — Workforce Foundation: [IMP-012](tasks/IMP-012.md) is complete after TASK-0031 corrective verification; [IMP-013](tasks/IMP-013.md) remains ACTIVE. TASK-0022 through TASK-0028 are Complete / `POST_MERGE_VERIFIED`; see the [task index](../tasks/README.md).
-- Active work: [IMP-013](tasks/IMP-013.md) / [TASK-0034](../tasks/TASK-0034.md), authenticated administrative credential reset. Status: **LOCAL_VERIFIED; integration and exact-merge verification pending** under explicit operator authorization for one combined work-order and implementation PR.
+- Active work: [IMP-013](tasks/IMP-013.md) / [TASK-0035](../tasks/TASK-0035.md), privileged offline TOTP MFA and recovery controls. Status: **LOCAL_VERIFIED; integration and exact-merge verification pending** under explicit operator authorization for one combined work-order and implementation PR.
 - [TASK-0033](../tasks/TASK-0033.md) is Complete / `POST_MERGE_VERIFIED` after PR #58.
 - [TASK-0032](../tasks/TASK-0032.md) is Complete / `POST_MERGE_VERIFIED` and corrects [TASK-0029](../tasks/TASK-0029.md)'s recent-proof lockout finding. TASK-0029 is complete after that correction.
 - [IMP-012](tasks/IMP-012.md)'s corrective reopening is closed by TASK-0031, Complete / `POST_MERGE_VERIFIED`.
 
 ## Immediately relevant predecessor
 
-TASK-0033 [PR #58](https://github.com/Vncntz/hris/pull/58), final head
-`2aa441ef18a3cf920c21ce55b3a6e6a9ad16521f`, merged as
-`c1717ea649e1fc6c9cca0bd2bae03a8406a927e1`. Exact-head pull-request
-[run 37107413022](https://github.com/Vncntz/hris/actions/runs/37107413022) and exact-merge
-main push [run 37107875827](https://github.com/Vncntz/hris/actions/runs/37107875827)
-passed policy/Linux/Windows. GitHub metadata and actual logs independently establish
-predecessor completion. Current refreshed main is that merge. TASK-0032 remains complete
-and closes TASK-0029's lockout finding; historical evidence remains in linked TASKs.
+TASK-0034 [PR #59](https://github.com/Vncntz/hris/pull/59), final head
+`5f64d3a486c6d28a14a097d66a50a9131567429d`, merged as
+`9cd28c8b7a9ff3d634b06b12a9d88c1dd43402b9`. Exact-head pull-request
+[run 37119021733](https://github.com/Vncntz/hris/actions/runs/37119021733) and exact-merge main push
+[run 37119407820](https://github.com/Vncntz/hris/actions/runs/37119407820)
+passed policy/Linux/Windows. GitHub metadata, steps and actual logs independently
+establish completion. Refreshed main is that merge. TASK-0034 is POST_MERGE_VERIFIED.
+TASK-0033 and TASK-0032 remain complete; historical evidence remains in linked TASKs.
 
 ## Active durable decisions
 
@@ -35,17 +35,17 @@ and closes TASK-0029's lockout finding; historical evidence remains in linked TA
 
 ## Blockers and open verification
 
-TASK-0034 local verification passed: Windows 151 ordinary; Linux 151 ordinary and 123
-real-MySQL tests, including 17 reset tests; focused MySQL/HTTP 32 and tooling 42. Actual
-XML reports confirm zero failures/errors/skips/flaky results. All 153 implementation inputs
-match isolated build sources. See the TASK for commands, security and concurrency evidence.
-Exact-final-head CI, trusted-main integration, protected merge and exact-merge push CI remain
-required. Offline TOTP MFA and safe recovery/admin procedures, total loss of administrator
-access recovery, supported-hardware password-cost qualification, final access-management
-closure, `repo-policy.py` and IMP-014 remain deferred.
+TASK-0035 local verification passed: Windows 156 ordinary; Linux 156 ordinary / 139
+real-MySQL tests; focused MySQL 20; tooling 42; browser form submission and clearing.
+Actual XML reports have zero failures/errors/skips/flaky results, and 165 implementation
+input hashes match both isolated builds. See the TASK for commands and security evidence.
+Exact-final-head CI, trusted-main integration and exact-merge push CI remain required.
+No predecessor blocker remains.
+Total loss of administrator access, supported-hardware password-cost qualification,
+final IMP-013 closure review, `repo-policy.py` and IMP-014 remain deferred.
 
 ## Next action
 
-Integrate only the locally verified TASK-0034 combined PR, independently evaluating every
-trusted-main integration gate. Do not call TASK-0034 complete before exact-merge push CI passes.
-IMP-013 remains ACTIVE; no successor TASK is allocated.
+Integrate only the locally verified TASK-0035 combined PR, independently evaluating
+all trusted-main integration gates. Do not call it complete before exact-merge push
+CI passes. IMP-013 remains ACTIVE; no successor TASK is allocated.

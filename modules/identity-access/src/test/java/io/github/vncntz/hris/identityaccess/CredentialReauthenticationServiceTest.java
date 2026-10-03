@@ -34,7 +34,8 @@ class CredentialReauthenticationServiceTest {
     final AccountRepository.AuthenticationState snapshot = mock(AccountRepository.AuthenticationState.class);
     final AccountEntity account = new AccountEntity(id, "synthetic.self", encoding, Instant.EPOCH);
     final CredentialReauthenticationService service = new CredentialReauthenticationService(actor, session,
-            accounts, entities, encoder, Clock.fixed(now, ZoneOffset.UTC), policy, transactions);
+            accounts, entities, encoder, Clock.fixed(now, ZoneOffset.UTC), policy, transactions,
+            new MfaVerifier(new MfaSecrets(""), new MfaPolicy(1, java.time.Duration.ofMinutes(10), 10)));
     RecentAuthenticationSession.Proof published;
 
     void ready() {

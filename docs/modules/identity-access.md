@@ -282,3 +282,24 @@ The existing Account lock/generation final-registration check closes in-flight-l
 races in both orderings. Reset adds no schema, dependency or production transport.
 Anonymous recovery, total administrator access loss, offline TOTP and supported-hardware
 password-cost qualification remain deferred.
+
+## Privileged offline TOTP and recovery
+
+[TASK-0035](../tasks/TASK-0035.md) adds optional MFA enrollment for identity:admin
+Accounts through MfaAdministrationService, with recent proof and possession confirmation.
+V9 stores only Account-bound AES-256-GCM encrypted seeds, pending expiry, enabled state,
+last consumed TOTP step and one-use SHA-256 recovery digests. MFA authentication and recent
+proof consume factors under the refreshed Account lock with existing bounded failure policy.
+Password-only overloads deny enrolled Accounts. No partially authenticated token/session
+is issued. The form submits a browser-only factor; owned request buffers clear and authenticated
+token details retain only existing request-only generation before registration strips them.
+
+Confirmation, self disable, recovery replacement and authenticated other-Account admin reset
+advance Account generation, flush non-secret UUID/fixed-context audit and expire sessions.
+Password reset preserves MFA, and MFA reset preserves password, lifecycle and assignments.
+Existing Account/Role registration locking closes mutation-to-registration races. Pending
+confirmation failures commit common lockout bookkeeping; audit/expiry failure rolls back
+activation, while late commit failure retains the established safe expiry asymmetry.
+The [operator runbook](../deployment/offline-mfa.md) specifies key permissions/backup,
+clock handling, one-time material disposal, recovery and safe deployment/rollback boundaries.
+Broad administrative adapters, total-access-loss recovery and key rotation tooling remain deferred.

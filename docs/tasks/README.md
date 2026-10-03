@@ -39,13 +39,15 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0031](TASK-0031.md) | [IMP-012](../implementation/tasks/IMP-012.md) | Complete; POST_MERGE_VERIFIED | Correct Agency concurrent initialization regression |
 | [TASK-0032](TASK-0032.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Enforce lockout policy during recent credential re-authentication |
 | [TASK-0033](TASK-0033.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Correct ordinary form-login failed-attempt overcounting |
-| [TASK-0034](TASK-0034.md) | [IMP-013](../implementation/tasks/IMP-013.md) | LOCAL_VERIFIED; integration pending | Authenticated administrative credential reset |
+| [TASK-0034](TASK-0034.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Authenticated administrative credential reset |
+| [TASK-0035](TASK-0035.md) | [IMP-013](../implementation/tasks/IMP-013.md) | LOCAL_VERIFIED; integration pending | Privileged offline TOTP MFA and recovery controls |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. The frozen backlog reserves IMP-001 through IMP-086; IMP-087 and IMP-088 are separately authorized maintenance parents. Current execution routing and verified predecessor evidence live in [implementation state](../implementation/IMPLEMENTATION_STATE.md).
 
 TASK-0032 is independently complete after PR #57 and successful exact-merge push CI,
 closing TASK-0029's lockout finding. TASK-0033 is independently complete after PR #58 and exact-merge push CI.
-TASK-0034 is the only authorized active successor,
+TASK-0034 is Complete / POST_MERGE_VERIFIED after PR #59.
+TASK-0035 is the only authorized active successor,
 in the normal combined work-order and implementation PR. Current evidence and action
 are routed through implementation state.
 TASK-0031's verified correction closes TASK-0030's failed post-merge chain and IMP-012 reopening.

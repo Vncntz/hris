@@ -32,7 +32,7 @@ class RoleGenerationMigrationIT {
         List<String> tables = List.of("identity_account", "identity_permission", "identity_account_role", "identity_role_permission");
         var before = tables.stream().map(table -> snapshot(jdbc, table)).toList();
         String roleBefore = jdbc.queryForList("SELECT id,HEX(public_id),canonical_name,enabled,row_version FROM identity_role").toString();
-        var current = Flyway.configure().dataSource(mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword()).cleanDisabled(false).load();
+        var current = Flyway.configure().dataSource(mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword()).cleanDisabled(false).target("8").load();
         assertEquals(1, current.migrate().migrationsExecuted);
         assertTrue(before.equals(tables.stream().map(table -> snapshot(jdbc, table)).toList()));
         assertTrue(roleBefore.equals(jdbc.queryForList("SELECT id,HEX(public_id),canonical_name,enabled,row_version FROM identity_role").toString()));

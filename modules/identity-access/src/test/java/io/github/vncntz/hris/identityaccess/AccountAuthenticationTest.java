@@ -64,7 +64,9 @@ class AccountAuthenticationTest {
         when(repository.findByCanonicalLogin("synthetic.login")).thenReturn(Optional.of(account));
         MutableClock clock = new MutableClock(start);
         AccountAuthenticationService service = new AccountAuthenticationService(repository, encoder,
-                clock, new SecurityPolicy(3, Duration.ofMinutes(15)));
+                clock, new SecurityPolicy(3, Duration.ofMinutes(15)),
+                new MfaVerifier(new MfaSecrets(""), new MfaPolicy(1, Duration.ofMinutes(10), 10)),
+                mock(jakarta.persistence.EntityManager.class));
         AccountAuthenticationProvider provider = new AccountAuthenticationProvider(service);
 
         BadCredentialsException unknown = assertThrows(BadCredentialsException.class,

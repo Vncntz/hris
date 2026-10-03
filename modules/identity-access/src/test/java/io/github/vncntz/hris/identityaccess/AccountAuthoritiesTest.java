@@ -43,7 +43,9 @@ class AccountAuthoritiesTest {
         ReflectionTestUtils.setField(account, "id", 42L);
         when(repository.findByCanonicalLogin("synthetic.actor")).thenReturn(Optional.of(account));
         provider = new AccountAuthenticationProvider(new AccountAuthenticationService(repository, encoder,
-                Clock.fixed(now, ZoneOffset.UTC), new SecurityPolicy(5, Duration.ofMinutes(15))));
+                Clock.fixed(now, ZoneOffset.UTC), new SecurityPolicy(5, Duration.ofMinutes(15)),
+                new MfaVerifier(new MfaSecrets(""), new MfaPolicy(1, Duration.ofMinutes(10), 10)),
+                mock(jakarta.persistence.EntityManager.class)));
     }
 
     @AfterEach
@@ -104,7 +106,8 @@ class AccountAuthoritiesTest {
     @Test
     void authorityLookupFailureCannotProduceAuthenticatedToken() {
         when(repository.findAssignedRoles(42L)).thenThrow(new DataAccessResourceFailureException("Synthetic outage"));
-        assertThrows(DataAccessResourceFailureException.class, this::signIn);
+        var failure = assertThrows(BadCredentialsException.class, this::signIn);
+        org.junit.jupiter.api.Assertions.assertNull(failure.getCause());
     }
 
     private Authentication signIn() {
