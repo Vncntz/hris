@@ -125,7 +125,7 @@ class AccountCreationIT {
         assertEquals(creator, actor.requireUserId());
         actor.requireAuthority("identity:admin");
         flyway.validate();
-        assertEquals(8, count("flyway_schema_history"));
+        assertEquals(9, count("flyway_schema_history"));
     }
 
     @Test

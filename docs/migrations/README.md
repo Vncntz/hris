@@ -94,3 +94,7 @@ TASK-0028 advances this scalar for Role enable/disable and Permission membership
 Role-generation migration coverage compares a populated V7 upgrade with clean V8 schema while
 preserving synthetic Account/Role/Permission and both membership tables. Existing V6-to-V7
 regression remains explicitly pinned to V7; current clean-history assertions now expect V8.
+
+`V9__add_identity_offline_mfa.sql` adds optional encrypted factor state to Identity Accounts,
+with coherent-state CHECK constraints and no secret/identity seed. Released V1-V8 are unchanged.
+Current clean-history assertions expect V9; historical V7/V8 regressions remain version-pinned.

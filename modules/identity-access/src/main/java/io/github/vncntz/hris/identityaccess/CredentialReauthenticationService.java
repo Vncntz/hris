@@ -26,10 +26,11 @@ public class CredentialReauthenticationService {
     private final Clock clock;
     private final SecurityPolicy policy;
     private final TransactionTemplate verification;
+    private final MfaVerifier mfa;
 
     CredentialReauthenticationService(CurrentActor actor, RecentAuthenticationSession session,
             AccountRepository accounts, EntityManager entities, PasswordEncoder encoder,
-            Clock clock, SecurityPolicy policy, PlatformTransactionManager transactions) {
+            Clock clock, SecurityPolicy policy, PlatformTransactionManager transactions, MfaVerifier mfa) {
         this.actor = actor;
         this.session = session;
         this.accounts = accounts;
@@ -37,6 +38,7 @@ public class CredentialReauthenticationService {
         this.encoder = encoder;
         this.clock = clock;
         this.policy = policy;
+        this.mfa = mfa;
         verification = new TransactionTemplate(transactions);
         verification.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         verification.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
@@ -45,9 +47,14 @@ public class CredentialReauthenticationService {
 
     /** Takes ownership, clearing the supplied buffer even on session/authentication denial. */
     public void reauthenticate(char[] password) {
+        reauthenticate(password, null);
+    }
+
+    /** Enrolled accounts must present a fresh TOTP or recovery code as well as password. */
+    public void reauthenticate(char[] password, char[] factor) {
         try {
             // The session boundary clears old proof before any validation and serializes attempts.
-            session.attempt(() -> verify(password));
+            session.attempt(() -> verify(password, factor));
         } catch (RecentAuthenticationException failure) {
             throw failure;
         } catch (org.springframework.security.core.AuthenticationException failure) {
@@ -56,10 +63,11 @@ public class CredentialReauthenticationService {
             throw new RecentAuthenticationException(PERSISTENCE_FAILED);
         } finally {
             InitialCredentials.clear(password);
+            InitialCredentials.clear(factor);
         }
     }
 
-    private RecentAuthenticationSession.Proof verify(char[] password) {
+    private RecentAuthenticationSession.Proof verify(char[] password, char[] factor) {
         UUID id = actor.requireUserId();
         if (TransactionSynchronizationManager.isActualTransactionActive()) {
             throw new RecentAuthenticationException(PERSISTENCE_FAILED);
@@ -85,7 +93,12 @@ public class CredentialReauthenticationService {
             Instant now = clock.instant();
             if (account.isLockedAt(now)) { throw new RecentAuthenticationException(CREDENTIAL_REJECTED); }
             account.clearExpiredLock(now);
-            if (!matches) {
+            boolean factorMatches = false;
+            if (matches) {
+                try { factorMatches = mfa.verify(account, factor, now); }
+                catch (MfaException unavailable) { factorMatches = false; }
+            }
+            if (!matches || !factorMatches) {
                 account.recordFailure(now, policy.maxFailedAttempts(), policy.lockDuration());
                 // Return normally so the failure bookkeeping commits before rejection.
                 return Optional.empty();

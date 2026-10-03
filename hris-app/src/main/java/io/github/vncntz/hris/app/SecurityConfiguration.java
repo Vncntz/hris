@@ -31,6 +31,12 @@ class SecurityConfiguration {
         // Registering it here too retries failed credentials through the same provider twice.
         http.with(VaadinSecurityConfigurer.vaadin(),
                 configurer -> configurer.loginView(LoginView.class, "/login"));
+        http.formLogin(form -> form.authenticationDetailsSource(request -> {
+            String factor = request.getParameter("factor");
+            // Bounded request-only secret; returned authenticated token replaces all details.
+            return new io.github.vncntz.hris.identityaccess.MfaInput(
+                    factor != null && factor.length() <= 32 ? factor.toCharArray() : new char[0]);
+        }));
         // -1 is unlimited: installs standard registration/expiry support without a session cap.
         http.sessionManagement(session -> {
             session.maximumSessions(-1).sessionRegistry(sessions).expiredUrl("/login");

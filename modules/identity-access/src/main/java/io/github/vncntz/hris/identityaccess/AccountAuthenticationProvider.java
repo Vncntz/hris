@@ -20,8 +20,20 @@ public class AccountAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) {
         String login = authentication.getName();
         String password = String.valueOf(authentication.getCredentials());
-        AuthenticatedAccount account = service.authenticate(login, password)
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        AuthenticatedAccount account;
+        MfaInput factor = authentication.getDetails() instanceof MfaInput input ? input : null;
+        try {
+            account = (factor == null ? service.authenticate(login, password)
+                    : service.authenticate(login, password, factor.value()))
+                    .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        } catch (RuntimeException failure) {
+            throw new BadCredentialsException("Invalid credentials");
+        } finally {
+            if (factor != null) { factor.close(); }
+            if (authentication instanceof org.springframework.security.authentication.AbstractAuthenticationToken input) {
+                input.setDetails(null);
+            }
+        }
         var token = UsernamePasswordAuthenticationToken.authenticated(account.principal(), null,
                 account.authorityKeys().stream().map(SimpleGrantedAuthority::new).toList());
         token.setDetails(new AuthenticationGeneration(account.authenticationGeneration(), account.roleGenerations()));

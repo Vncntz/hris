@@ -4,3 +4,5 @@ The [runtime configuration and secrets convention](configuration.md) defines ext
 
 The [first-administrator runbook](first-administrator.md) describes the explicitly
 invoked, secure-console, once-only local installation command.
+
+- [Privileged offline MFA](offline-mfa.md): protected key storage, enrollment, recovery and rollback.

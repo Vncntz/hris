@@ -155,7 +155,7 @@ class PasswordChangeIT {
         assertEquals(other.publicId(), ((AccountPrincipal)unrelated.getPrincipal()).publicId());
         assertTrue(unrelated.getAuthorities().isEmpty());
         flyway.validate();
-        assertEquals(8, count("flyway_schema_history"));
+        assertEquals(9, count("flyway_schema_history"));
     }
 
     @Test
@@ -571,7 +571,7 @@ class PasswordChangeIT {
         assertEquals(1, jdbc.queryForObject("SELECT completed FROM identity_bootstrap_state", Integer.class));
         assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM audit_event WHERE action='FIRST_ADMINISTRATOR_PROVISIONED'", Integer.class));
         flyway.validate();
-        assertEquals(8, count("flyway_schema_history"));
+        assertEquals(9, count("flyway_schema_history"));
     }
     private void assertEvent(int expected) {
         assertEquals(expected, jdbc.queryForObject("SELECT COUNT(*) FROM audit_event WHERE action='IDENTITY_PASSWORD_CHANGED'", Integer.class));

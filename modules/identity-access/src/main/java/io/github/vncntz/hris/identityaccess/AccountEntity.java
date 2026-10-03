@@ -54,6 +54,17 @@ class AccountEntity {
     @Column(name = "authentication_generation", nullable = false)
     private long authenticationGeneration;
 
+    @Column(name = "mfa_secret", columnDefinition = "VARBINARY(48)")
+    private byte[] mfaSecret;
+    @Column(name = "mfa_enabled", nullable = false)
+    private boolean mfaEnabled;
+    @Column(name = "mfa_pending_until_utc", columnDefinition = "DATETIME(6)")
+    private LocalDateTime mfaPendingUntilUtc;
+    @Column(name = "mfa_last_step", nullable = false)
+    private long mfaLastStep = -1;
+    @Column(name = "mfa_recovery_hashes", nullable = false, length = 650)
+    private String mfaRecoveryHashes = "";
+
     @Column(name = "security_updated_at_utc", nullable = false, columnDefinition = "DATETIME(6)")
     private LocalDateTime securityUpdatedAtUtc;
 
@@ -101,6 +112,50 @@ class AccountEntity {
 
     boolean enabled() {
         return enabled;
+    }
+
+    boolean mfaEnabled() { return mfaEnabled; }
+    byte[] mfaSecret() { return mfaSecret; }
+    long mfaLastStep() { return mfaLastStep; }
+    boolean pendingMfaAt(Instant now) {
+        return !mfaEnabled && mfaPendingUntilUtc != null
+                && now.isBefore(mfaPendingUntilUtc.toInstant(ZoneOffset.UTC));
+    }
+    void beginMfa(byte[] encrypted, Instant until) {
+        if (mfaEnabled) { throw new MfaException(); }
+        mfaSecret = encrypted;
+        mfaPendingUntilUtc = utc(until);
+    }
+    void activateMfa(long step, String recovery) {
+        advanceAuthenticationGeneration();
+        mfaEnabled = true;
+        mfaPendingUntilUtc = null;
+        mfaLastStep = step;
+        mfaRecoveryHashes = recovery;
+    }
+    void consumeStep(long step) { mfaLastStep = step; }
+    boolean consumeRecovery(String digest) {
+        if (digest.isEmpty()) { return false; }
+        var hashes = new java.util.ArrayList<>(java.util.List.of(mfaRecoveryHashes.split(",")));
+        boolean found = false;
+        for (var hash : hashes) {
+            if (java.security.MessageDigest.isEqual(hash.getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+                    digest.getBytes(java.nio.charset.StandardCharsets.US_ASCII))) { found = true; }
+        }
+        if (found) { hashes.remove(digest); mfaRecoveryHashes = String.join(",", hashes); }
+        return found;
+    }
+    void replaceRecovery(String hashes) {
+        advanceAuthenticationGeneration();
+        mfaRecoveryHashes = hashes;
+    }
+    void removeMfa() {
+        advanceAuthenticationGeneration();
+        mfaEnabled = false;
+        mfaSecret = null;
+        mfaPendingUntilUtc = null;
+        mfaLastStep = -1;
+        mfaRecoveryHashes = "";
     }
 
     void assignBootstrapRole(RoleEntity role) {

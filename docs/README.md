@@ -34,7 +34,8 @@ Use this index to find authoritative sources; current execution status and prede
 These indexes route to focused records as work is implemented and verified. The planning index and task packets are derived routing aids, never authority or gate evidence. Read repository rules directly; operator prompts need only supply task authorization and specific constraints rather than repeat governance, source code, or full frozen plans.
 
 Current authorized product work is [IMP-013](implementation/tasks/IMP-013.md) /
-[TASK-0034](tasks/TASK-0034.md), adding authenticated administrative credential reset.
+[TASK-0035](tasks/TASK-0035.md), adding privileged offline TOTP MFA and recovery controls.
+TASK-0034 is Complete / POST_MERGE_VERIFIED after PR #59.
 TASK-0033 is Complete / `POST_MERGE_VERIFIED` after PR #58.
 [TASK-0032](tasks/TASK-0032.md) is independently complete and corrects
 [TASK-0029](tasks/TASK-0029.md)'s recent-proof lockout finding. Current evidence and
