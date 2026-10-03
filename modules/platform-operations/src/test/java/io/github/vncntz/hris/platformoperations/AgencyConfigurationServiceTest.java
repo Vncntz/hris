@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
@@ -138,6 +139,41 @@ class AgencyConfigurationServiceTest {
         assertEquals("Agency configuration is already initialized", failure.getMessage());
         verify(transactions, times(2)).getTransaction(any());
         verify(audit, never()).record(any());
+    }
+
+    @Test
+    void commitTimeIntegrityFailureChecksCommittedWinnerInFreshTransaction() {
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("commit constraint");
+        when(repository.existsById((byte) 1)).thenReturn(false, true);
+        doThrow(failure).doNothing().when(transactions).commit(any());
+
+        IllegalStateException duplicate = assertThrows(IllegalStateException.class,
+                () -> service.initialize("Agency", MANILA, ACTOR));
+
+        assertEquals("Agency configuration is already initialized", duplicate.getMessage());
+        assertSame(failure, duplicate.getCause());
+        InOrder order = inOrder(transactions, repository);
+        order.verify(transactions).getTransaction(any());
+        order.verify(repository).saveAndFlush(any());
+        order.verify(transactions).commit(any());
+        order.verify(transactions).getTransaction(any());
+        order.verify(repository).existsById((byte) 1);
+        verify(repository).saveAndFlush(any());
+    }
+
+    @Test
+    void commitTimeContentionIsBoundedAndWithoutWinnerPropagatesOriginalFailure() {
+        CannotAcquireLockException failure = new CannotAcquireLockException("commit contention");
+        // The transaction manager completes each failed commit before returning.
+        doThrow(failure).doThrow(failure).doThrow(failure).doNothing()
+                .when(transactions).commit(any());
+
+        assertSame(failure, assertThrows(CannotAcquireLockException.class,
+                () -> service.initialize("Agency", MANILA, ACTOR)));
+
+        verify(repository, times(3)).saveAndFlush(any());
+        verify(transactions, times(4)).getTransaction(any());
+        verify(transactions, times(4)).commit(any());
     }
 
     @Test

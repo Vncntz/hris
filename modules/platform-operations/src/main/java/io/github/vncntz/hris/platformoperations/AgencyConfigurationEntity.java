@@ -43,7 +43,9 @@ class AgencyConfigurationEntity {
 
     @Version
     @Column(name = "row_version", nullable = false)
-    private long rowVersion;
+    // Null identifies a new entity despite the assigned singleton ID. A primitive
+    // version makes Spring Data merge, which can overwrite a concurrent winner.
+    private Long rowVersion;
 
     protected AgencyConfigurationEntity() {
         // Required by JPA.
@@ -63,7 +65,7 @@ class AgencyConfigurationEntity {
         return new AgencyConfiguration(PublicId.of(publicId), displayName,
                 BusinessTimeZone.of(businessTimeZone),
                 UtcInstant.of(createdAtUtc.toInstant(ZoneOffset.UTC)),
-                UtcInstant.of(updatedAtUtc.toInstant(ZoneOffset.UTC)), rowVersion);
+                UtcInstant.of(updatedAtUtc.toInstant(ZoneOffset.UTC)), rowVersion == null ? 0 : rowVersion);
     }
 
     void update(String displayName, BusinessTimeZone businessTimeZone, Instant now) {
