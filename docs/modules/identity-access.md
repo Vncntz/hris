@@ -20,7 +20,7 @@ TASK-0025 supplies a reusable local revocation primitive for later administrativ
 TASK-0027 reuses it for assignment administration and TASK-0026 for lifecycle commands. Password change uses it now
 to expire all tracked sessions belonging to the authenticated account.
 
-Application services may depend on `CurrentActor` to require the authenticated public user ID and test or require a named authority. The normal authentication provider now supplies authorities from persisted assignments; synthetic tests prove both successful enforcement and denial. TASK-0027 supplies Account-to-Role administration and its assignment audit events; TASK-0028 supplies Role/Permission administration. TOTP enrollment/challenge/recovery, privileged re-authentication, and business-module call sites remain later focused work.
+Application services may depend on `CurrentActor` to require the authenticated public user ID and test or require a named authority. The normal authentication provider now supplies authorities from persisted assignments; synthetic tests prove both successful enforcement and denial. TASK-0027 supplies Account-to-Role administration and its assignment audit events; TASK-0028 supplies Role/Permission administration. TASK-0029 adds recent credential re-authentication below. TOTP enrollment/challenge/recovery and business-module call sites remain later focused work.
 
 API and dependency choices were checked against [Spring Security 7 password storage](https://docs.spring.io/spring-security/reference/7.0/features/authentication/password-storage.html), [Vaadin Spring Boot security](https://vaadin.com/docs/latest/flow/security/enabling-security), and the [Bouncy Castle 1.86 provider release](https://www.bouncycastle.org/download/bouncy-castle-java/). Bouncy Castle is centrally versioned in the repository because the Spring Boot/Vaadin BOMs do not manage its provider artifact.
 
@@ -200,3 +200,39 @@ One SessionRegistry scan expires all affected UUIDs and leaves unrelated session
 Expiry failure rolls back Role/generation/audit. A late commit failure may leave sessions expired
 with the preceding database state retained; fresh authentication reads that state. This intentional
 safe non-atomic asymmetry does not require distributed transactions.
+
+## Recent credential re-authentication
+
+[TASK-0029](../tasks/TASK-0029.md) adds `CredentialReauthenticationService.reauthenticate(char[])`.
+The command accepts only an owned mutable password buffer; `CurrentActor.requireUserId()`
+provides the Account identity. The buffer clears on every exit. An explicit attempt discards
+previous session proof before validation; failure cannot refresh it. No login name or target
+UUID is accepted. Authentication and proof failures carry fixed outcomes without internal causes.
+
+The existing adaptive encoder verifies an enabled-account scalar snapshot without a caller
+transaction. A 15-second REQUIRES_NEW READ COMMITTED transaction then locks and refreshes the
+Account, rechecks enabled state and the exact verified encoding, and captures the injected
+Clock instant. No credential, failure/lock state, generation, membership or audit data changes.
+The session adapter publishes proof only after successful commit. Concurrent replacement
+before the locked recheck rejects stale proof; replacement after it expires registered sessions.
+The adapter checks registry expiry before publication and each read, closing the commit-to-publication gap.
+
+`RecentAuthenticationGuard` derives CurrentActor before checking proof identity and age.
+All Account creation/lifecycle/membership and Role/Permission administration commands require
+`identity:admin` first, then recent proof before validation or mutation. Credential proof grants
+no authority. Bootstrap and self-service password change keep their existing credential boundaries.
+Administrative audit events and transaction/revocation behavior remain unchanged; proof alone
+adds no business audit event.
+
+The Identity-owned `RecentAuthenticationSession` port is composed with a servlet-memory
+adapter in hris-app. Its only marker fields are Account public UUID and proof timestamp.
+It never creates a session, persists state, or copies credential/login/authority/request/session
+identifier data. Attempts in one session are serialized; concurrent sessions remain independent.
+New authentication explicitly clears migrated proof during standard final registration.
+Logout, invalidation, idle expiry and restart discard local sessions; targeted expiry makes proof
+unusable even before the next request invalidates the servlet session.
+
+`hris.security.reauthentication-window` / `HRIS_REAUTHENTICATION_WINDOW` defaults to `PT5M`.
+Startup rejects non-positive durations and durations above `PT30M`. Exact expiry and a future
+proof timestamp fail closed. Ordinary session idle timeout remains independent. No migration,
+new dependency, production HTTP endpoint or administration view is introduced.

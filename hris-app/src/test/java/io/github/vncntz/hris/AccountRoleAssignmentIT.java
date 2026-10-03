@@ -61,7 +61,7 @@ import static org.mockito.Mockito.*;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"vaadin.productionMode=true", "logging.level.root=OFF"})
-@Import({LocalProvisioningIdentityConfiguration.class, AccountRoleAssignmentIT.ProbeConfiguration.class})
+@Import({LocalProvisioningIdentityConfiguration.class, AdministrativeTestSessionConfiguration.class, AccountRoleAssignmentIT.ProbeConfiguration.class})
 class AccountRoleAssignmentIT {
     @Container @ServiceConnection
     static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
@@ -72,6 +72,7 @@ class AccountRoleAssignmentIT {
     @Autowired private AccountCreationService creation;
     @MockitoSpyBean private AccountAuthenticationProvider provider;
     @Autowired private CurrentActor actor;
+    @Autowired private CredentialReauthenticationService reauthentication;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private Flyway flyway;
     @MockitoSpyBean private SessionRegistry registry;
@@ -103,6 +104,7 @@ class AccountRoleAssignmentIT {
         id = bootstrap.provision("synthetic.self", oldPassword.toCharArray(), oldPassword.toCharArray());
         authenticated = provider.authenticate(UsernamePasswordAuthenticationToken.unauthenticated("synthetic.self", oldPassword));
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+        reauthentication.reauthenticate(oldPassword.toCharArray());
         targetPassword = UUID.randomUUID().toString();
         target = creation.create("synthetic.target", targetPassword.toCharArray(), targetPassword.toCharArray()).publicId();
         role = UUID.fromString(jdbc.queryForObject("SELECT BIN_TO_UUID(public_id) FROM identity_role WHERE canonical_name='administrator'", String.class));
@@ -123,6 +125,7 @@ class AccountRoleAssignmentIT {
                 assertEquals("false", browser.get("/test/session").body());
             }
             administrator.login("synthetic.self", oldPassword, true);
+            administrator.prove(oldPassword);
             var unrelated = tracked(id);
             String before = invariant();
             String other = administratorSnapshot();
@@ -165,6 +168,7 @@ class AccountRoleAssignmentIT {
                 UsernamePasswordAuthenticationToken.unauthenticated("synthetic.target", targetPassword)));
         assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.assign(target, role));
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+        reauthentication.reauthenticate(oldPassword.toCharArray());
         bounded(AccountRoleAssignmentException.Reason.ACCOUNT_UNAVAILABLE, () -> service.assign(UUID.randomUUID(), role));
         bounded(AccountRoleAssignmentException.Reason.ROLE_UNAVAILABLE, () -> service.assign(target, UUID.randomUUID()));
         bounded(AccountRoleAssignmentException.Reason.NOT_ASSIGNED, () -> service.remove(target, role));
@@ -196,6 +200,7 @@ class AccountRoleAssignmentIT {
                 + "WHERE a.public_id=UUID_TO_BIN(?) AND r.public_id=UUID_TO_BIN(?)", id.toString(), disabled.toString());
         try (Browser administrator = new Browser()) {
             administrator.login("synthetic.self", oldPassword, true);
+            administrator.prove(oldPassword);
             var selfSessions = tracked(id);
             bounded(AccountRoleAssignmentException.Reason.SELF_ADMIN_REMOVAL_REJECTED, () -> service.remove(id, role));
             assertEquals(1, membership(id, role));
@@ -207,12 +212,14 @@ class AccountRoleAssignmentIT {
             assertTrue(selfSessions.getFirst().isExpired());
             assertEquals(302, administrator.get("/test/session").statusCode());
             administrator.login("synthetic.self", oldPassword, true);
+            administrator.prove(oldPassword);
             var freshSelf = tracked(id);
             String csrf = administrator.get("/test/csrf").body();
             assertEquals(204, administrator.post("/test/remove?target=" + id + "&role=" + role, csrf).statusCode());
             assertTrue(freshSelf.getFirst().isExpired());
             assertEquals(302, administrator.get("/test/session").statusCode());
             administrator.login("synthetic.self", oldPassword, true);
+            administrator.prove(oldPassword);
             assertEquals("true", administrator.get("/test/session").body());
             assertEquals(0, membership(id, role));
             assertEquals(1, membership(id, alternate));
@@ -446,6 +453,7 @@ class AccountRoleAssignmentIT {
 
     private void withActor(Runnable command) {
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+        reauthentication.reauthenticate(oldPassword.toCharArray());
         try { command.run(); } finally { SecurityContextHolder.clearContext(); }
     }
     private void change(boolean remove) { if (remove) { service.remove(target, role); } else { service.assign(target, role); } }
@@ -546,7 +554,7 @@ class AccountRoleAssignmentIT {
         }
         @Bean @Primary Clock assignmentTestClock() { return Clock.fixed(NOW, ZoneOffset.UTC); }
         @Bean ServletRegistrationBean<HttpServlet> assignmentProbe(
-                AccountRoleAssignmentService service, CurrentActor actor) {
+                AccountRoleAssignmentService service, CurrentActor actor, CredentialReauthenticationService reauthentication) {
             return new ServletRegistrationBean<>(new HttpServlet() {
                 @Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
                         throws java.io.IOException {
@@ -563,6 +571,10 @@ class AccountRoleAssignmentIT {
                     }
                 }
                 @Override protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+                    if (request.getPathInfo().equals("/reauthenticate")) {
+                        reauthentication.reauthenticate(request.getParameter("credential").toCharArray());
+                        response.setStatus(204); return;
+                    }
                     UUID target = UUID.fromString(request.getParameter("target"));
                     UUID role = UUID.fromString(request.getParameter("role"));
                     if (request.getPathInfo().equals("/assign")) { service.assign(target, role); }
@@ -607,6 +619,14 @@ class AccountRoleAssignmentIT {
                         "Rejected authentication must not establish a usable authenticated session");
                 assertTrue(response.headers().firstValue("location").orElse("").contains("error"));
             }
+        }
+        void prove(String password) throws Exception {
+            String csrf = get("/test/csrf").body();
+            String form = "credential=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
+            var response = client.send(HttpRequest.newBuilder(uri("/test/reauthenticate"))
+                    .header("X-CSRF-TOKEN", csrf).header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString(form)).build(), HttpResponse.BodyHandlers.discarding());
+            assertEquals(204, response.statusCode());
         }
         String sessionCookie() {
             return cookies.getCookieStore().getCookies().stream().filter(cookie -> cookie.getName().equals("JSESSIONID"))

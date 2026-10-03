@@ -29,3 +29,12 @@ These are logical locations from D-029. The service wrapper must convert the act
 The installation configuration may hold technical settings such as `spring.datasource.url` and `spring.datasource.username`. Put `spring.datasource.password` and any future private key, recovery, or signing value in the protected secret source. No production credentials, reusable passwords, private keys, customer values, or machine-specific files belong in the repository. `.env` is ignored for local hygiene but is not parsed or required by the application.
 
 Do not log resolved secret values or include them in ordinary diagnostics. Future configuration or diagnostic views must redact secrets under D-024. D-152 also requires stronger storage protection for credentials and recovery material. This task adds no diagnostic endpoint, production deployment automation, HTTPS certificate provisioning, or database provisioning.
+
+## Privileged credential freshness
+
+`hris.security.reauthentication-window` is a non-secret ISO-8601 duration, optionally supplied
+through `HRIS_REAUTHENTICATION_WINDOW`. The default is `PT5M`; values must be positive and
+at most `PT30M`, otherwise startup fails. This window gates Identity administrative mutations
+after explicit current-credential proof in the same local authenticated session. Exact expiry
+and clock rollback fail closed. It is independent of `HRIS_SESSION_IDLE_TIMEOUT` (30 minutes
+by default). See [Identity & Access](../modules/identity-access.md#recent-credential-re-authentication).

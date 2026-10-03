@@ -24,6 +24,9 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.server.context.WebServerApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Bean;
+import io.github.vncntz.hris.identityaccess.RecentAuthenticationSession;
+import io.github.vncntz.hris.identityaccess.RecentAuthenticationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
@@ -256,7 +259,17 @@ class FirstAdministratorProvisioningIT {
     }
 
     @ComponentScan(basePackageClasses = AccountAuthenticationService.class)
-    static class AuthenticationConfiguration { }
+    static class AuthenticationConfiguration {
+        // This test scans ordinary Identity services into a non-web context. No proof can exist there.
+        @Bean RecentAuthenticationSession unavailableRecentSession() {
+            return new RecentAuthenticationSession() {
+                @Override public void attempt(java.util.function.Supplier<Proof> verification) {
+                    throw new RecentAuthenticationException(RecentAuthenticationException.Reason.SESSION_UNAVAILABLE);
+                }
+                @Override public java.util.Optional<Proof> proof() { return java.util.Optional.empty(); }
+            };
+        }
+    }
 
     private FirstAdministratorProvisioner service(AuditRecorder audit) {
         return new FirstAdministratorProvisioner(SharedEntityManagerCreator.createSharedEntityManager(

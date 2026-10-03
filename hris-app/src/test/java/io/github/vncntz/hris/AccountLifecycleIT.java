@@ -61,7 +61,7 @@ import static org.mockito.Mockito.*;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"vaadin.productionMode=true", "logging.level.root=OFF"})
-@Import({LocalProvisioningIdentityConfiguration.class, AccountLifecycleIT.ProbeConfiguration.class})
+@Import({LocalProvisioningIdentityConfiguration.class, AdministrativeTestSessionConfiguration.class, AccountLifecycleIT.ProbeConfiguration.class})
 class AccountLifecycleIT {
     @Container @ServiceConnection
     static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
@@ -72,6 +72,7 @@ class AccountLifecycleIT {
     @Autowired private AccountCreationService creation;
     @MockitoSpyBean private AccountAuthenticationProvider provider;
     @Autowired private CurrentActor actor;
+    @Autowired private CredentialReauthenticationService reauthentication;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private Flyway flyway;
     @MockitoSpyBean private SessionRegistry registry;
@@ -102,6 +103,7 @@ class AccountLifecycleIT {
         id = bootstrap.provision("synthetic.self", oldPassword.toCharArray(), oldPassword.toCharArray());
         authenticated = provider.authenticate(UsernamePasswordAuthenticationToken.unauthenticated("synthetic.self", oldPassword));
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+        reauthentication.reauthenticate(oldPassword.toCharArray());
         targetPassword = UUID.randomUUID().toString();
         target = creation.create("synthetic.target", targetPassword.toCharArray(), targetPassword.toCharArray()).publicId();
         clearInvocations(audit, revoker);
@@ -122,6 +124,7 @@ class AccountLifecycleIT {
                 Browser administrator = new Browser(); Browser rejected = new Browser(); Browser restored = new Browser()) {
             for (Browser browser : List.of(first, second, third)) { browser.login("synthetic.target", targetPassword, true); }
             administrator.login("synthetic.self", oldPassword, true);
+            administrator.prove(oldPassword);
             String administratorBefore = administratorSnapshot();
             var prior = tracked(target);
             assertEquals(3, prior.size());
@@ -166,6 +169,7 @@ class AccountLifecycleIT {
                 UsernamePasswordAuthenticationToken.unauthenticated("synthetic.target", targetPassword)));
         assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.disable(id));
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+        reauthentication.reauthenticate(oldPassword.toCharArray());
         bounded(AccountLifecycleException.Reason.SELF_DISABLE_REJECTED, () -> service.disable(id));
         bounded(AccountLifecycleException.Reason.ACCOUNT_UNAVAILABLE, () -> service.disable(UUID.randomUUID()));
         bounded(AccountLifecycleException.Reason.ALREADY_ENABLED, () -> service.enable(target));
@@ -409,7 +413,7 @@ class AccountLifecycleIT {
         }
         @Bean @Primary Clock lifecycleTestClock() { return Clock.fixed(NOW, ZoneOffset.UTC); }
         @Bean ServletRegistrationBean<HttpServlet> lifecycleProbe(
-                AccountLifecycleService service, CurrentActor actor) {
+                AccountLifecycleService service, CurrentActor actor, CredentialReauthenticationService reauthentication) {
             return new ServletRegistrationBean<>(new HttpServlet() {
                 @Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
                         throws java.io.IOException {
@@ -426,6 +430,10 @@ class AccountLifecycleIT {
                     }
                 }
                 @Override protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+                    if (request.getPathInfo().equals("/reauthenticate")) {
+                        reauthentication.reauthenticate(request.getParameter("credential").toCharArray());
+                        response.setStatus(204); return;
+                    }
                     UUID target = UUID.fromString(request.getParameter("target"));
                     if (request.getPathInfo().equals("/disable")) { service.disable(target); }
                     else if (request.getPathInfo().equals("/enable")) { service.enable(target); }
@@ -469,6 +477,14 @@ class AccountLifecycleIT {
                         "Rejected authentication must not establish a usable authenticated session");
                 assertTrue(response.headers().firstValue("location").orElse("").contains("error"));
             }
+        }
+        void prove(String password) throws Exception {
+            String csrf = get("/test/csrf").body();
+            String form = "credential=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
+            var response = client.send(HttpRequest.newBuilder(uri("/test/reauthenticate"))
+                    .header("X-CSRF-TOKEN", csrf).header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString(form)).build(), HttpResponse.BodyHandlers.discarding());
+            assertEquals(204, response.statusCode());
         }
         String sessionCookie() {
             return cookies.getCookieStore().getCookies().stream().filter(cookie -> cookie.getName().equals("JSESSIONID"))

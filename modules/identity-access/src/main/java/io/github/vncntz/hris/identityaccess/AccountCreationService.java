@@ -19,15 +19,17 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 public class AccountCreationService {
     private final CurrentActor actor;
+    private final RecentAuthenticationGuard recent;
     private final AccountRepository accounts;
     private final PasswordEncoder encoder;
     private final AuditRecorder audit;
     private final Clock clock;
     private final TransactionTemplate transaction;
 
-    AccountCreationService(CurrentActor actor, AccountRepository accounts, PasswordEncoder encoder,
+    AccountCreationService(CurrentActor actor, RecentAuthenticationGuard recent, AccountRepository accounts, PasswordEncoder encoder,
             AuditRecorder audit, Clock clock, PlatformTransactionManager transactions) {
         this.actor = actor;
+        this.recent = recent;
         this.accounts = accounts;
         this.encoder = encoder;
         this.audit = audit;
@@ -42,6 +44,7 @@ public class AccountCreationService {
     public CreatedAccount create(String login, char[] password, char[] confirmation) {
         try {
             actor.requireAuthority("identity:admin");
+            recent.requireRecentAuthentication();
             UUID creator = actor.requireUserId();
             String canonical = LoginNames.canonicalize(login);
             InitialCredentials.validate(password, confirmation);

@@ -54,7 +54,7 @@ import static org.mockito.Mockito.*;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"vaadin.productionMode=true", "logging.level.root=OFF"})
-@Import({LocalProvisioningIdentityConfiguration.class, RoleAdministrationIT.ProbeConfiguration.class})
+@Import({LocalProvisioningIdentityConfiguration.class, AdministrativeTestSessionConfiguration.class, RoleAdministrationIT.ProbeConfiguration.class})
 class RoleAdministrationIT {
     @Container @ServiceConnection
     static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
@@ -66,6 +66,7 @@ class RoleAdministrationIT {
     @Autowired private AccountCreationService creation;
     @MockitoSpyBean private AccountAuthenticationProvider provider;
     @Autowired private CurrentActor actor;
+    @Autowired private CredentialReauthenticationService reauthentication;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private Flyway flyway;
     @MockitoSpyBean private SessionRegistry registry;
@@ -96,6 +97,7 @@ class RoleAdministrationIT {
         id = bootstrap.provision("synthetic.self", oldPassword.toCharArray(), oldPassword.toCharArray());
         authenticated = provider.authenticate(UsernamePasswordAuthenticationToken.unauthenticated("synthetic.self", oldPassword));
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+        reauthentication.reauthenticate(oldPassword.toCharArray());
         targetPassword = UUID.randomUUID().toString();
         target = creation.create("synthetic.target", targetPassword.toCharArray(), targetPassword.toCharArray()).publicId();
         role = UUID.fromString(jdbc.queryForObject("SELECT BIN_TO_UUID(public_id) FROM identity_role WHERE canonical_name='administrator'", String.class));
@@ -126,6 +128,7 @@ class RoleAdministrationIT {
             second.login("synthetic.target", targetPassword, true);
             third.login("synthetic.second", password2, true);
             admin.login("synthetic.self", oldPassword, true);
+            admin.prove(oldPassword);
             assertEquals("true", first.get("/test/session").body());
             var assigned = new java.util.ArrayList<>(tracked(target));
             assigned.addAll(tracked(target2));
@@ -358,6 +361,7 @@ class RoleAdministrationIT {
     }
     private void withActor(Runnable command) {
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+        reauthentication.reauthenticate(oldPassword.toCharArray());
         try { command.run(); } finally { SecurityContextHolder.clearContext(); }
     }
     private static void bounded(RoleAdministrationException.Reason reason, Runnable command) {
@@ -391,7 +395,7 @@ class RoleAdministrationIT {
         }
         @Bean @Primary Clock roleTestClock() { return Clock.fixed(NOW, ZoneOffset.UTC); }
         @Bean ServletRegistrationBean<HttpServlet> roleProbe(
-                RoleAdministrationService service, CurrentActor actor) {
+                RoleAdministrationService service, CurrentActor actor, CredentialReauthenticationService reauthentication) {
             return new ServletRegistrationBean<>(new HttpServlet() {
                 @Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
                         throws java.io.IOException {
@@ -408,6 +412,10 @@ class RoleAdministrationIT {
                     }
                 }
                 @Override protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+                    if (request.getPathInfo().equals("/reauthenticate")) {
+                        reauthentication.reauthenticate(request.getParameter("credential").toCharArray());
+                        response.setStatus(204); return;
+                    }
                     UUID role = UUID.fromString(request.getParameter("role"));
                     if (request.getPathInfo().equals("/enable")) { service.enable(role); }
                     else if (request.getPathInfo().equals("/disable")) { service.disable(role); }
@@ -453,6 +461,14 @@ class RoleAdministrationIT {
                         "Rejected authentication must not establish a usable authenticated session");
                 assertTrue(response.headers().firstValue("location").orElse("").contains("error"));
             }
+        }
+        void prove(String password) throws Exception {
+            String csrf = get("/test/csrf").body();
+            String form = "credential=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
+            var response = client.send(HttpRequest.newBuilder(uri("/test/reauthenticate"))
+                    .header("X-CSRF-TOKEN", csrf).header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString(form)).build(), HttpResponse.BodyHandlers.discarding());
+            assertEquals(204, response.statusCode());
         }
         String sessionCookie() {
             return cookies.getCookieStore().getCookies().stream().filter(cookie -> cookie.getName().equals("JSESSIONID"))

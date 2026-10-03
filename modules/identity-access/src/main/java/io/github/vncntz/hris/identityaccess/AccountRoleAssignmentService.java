@@ -14,6 +14,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class AccountRoleAssignmentService {
     private final CurrentActor actor;
+    private final RecentAuthenticationGuard recent;
     private final AccountRepository accounts;
     private final RoleRepository roles;
     private final EntityManager entities;
@@ -21,10 +22,11 @@ public class AccountRoleAssignmentService {
     private final AuthenticatedSessionRevoker sessions;
     private final TransactionTemplate mutation;
 
-    AccountRoleAssignmentService(CurrentActor actor, AccountRepository accounts, RoleRepository roles,
+    AccountRoleAssignmentService(CurrentActor actor, RecentAuthenticationGuard recent, AccountRepository accounts, RoleRepository roles,
             EntityManager entities, AuditRecorder audit, AuthenticatedSessionRevoker sessions,
             PlatformTransactionManager transactions) {
         this.actor = actor;
+        this.recent = recent;
         this.accounts = accounts;
         this.roles = roles;
         this.entities = entities;
@@ -46,6 +48,7 @@ public class AccountRoleAssignmentService {
 
     private void change(UUID target, UUID roleId, boolean assigned) {
         actor.requireAuthority("identity:admin");
+        recent.requireRecentAuthentication();
         UUID administrator = actor.requireUserId();
         if (target == null || roleId == null) {
             throw failed(AccountRoleAssignmentException.Reason.INVALID_TARGET);
