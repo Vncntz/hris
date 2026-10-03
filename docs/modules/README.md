@@ -7,3 +7,4 @@ Add module ownership, public boundaries, and cross-module contracts here as they
 - [Platform operations Agency](platform-operations-agency.md): single installation configuration, public boundary, and explicit setup behavior.
 - [Identity and access](identity-access.md): local authentication and current-actor boundary.
 - [Synthetic data generator](synthetic-data.md): versioned fictional population identities and extension boundary.
+- [Client Management](client-management.md): Company/Site ownership, lifecycle, authenticated administration and stable references.

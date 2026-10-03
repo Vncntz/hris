@@ -23,7 +23,7 @@ class OfflineMfaMigrationIT {
                 + "VALUES(UUID_TO_BIN(?),'synthetic.upgrade',?,0,3,'2026-01-02 03:04:05.123456','2026-01-02 03:04:05.123456',9,4)", UUID.randomUUID().toString(), unusable);
         String columns = "id,HEX(public_id),canonical_login,password_hash,enabled,failed_attempts,locked_until_utc,credential_updated_at_utc,security_updated_at_utc,authentication_generation,row_version";
         var before = jdbc.queryForList("SELECT " + columns + " FROM identity_account");
-        var current = Flyway.configure().dataSource(mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword()).cleanDisabled(false).load();
+        var current = Flyway.configure().dataSource(mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword()).target("9").cleanDisabled(false).load();
         assertEquals(1, current.migrate().migrationsExecuted); current.validate();
         assertTrue(before.equals(jdbc.queryForList("SELECT " + columns + " FROM identity_account")), "Existing columns must survive upgrade");
         assertNull(jdbc.queryForObject("SELECT mfa_secret FROM identity_account", byte[].class));

@@ -40,15 +40,17 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0032](TASK-0032.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Enforce lockout policy during recent credential re-authentication |
 | [TASK-0033](TASK-0033.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Correct ordinary form-login failed-attempt overcounting |
 | [TASK-0034](TASK-0034.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Authenticated administrative credential reset |
-| [TASK-0035](TASK-0035.md) | [IMP-013](../implementation/tasks/IMP-013.md) | LOCAL_VERIFIED; integration pending | Privileged offline TOTP MFA and recovery controls |
+| [TASK-0035](TASK-0035.md) | [IMP-013](../implementation/tasks/IMP-013.md) | Complete; POST_MERGE_VERIFIED | Privileged offline TOTP MFA and recovery controls |
+| [TASK-0036](TASK-0036.md) | [IMP-014](../implementation/tasks/IMP-014.md) | LOCAL_VERIFIED; integration pending | Client Company and Client Site master-data lifecycle |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. The frozen backlog reserves IMP-001 through IMP-086; IMP-087 and IMP-088 are separately authorized maintenance parents. Current execution routing and verified predecessor evidence live in [implementation state](../implementation/IMPLEMENTATION_STATE.md).
 
 TASK-0032 is independently complete after PR #57 and successful exact-merge push CI,
 closing TASK-0029's lockout finding. TASK-0033 is independently complete after PR #58 and exact-merge push CI.
 TASK-0034 is Complete / POST_MERGE_VERIFIED after PR #59.
-TASK-0035 is the only authorized active successor,
-in the normal combined work-order and implementation PR. Current evidence and action
+TASK-0035 is Complete / POST_MERGE_VERIFIED after PR #60. IMP-013 is complete after fresh review.
+Only IMP-014 / TASK-0036 is authorized in the combined work-order and implementation PR.
+No TASK-0037 is allocated and IMP-015 is not started. Current evidence and action
 are routed through implementation state.
 TASK-0031's verified correction closes TASK-0030's failed post-merge chain and IMP-012 reopening.
 `repo-policy.py` remains deferred without a work-order allocation.

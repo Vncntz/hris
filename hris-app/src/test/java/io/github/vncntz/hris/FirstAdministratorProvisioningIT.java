@@ -69,7 +69,7 @@ class FirstAdministratorProvisioningIT {
         assertEmptyIdentity();
         assertEquals(0, count("audit_event"));
         assertEquals(0, completed());
-        assertEquals(9, count("flyway_schema_history"));
+        assertEquals(10, count("flyway_schema_history"));
         String password = UUID.randomUUID().toString();
         UUID id = provisioner().provision(" SYNTHETIC.LOGIN ", password.toCharArray(), password.toCharArray());
         for (String table : identityTables()) { assertEquals(1, count(table)); }

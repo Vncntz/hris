@@ -98,3 +98,13 @@ regression remains explicitly pinned to V7; current clean-history assertions now
 `V9__add_identity_offline_mfa.sql` adds optional encrypted factor state to Identity Accounts,
 with coherent-state CHECK constraints and no secret/identity seed. Released V1-V8 are unchanged.
 Current clean-history assertions expect V9; historical V7/V8 regressions remain version-pinned.
+
+
+`V10__add_client_company_and_site.sql` adds only Client Management's Company and Site
+master tables, binary public UUID uniqueness, descriptive non-unique bounded names,
+activity/version checks, and the indexed RESTRICT Company parent foreign key. It seeds
+no customer or authorization data. Populated V9 upgrade preserves all existing tables
+and migration checksums and matches clean V10 schema on real MySQL. Historical V7/V8/V9
+regressions remain explicitly pinned; current clean-history assertions expect V10.
+See the [Client Management module record](../modules/client-management.md) for lifecycle,
+transaction, public boundary and additive rollback behavior. Released V1-V9 are unchanged.
