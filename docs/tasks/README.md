@@ -37,13 +37,14 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0029](TASK-0029.md) | [IMP-013](../implementation/tasks/IMP-013.md) | REOPENED; TASK-0032 security correction required | Recent credential re-authentication |
 | [TASK-0030](TASK-0030.md) | [IMP-088](../implementation/tasks/IMP-088.md) | Complete after TASK-0031 correction | Simplify AI workflow and execution-state context |
 | [TASK-0031](TASK-0031.md) | [IMP-012](../implementation/tasks/IMP-012.md) | Complete; POST_MERGE_VERIFIED | Correct Agency concurrent initialization regression |
-| [TASK-0032](TASK-0032.md) | [IMP-013](../implementation/tasks/IMP-013.md) | PLANNED - corrective | Enforce lockout policy during recent credential re-authentication |
+| [TASK-0032](TASK-0032.md) | [IMP-013](../implementation/tasks/IMP-013.md) | LOCAL_VERIFIED - corrective; post-merge verification pending | Enforce lockout policy during recent credential re-authentication |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. The frozen backlog reserves IMP-001 through IMP-086; IMP-087 and IMP-088 are separately authorized maintenance parents. Current execution routing and verified predecessor evidence live in [implementation state](../implementation/IMPLEMENTATION_STATE.md).
 
 TASK-0029 has valid PR #55 exact-head/exact-merge CI but is reopened for its confirmed security finding.
-TASK-0032 is the only authorized successor: this cycle explicitly requires the six-file planning PR
-and verified planning merge-SHA push CI before separately authorized corrective implementation.
+TASK-0032 is the only authorized successor. Its six-file planning PR #56 and exact planning
+merge-SHA push CI are verified; the operator separately authorized corrective implementation.
+TASK-0029 remains reopened until TASK-0032 protected integration and exact-merge verification.
 TASK-0031's verified correction closes TASK-0030's failed post-merge chain and IMP-012 reopening.
 `repo-policy.py` remains deferred without a work-order allocation.
 
