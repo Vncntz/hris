@@ -30,7 +30,7 @@ Verify PR identity/origin through GitHub metadata, not commit-author text. Befor
 
 If origin or author cannot be verified, automated merge is ineligible.
 
-## Deterministic and semantic gates
+## Mandatory pre-merge gates
 
 Fetch/synchronize current `main` and run `python tools/pr-gates.py <pr_number>` from a clean trusted-main checkout or isolated trusted worktree. Pass the PR number only as data; never execute the PR head's copy of trusted tooling. Inspect its JSON, then independently complete the semantic gates below.
 
