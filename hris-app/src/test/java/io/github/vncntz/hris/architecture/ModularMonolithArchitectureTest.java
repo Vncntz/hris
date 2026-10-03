@@ -140,6 +140,18 @@ class ModularMonolithArchitectureTest {
                 .check(PRODUCTION_CLASSES);
     }
 
+    @Test
+    void clientMasterPersistenceIsOwnedAndCannotBeUsedByOtherModules() {
+        assertTrue(contains(BASE + ".clientmanagement.ClientCompanyEntity"));
+        assertTrue(contains(BASE + ".clientmanagement.ClientSiteEntity"));
+        classes().that().haveNameMatching(".*\\.Client(Company|Site)(Entity|Repository)")
+                .should().resideInAPackage(BASE + ".clientmanagement")
+                .andShould().notBePublic().check(PRODUCTION_CLASSES);
+        noClasses().that().resideOutsideOfPackage(BASE + ".clientmanagement..")
+                .should().dependOnClassesThat().haveNameMatching(".*\\.Client(Company|Site)(Entity|Repository)")
+                .check(PRODUCTION_CLASSES);
+    }
+
     private static boolean contains(String name) {
         return PRODUCTION_CLASSES.stream().anyMatch(type -> type.getName().equals(name));
     }

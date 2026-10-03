@@ -1,2 +1,2 @@
-/** Structural placeholder for the client-management module; no functionality is implemented. */
+/** Client-owned Company/Site persistence, administrative commands and immutable reference queries. */
 package io.github.vncntz.hris.clientmanagement;

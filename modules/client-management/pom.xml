@@ -11,4 +11,10 @@
   </parent>
   <artifactId>client-management</artifactId>
 
+  <dependencies>
+    <dependency><groupId>${project.groupId}</groupId><artifactId>shared-kernel</artifactId></dependency>
+    <dependency><groupId>${project.groupId}</groupId><artifactId>identity-access</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+  </dependencies>
 </project>
