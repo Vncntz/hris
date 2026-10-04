@@ -1,0 +1,292 @@
+/* HRIS login experience. Coherent with authenticated shell branding (shell.css). */
+
+:root,
+.hris-login-page {
+    --hris-brand: hsl(222, 62%, 38%);
+    --hris-brand-strong: hsl(224, 64%, 30%);
+    --hris-brand-soft: hsl(220, 70%, 96%);
+    --hris-accent: hsl(172, 58%, 34%);
+    --hris-surface: hsl(220, 30%, 98%);
+    --hris-card-border: hsl(220, 20%, 88%);
+    --lumo-primary-color: var(--hris-brand);
+    --lumo-primary-text-color: var(--hris-brand);
+    --lumo-primary-color-50pct: hsla(222, 62%, 38%, 0.5);
+    --lumo-primary-color-10pct: hsla(222, 62%, 38%, 0.1);
+    --lumo-font-family: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+#outlet,
+[id^="ROOT-"] {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Page container */
+.hris-login-page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--lumo-space-m);
+    box-sizing: border-box;
+    overflow-x: hidden;
+    background:
+        radial-gradient(ellipse at 50% 0%, hsla(222, 62%, 38%, 0.09) 0%, transparent 65%),
+        var(--hris-surface);
+    font-family: var(--lumo-font-family);
+}
+
+/* Card */
+.hris-login-card {
+    width: 100%;
+    max-width: 27rem;
+    min-width: 0;
+    background: var(--lumo-base-color);
+    border: 1px solid var(--hris-card-border);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow:
+        0 1px 3px hsla(220, 30%, 15%, 0.04),
+        0 8px 24px hsla(220, 30%, 15%, 0.07);
+    padding: var(--lumo-space-xl) var(--lumo-space-l) var(--lumo-space-l);
+    box-sizing: border-box;
+    animation: hris-login-rise 300ms ease-out both;
+}
+
+/* Header & branding */
+.hris-login-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: var(--lumo-space-m);
+}
+
+.hris-login-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    margin-bottom: var(--lumo-space-m);
+}
+
+.hris-login-brand .hris-brand-mark {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    border-radius: var(--lumo-border-radius-l);
+    background: linear-gradient(135deg, var(--hris-accent), hsl(196, 70%, 45%));
+    color: hsl(0, 0%, 100%);
+    box-shadow: 0 4px 12px hsla(180, 60%, 20%, 0.35);
+}
+
+.hris-login-brand .hris-brand-text {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    line-height: 1.15;
+}
+
+.hris-login-brand .hris-brand-name {
+    font-size: var(--lumo-font-size-l);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--hris-brand-strong);
+}
+
+.hris-login-brand .hris-brand-tagline {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.hris-login-title {
+    margin: 0 0 var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-xl);
+    font-weight: 650;
+    color: var(--lumo-header-text-color);
+    line-height: var(--lumo-line-height-xs);
+}
+
+.hris-login-subtitle {
+    margin: 0;
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+    line-height: var(--lumo-line-height-s);
+}
+
+/* Vaadin login form wrapper styling */
+.hris-login-form {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+vaadin-login-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+vaadin-login-form::part(form) {
+    padding: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+vaadin-login-form form,
+vaadin-login-form [slot="form"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+vaadin-login-form vaadin-text-field,
+vaadin-login-form vaadin-password-field,
+vaadin-login-form vaadin-button {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Factor field group */
+.hris-factor-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    margin-top: var(--lumo-space-s);
+    margin-bottom: var(--lumo-space-s);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.hris-factor-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: var(--lumo-font-size-s);
+    font-weight: 500;
+    color: var(--lumo-secondary-text-color);
+    line-height: var(--lumo-line-height-xs);
+    cursor: pointer;
+}
+
+.hris-factor-badge {
+    font-size: var(--lumo-font-size-xxs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--lumo-border-radius-s);
+    background-color: var(--lumo-contrast-10pct);
+    color: var(--lumo-secondary-text-color);
+}
+
+.hris-factor-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.hris-factor-input {
+    width: 100%;
+    height: var(--lumo-size-m);
+    padding: 0 var(--lumo-space-m);
+    box-sizing: border-box;
+    font-family: var(--lumo-font-family);
+    font-size: var(--lumo-font-size-m);
+    color: var(--lumo-body-text-color);
+    background-color: var(--lumo-contrast-10pct);
+    border: 1px solid transparent;
+    border-radius: var(--lumo-border-radius-m);
+    outline: none;
+    transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.hris-factor-input::placeholder {
+    color: var(--lumo-tertiary-text-color);
+    font-size: var(--lumo-font-size-s);
+    letter-spacing: normal;
+}
+
+.hris-factor-input:hover {
+    background-color: var(--lumo-contrast-20pct);
+}
+
+.hris-factor-input:focus {
+    background-color: var(--lumo-base-color);
+    border-color: var(--lumo-primary-color);
+    box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct);
+    outline: 2px solid var(--lumo-primary-color);
+    outline-offset: 1px;
+}
+
+.hris-factor-hint {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+    line-height: var(--lumo-line-height-s);
+}
+
+/* Card footer */
+.hris-login-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--lumo-space-l);
+    padding-top: var(--lumo-space-m);
+    border-top: 1px solid var(--hris-card-border);
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-tertiary-text-color);
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 32rem) {
+    .hris-login-page {
+        padding: var(--lumo-space-s);
+        min-width: 0;
+    }
+
+    .hris-login-card {
+        padding: var(--lumo-space-m) var(--lumo-space-s);
+        box-shadow: none;
+        border-radius: var(--lumo-border-radius-m);
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .hris-login-title {
+        font-size: var(--lumo-font-size-l);
+    }
+}
+
+/* Motion preferences */
+@keyframes hris-login-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hris-login-card {
+        animation: none;
+    }
+    .hris-factor-input {
+        transition: none;
+    }
+}
