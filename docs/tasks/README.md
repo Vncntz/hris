@@ -1,10 +1,15 @@
 # Task work orders
 
-The [IMP-### control files](../implementation/tasks/IMP-002.md) track implementation backlog scope, status, and completion evidence. A focused `TASK-####.md` here is a checked-in work order linked to one parent IMP item. One IMP item may have multiple TASK work orders; these are separate levels of record and do not replace each other. Keep existing IMP files in place.
+An IMP is a stable parent capability contract; a TASK is one focused checked-in work
+order linked to it. Keep existing IMP files in place. Allocate the next unused
+four-digit TASK ID only under explicit planner/operator assignment after checking
+the directory and Git history. Never reuse or renumber an allocated identity.
+Cross-link each TASK/IMP and list the TASK here. The table is a routing/historical
+view, not live execution truth; legacy statuses may lag Git/GitHub. Follow
+[authority and lifecycle rules](../implementation/EXECUTION_RULES.md), not table
+prose, to reconstruct current state. Do not mass-rewrite completed records.
 
-Allocate the next unused four-digit TASK ID after checking this directory and Git history; never reuse or renumber an allocated ID. Cross-link each TASK and parent IMP file and list the TASK below. Prospectively, a TASK records status, goal, scope/owning module, references and relevant decisions/ADRs, acceptance criteria, non-goals, security/privacy/audit implications, migration/deployment implications, required verification, and concise completion evidence. IMP files remain stable parent/backlog controls: objective, authority, dependencies, scope, boundaries, task links/status, and completion direction. Keep transient debugging chronology in PR discussion/evidence unless it establishes a durable product or operational fact. Apply these rules to new work; do not mass-rewrite completed records. Keep completed records in Git for traceability rather than deleting them.
-
-| ID | Parent | Status | Work order |
+| ID | Parent | Recorded status (derived/historical) | Work order |
 | --- | --- | --- | --- |
 | [TASK-0001](TASK-0001.md) | [IMP-002](../implementation/tasks/IMP-002.md) | Complete | Repository governance foundation |
 | [TASK-0002](TASK-0002.md) | [IMP-003](../implementation/tasks/IMP-003.md) | Complete | CI baseline |
@@ -49,51 +54,88 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0041](TASK-0041.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Polish responsive HRIS login experience |
 | [TASK-0042](TASK-0042.md) | [IMP-014](../implementation/tasks/IMP-014.md) | LOCAL_VERIFIED; WAITING_CI | Align Vaadin route authorization with persisted permission authorities |
 | [TASK-0043](TASK-0043.md) | [IMP-088](../implementation/tasks/IMP-088.md) | Complete; POST_MERGE_VERIFIED | Independent Codex and Antigravity implementation lanes |
+| [TASK-0045](TASK-0045.md) | [IMP-088](../implementation/tasks/IMP-088.md) | PR_REVIEW; independent certification pending | Establish the core AIDD repository constitution |
 
-IMP-001 predates this convention and has no corresponding `TASK-####` file. The frozen backlog reserves IMP-001 through IMP-086; IMP-087 and IMP-088 are separately authorized maintenance parents. Current execution routing and verified predecessor evidence live in [implementation state](../implementation/IMPLEMENTATION_STATE.md).
+IMP-001 predates TASK convention. Frozen backlog parents are IMP-001 through IMP-086;
+IMP-087/088 are separately authorized maintenance parents. Use
+[operator state](../implementation/IMPLEMENTATION_STATE.md) for active assignments,
+manual blockers and next action; use Git/GitHub for PR/CI/merge facts. The normal
+[combined PR workflow](../implementation/EXECUTION_RULES.md#local-work-order-authorization-and-single-pr-integration)
+needs no recurring planning PR or standalone closeout-only PR. Preserve historical
+TASK records and unique evidence; transient debugging chronology belongs in PR
+evidence unless it establishes a durable product/operational fact.
 
-TASK-0032 is independently complete after PR #57 and successful exact-merge push CI,
-closing TASK-0029's lockout finding. TASK-0033 is independently complete after PR #58 and exact-merge push CI.
-TASK-0034 is Complete / POST_MERGE_VERIFIED after PR #59.
-TASK-0035 is Complete / POST_MERGE_VERIFIED after PR #60. IMP-013 is complete after fresh review.
-TASK-0036 is Complete / POST_MERGE_VERIFIED after PR #61.
-TASK-0037 is Complete / POST_MERGE_VERIFIED after PR #62.
-TASK-0038 is Complete / POST_MERGE_VERIFIED after PR #63.
-TASK-0039 is Complete / POST_MERGE_VERIFIED after PR #64.
-TASK-0040 is Complete / POST_MERGE_VERIFIED through PR #65 and exact-merge push run 37172767555.
-TASK-0043 is Complete / POST_MERGE_VERIFIED through PR #67 and exact-merge push run 37178329705.
-IMP-014 / TASK-0041 is Complete / POST_MERGE_VERIFIED through PR #66 and exact-merge push run 37185857649.
-TASK-0042 is refreshed with its dependency satisfied; current verification and integration gates are routed through implementation state.
-IMP-014 remains active; IMP-015 is not started.
-Current evidence and action are routed through implementation state.
-TASK-0031's verified correction closes TASK-0030's failed post-merge chain and IMP-012 reopening.
-`repo-policy.py` remains deferred without a work-order allocation.
+## TASK schema version 2 (prospective specification)
 
-Use the normal [combined work-order + implementation PR workflow](../implementation/EXECUTION_RULES.md#local-work-order-authorization-and-single-pr-integration); recurring planning PRs and standalone closeout-only PRs are not required. The next combined PR reconciles its verified predecessor. Operator prompts supply authorization and constraints; Codex reads authoritative rules directly.
+Phase 3 specifies the contract; strict automated validation begins prospectively
+in Phase 4. It does not implement a v2 parser, change task-context.py or implement
+assignment/dependency/scope automation. Before cutover use current compatible
+heading/parent-link syntax. [TASK-0045](TASK-0045.md) itself remains legacy-compatible.
+
+Machine-readable metadata is deliberately small:
+
+| Field | Contract |
+| --- | --- |
+| Schema | Integer `2` for an explicitly v2 work order. |
+| TASK ID | One allocated `TASK-####`. |
+| Parent IMP | One `IMP-###`, linked to its existing parent file. |
+| Title | Focused work-order title. |
+| Primary owner | Exactly one of `CODEX` or `ANTIGRAVITY`; a new role needs future human approval. |
+| Baseline main SHA | Exact full protected-main commit defining the assignment baseline. |
+| Dependencies | Explicit TASK IDs/contract prerequisites or explicit `none`; numbering is not dependency. |
+
+Serialization/parser details are Phase 4 work. Required semantic sections are:
+
+| Section | Required meaning |
+| --- | --- |
+| Objective | Outcome and approved business/architecture authority. |
+| In scope | Work to perform. |
+| Out of scope | Non-goals and later work excluded. |
+| Invariants | Ownership, architecture, data, security and other constraints that remain true. |
+| Permitted repository scope | Explicit files or directory prefixes/modules the owner may edit. |
+| Forbidden repository scope | Protected/excluded paths and behaviors. |
+| Observable acceptance criteria | Reviewable outcomes; no vague 'works' claim. |
+| Required verification | Native commands/checks and expected evidence proportionate to risk; retain existing mandatory gates. |
+| Evidence / handoff requirements | Actual results, scope, blockers, distinct review-context certification and Git/GitHub evidence routing. |
+
+Semantic assignment details include lane, separate branch/worktree/PR plan, shared
+documentation coordinator, applicable references/Decision IDs and risk/security/
+privacy/audit/schema/deployment effects. These do not enlarge machine metadata.
+Declare dependencies and independently inspect their required head/merge verification
+in Git/GitHub; evidence links are historical references, not moving fields.
+
+Do not require manual schema maintenance of current PR head, CI run ID, merge SHA,
+mergeability or current CI outcome. Git/GitHub own those facts. Reports/certification
+records identify the observed exact SHA without becoming mutable TASK truth.
+
+`schema v2 -> strict validation prospectively`
+
+`legacy TASK -> compatibility/best-effort parsing`
+
+Legacy work orders remain readable and valid under their applicable contracts;
+historical records become v2 only by explicit migration. No mass rewrite or
+retroactive v2 gates. Active-candidate grandfathering is recorded in
+[TASK-0045 transition compatibility](TASK-0045.md#transition-compatibility).
+
+## IMP contract
+
+An IMP contains its stable ID, capability/objective, business/architecture authority,
+dependencies, scope/boundaries, child TASK links and completion direction. It does
+not duplicate every child acceptance criterion or mutable PR/CI status. Child TASKs
+own focused scope/verification; actual completion is reconstructed under the
+[Definition of Done](../implementation/EXECUTION_RULES.md#6-definition-of-done).
+Preserve historical evidence while keeping future parents stable and concise.
 
 ## Concurrent assignment records
 
-New TASKs must record primary owner/lane, full main baseline SHA, declared dependencies
-(or explicit `none`) and independently verified merge/CI evidence, permitted edit
-files/modules, branch/worktree and Codex as shared documentation coordinator.
-Use the [assignment eligibility rules](../implementation/EXECUTION_RULES.md#3-one-active-task-per-agent).
-One active TASK per agent, one primary implementer per TASK, disjoint edit ownership,
-separate worktrees/branches/PRs and verified prerequisites are required before editing.
-Each implementer records its TASK evidence; Codex serializes shared state/index/parent
-updates during integration. Neither allocation order nor skill discovery grants work
-authority. Existing explicit predecessor gates remain binding.
-
-An assignment can use this compact template:
-
-```text
-Primary implementation agent: CODEX or ANTIGRAVITY
-Lane: backend/security/tooling or UI
-Baseline main SHA: <full SHA containing verified dependency merges>
-Declared dependencies: <TASK IDs with PR/head/merge and CI evidence, or none>
-Permitted edit paths/modules: <explicit files or non-overlapping directory prefixes>
-Branch / worktree: <dedicated branch and checkout>
-Shared documentation coordinator: Codex during serialized integration
-```
+Apply [assignment eligibility](../implementation/EXECUTION_RULES.md#3-one-active-task-per-agent).
+Parallelize analysis aggressively; parallelize overlapping writes conservatively.
+One owner per TASK, verified dependencies, disjoint scopes, separate branch/worktree/PR
+and no conflicting shared-document ownership are required. Shared governance writes
+are serialized by Codex; an explicit governance assignment can authorize those
+writes before integration. Each implementer owns its TASK evidence. Unmerged
+declared backend dependencies block UI implementation. Skill discovery grants no
+assignment authority. Existing explicit predecessor gates remain binding.
 
 ## Task context packets
 
