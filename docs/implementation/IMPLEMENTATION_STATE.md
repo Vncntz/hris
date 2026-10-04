@@ -6,24 +6,23 @@ Last updated: 2026-10-04. Current execution snapshot; historical verification be
 
 - M0 is complete through [IMP-011](tasks/IMP-011.md).
 - M1 - Workforce Foundation: [IMP-012](tasks/IMP-012.md) and [IMP-013](tasks/IMP-013.md) are complete after verified closeout and fresh completion review.
-- Active work: [IMP-014](tasks/IMP-014.md) / [TASK-0037](../tasks/TASK-0037.md), correction of Client reference reads joining ambient transactions. Status: LOCAL_VERIFIED; integration and exact-merge verification pending under exact operator authorization for one combined work-order and implementation PR.
-- IMP-014 remains ACTIVE pending fresh post-TASK-0037 review. IMP-015 is not started.
+- Active work: [IMP-088](tasks/IMP-088.md) / [TASK-0038](../tasks/TASK-0038.md), Antigravity Vaadin UI specialist onboarding. Status: LOCAL_VERIFIED; exact-head CI, trusted integration and exact-merge push CI pending.
+- [TASK-0037](../tasks/TASK-0037.md) is Complete / POST_MERGE_VERIFIED. IMP-014 remains ACTIVE pending external fresh post-TASK-0037 completion review; no such review is recorded on current main.
 
 ## Immediately relevant predecessor
 
-TASK-0036 [PR #61](https://github.com/Vncntz/hris/pull/61), final head
-`308ddbfb2a9506e9cdc6c08f388f524f5c673339`, merged as
-`b7f834f2b1ea560f13d43b1c0589b46c336b16da`. Exact-head pull-request
-[run 37130865630](https://github.com/Vncntz/hris/actions/runs/37130865630) and exact-merge
-main push [run 37131439302](https://github.com/Vncntz/hris/actions/runs/37131439302)
-passed policy/Linux/Windows; job metadata and successful build steps independently verified.
-TASK-0036 is Complete / POST_MERGE_VERIFIED. Fresh review found the ambient stale-snapshot
-reference-read gap; TASK-0037 corrects it. Refreshed main matches the reviewed baseline.
+TASK-0037 [PR #62](https://github.com/Vncntz/hris/pull/62), final head
+`42b02f8fc9a2f013db74ca9019195d4bc0a3f850`, merged as
+`b8b5f122cc6392eb45bd378a3d7ace04d3d07e5c`. Independently refreshed exact-head
+[run 37164160229](https://github.com/Vncntz/hris/actions/runs/37164160229) and exact-merge
+main push [run 37164569723](https://github.com/Vncntz/hris/actions/runs/37164569723)
+passed policy/Linux/Windows, including their build/test steps. Refreshed main matches this merge.
+No predecessor CI blocker remains. IMP-014 closure awaits external fresh review rather than CI alone.
 
 ## Active durable decisions
 
 - The operator authorized sequential IMP-088 workflow-efficiency maintenance. TASK-0019/0020/0021 are post-merge verified; later slices require separate focused authorization. Context packets never select work or establish gates.
-- The external planner/reviewer handles selection, architecture reasoning, work-order preparation, and independent completion review. Codex implements authorized work and then enters the dedicated trusted-main integration procedure; development conclusions do not prove integration gates.
+- The external planner/reviewer handles selection, architecture reasoning, work-order preparation, and independent completion review. Exactly one primary implementer owns each TASK. Codex defaults to backend/tooling and trusted-main integration; Antigravity handles explicitly assigned Vaadin UI/browser work. Neither selects backlog work. Development/browser evidence does not prove integration gates; see root AGENTS and the two workspace skills.
 - Normal work uses one combined IMP/TASK + implementation PR after explicit authorization of the exact pair. No recurring planning PR or standalone closeout-only PR is required. The next combined PR reconciles verified predecessor completion. [Governance PR #19](https://github.com/Vncntz/hris/pull/19), merge `ea880d1ada243deec86e9a3a2c3e5c167c6a44dc`, and successful exact-merge [push run 36657908607](https://github.com/Vncntz/hris/actions/runs/36657908607) established this workflow.
 - The latest operator authorization permits gated automatic protected-PR merge for eligible ordinary PRs only after independently passing every [integration gate](GIT_INTEGRATION_AGENT.md). A later instruction/task can require human merge. Dependabot remains human-reviewed/merged unless separately authorized. No protection bypass is granted.
 - The repository is public by explicit operator decision, overriding D-131's private baseline for this repository. Frozen planning sources remain unchanged.
@@ -33,20 +32,16 @@ reference-read gap; TASK-0037 corrects it. Refreshed main matches the reviewed b
 
 ## Blockers and open verification
 
-TASK-0037 local verification passed: Windows 171 ordinary; Linux 171 ordinary / 154
-real-MySQL tests; focused Client unit tests 14 and focused MySQL tests 15;
-architecture tests 9; tooling tests 42. Final 26 Surefire / 19 Failsafe reports
-have zero failures/errors/skips/flaky/rerun results. All 180 implementation input
-hashes match the Linux and Windows sources. The negative control reproduces the
-original stale Company activity with only the propagation fix removed.
-See TASK-0037 for commands and evidence. Exact-head CI, trusted-main integration and
-exact-merge push CI remain required.
-No predecessor CI blocker remains.
-Total administrator access loss, supported-hardware password-cost qualification, key
-rotation tooling, broad Client UI and `repo-policy.py` remain deferred.
+TASK-0038 local verification passed after main refresh: Windows 171 tests (zero failures/errors/
+skips/flaky/reruns), 42 tooling tests, planning index, task context, 186 local links/anchors
+and both skill validators. Exact-final-head CI, trusted-main review and exact-merge push CI
+remain required. IMP-014 fresh completion review remains open but
+does not authorize product implementation in this maintenance task. Total administrator
+access loss, supported-hardware password-cost qualification, key rotation tooling,
+broad Client UI and `repo-policy.py` remain deferred.
 
 ## Next action
 
-Integrate only the locally verified IMP-014 / TASK-0037 combined PR, independently
-evaluating every trusted-main gate before protected integration. Completion requires exact-merge push CI.
-Keep IMP-014 ACTIVE pending fresh post-TASK-0037 review; do not start IMP-015.
+Verify and integrate only IMP-088 / TASK-0038 through all trusted-main gates. After successful
+exact-merge push CI, report POST_MERGE_VERIFIED and stop. Do not begin application-shell,
+Client UI, IMP-015 or any successor TASK. The next authorized combined PR reconciles closeout.
