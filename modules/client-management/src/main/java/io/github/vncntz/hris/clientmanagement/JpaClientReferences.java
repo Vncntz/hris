@@ -17,6 +17,7 @@ class JpaClientReferences implements ClientReferences {
         this.companies = companies;
         this.sites = sites;
         read = new TransactionTemplate(transactions);
+        read.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
         read.setReadOnly(true);
         read.setIsolationLevel(TransactionTemplate.ISOLATION_READ_COMMITTED);
         read.setTimeout(15);

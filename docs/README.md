@@ -34,7 +34,8 @@ Use this index to find authoritative sources; current execution status and prede
 These indexes route to focused records as work is implemented and verified. The planning index and task packets are derived routing aids, never authority or gate evidence. Read repository rules directly; operator prompts need only supply task authorization and specific constraints rather than repeat governance, source code, or full frozen plans.
 
 Current authorized product work is [IMP-014](implementation/tasks/IMP-014.md) /
-[TASK-0036](tasks/TASK-0036.md), Client Company/Site master-data lifecycle.
+[TASK-0037](tasks/TASK-0037.md), independent Client reference reads.
 TASK-0035 is Complete / POST_MERGE_VERIFIED after PR #60; fresh review closes IMP-013.
 Current evidence and integration gates are routed through implementation state.
-TASK-0037 is not allocated and IMP-015 is not started.
+TASK-0036 is Complete / POST_MERGE_VERIFIED after PR #61.
+IMP-014 stays active pending fresh post-TASK-0037 review; IMP-015 is not started.

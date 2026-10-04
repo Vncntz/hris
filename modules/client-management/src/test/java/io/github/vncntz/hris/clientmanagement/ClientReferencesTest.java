@@ -13,6 +13,7 @@ class ClientReferencesTest {
         var transactions = mock(PlatformTransactionManager.class);
         when(transactions.getTransaction(any())).thenAnswer(call -> {
             org.springframework.transaction.TransactionDefinition definition=call.getArgument(0);
+            assertEquals(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW, definition.getPropagationBehavior());
             assertTrue(definition.isReadOnly());
             assertEquals(org.springframework.transaction.TransactionDefinition.ISOLATION_READ_COMMITTED, definition.getIsolationLevel());
             assertEquals(15, definition.getTimeout());
@@ -32,6 +33,7 @@ class ClientReferencesTest {
         var transactions = mock(PlatformTransactionManager.class);
         when(transactions.getTransaction(any())).thenAnswer(call -> {
             org.springframework.transaction.TransactionDefinition definition=call.getArgument(0);
+            assertEquals(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW, definition.getPropagationBehavior());
             assertTrue(definition.isReadOnly());
             assertEquals(org.springframework.transaction.TransactionDefinition.ISOLATION_READ_COMMITTED, definition.getIsolationLevel());
             assertEquals(15, definition.getTimeout());
