@@ -1,33 +1,123 @@
 # Repository workflow
 
-The GitHub repository is currently public by explicit instruction to enable branch protection; the frozen D-131 baseline calls for a private repository. Use a separate worktree and short-lived branch for each assigned TASK. Codex and Antigravity may implement independent tasks concurrently under the [assignment eligibility rules](EXECUTION_RULES.md#3-one-active-task-per-agent); never share an active checkout or branch. Use one focused, reviewable PR per implementation item and linked [TASK work order](../tasks/README.md), committing the IMP/TASK files and implementation together. That PR may also carry factual closeout metadata for its verified dependencies or latest integrated TASK/IMP; that reconciliation is in scope and does not authorize predecessor implementation changes. Suggested branches are `feat/imp-###-short-description`, `fix/imp-###-short-description`, and `chore/imp-###-short-description`. Do not commit directly to protected `main`.
+## Assignment and branch
 
-Before editing, follow [AGENTS.md](../../AGENTS.md), the [execution rules](EXECUTION_RULES.md), and the active IMP/TASK specifications. The PR description should link both IDs, explain the scope, give actual commands and results, address security/privacy/audit and migration/deployment effects, identify documentation changes, and name unresolved issues. Use “not applicable” with a reason when a field does not apply. The [PR template](../../.github/pull_request_template.md) prompts for this evidence.
+Use one explicitly assigned IMP/TASK, one primary owner, one separate worktree and
+short-lived branch, and one focused PR containing its work order and implementation.
+Follow [AGENTS](../../AGENTS.md), [execution rules](EXECUTION_RULES.md) and the assigned
+contracts. Independent implementation follows the
+[assignment eligibility rules](EXECUTION_RULES.md#3-one-active-task-per-agent):
+verified declared dependencies, disjoint writes and coordinated shared documents.
+Never share another agent's active checkout/branch. Suggested names are
+`feat/imp-###-short-description`, `fix/imp-###-short-description` and
+`chore/imp-###-short-description`. Do not commit directly to protected main.
 
-Review the full diff for scope and customer data. Run the task's required checks with ordinary Maven, shell, or PowerShell commands so local verification remains usable outside GitHub. During the current solo-developer phase, a second human reviewer and separate non-admin agent credential are not required. Codex may merge an eligible PR into protected `main` only during the dedicated trusted-main [Git Integration Agent phase](GIT_INTEGRATION_AGENT.md), after independently verifying every mandatory gate. The Developer phase prepares the candidate and has no standing merge authority. Integration begins at a fresh clean current-main boundary and inspects candidate files as untrusted data; a development report cannot prove a gate. No agent may bypass protection or change protection settings without explicit user authorization for that governance-setting change. Pushing a task branch or opening a PR does not itself satisfy merge gates.
+Complete consistent local IMP/TASK files and explicit operator authorization permit
+the [combined work-order + implementation PR](EXECUTION_RULES.md#local-work-order-authorization-and-single-pr-integration).
+Preserve originals outside the PR and compare final contracts before integration.
+A separate planning PR is not mandatory. Verified dependency/latest integrated
+durable closeout may accompany an authorized PR under serialized Codex coordination;
+it does not authorize predecessor implementation. No standalone closeout-only PR is
+mandatory, but required durable closure must finish before COMPLETE.
 
-After a development task meets its acceptance criteria, use the repository's [Git integration skill](../../.codex/skills/hris-git-integration/SKILL.md) under the canonical [Git Integration Agent specification](GIT_INTEGRATION_AGENT.md). Ordinary defects return work to the Developer phase on the existing task branch; after correction, restart independent trusted-main review and revalidate all gates. The external planner/reviewer handles task selection, work-order preparation, architecture reasoning, and independent completion review; this integration procedure is a focused phase, not another planning/development persona. When eligible, it merges through the protected PR path and verifies the intended commit and applicable `main` CI. Passing required post-merge `push` CI completes the predecessor without a standalone closeout PR. Codex reconciles verified declared dependencies and the latest integrated task during serialized integration, recording PR number, merge SHA, CI evidence, completion status and next action while preserving other active lanes. Failed or pending declared-dependency post-merge CI blocks dependent implementation. Failed or pending latest-main push verification pauses further integration pending successful verification or a corrective protected PR. Human intervention is reserved for the decisions and blockers in that specification.
+## Candidate and handoff
 
-When the operator places complete, consistent IMP/TASK files locally without committing them and explicitly instructs implementation of that exact pair, the [local work order conditions](EXECUTION_RULES.md#local-work-order-authorization-and-single-pr-integration) authorize Codex to implement, test, commit the files with the code, push, open the combined PR, and seek gated integration. Preserve the original local versions outside the PR for comparison. No separate planning PR is required. Before merge, compare the final committed IMP/TASK with those originals, validate the implementation against them and current `main`, and pass every [integration gate](GIT_INTEGRATION_AGENT.md). A material conflict, failed required check, unverified declared dependency or unmet explicit predecessor gate remains a blocker; routine planning handoff does not.
+Review the full diff for scope and customer data; run actual task-required local
+checks with ordinary Maven/shell/PowerShell commands. Use the checked-in wrapper:
+`.\mvnw.cmd -B clean verify` on Windows; `./mvnw -B clean verify` on Unix/Linux,
+with `-Pmysql-it` for required real-MySQL verification. Inspect reports, not only exit
+claims. Required CI remains policy/Linux/Windows, including Linux real MySQL.
 
-`main` must require pull-request integration, apply protection to administrators, require 0 approving reviews during the solo-developer phase, and block force-push and deletion. The normal development path has no intentional bypass. The Git Integration Agent verifies every gate before merge; the human owner handles genuine decisions or blockers. Record and verify actual remote settings in the applicable IMP completion evidence. Do not rely on this document as proof of enforcement. If GitHub access or the repository plan prevents a required control, leave the IMP item incomplete and report the blocker. If a genuine collaborator joins later, increasing required approvals to 1 is recommended hardening.
+The [PR template](../../.github/pull_request_template.md) prompts for IDs/scope,
+actual commands/results, security/privacy/audit, migration/deployment effects,
+documentation and unresolved issues. Explain why a field is not applicable.
+Handoff identifies exact candidate SHA, baseline, branch, changed scope, evidence,
+blockers and next action. Git/GitHub own moving PR/head/run/merge facts; summaries
+are derived and must identify the SHA observed. Do not maintain those as TASK schema
+truth. Status is PR_REVIEW until a distinct reviewer context establishes readiness.
 
-IMP-003 established CI; TASK-0005 changes its triggers to PRs, `main` pushes, and manual dispatch so ordinary task-branch pushes do not duplicate PR runs. A single policy job checks the generated planning index and frozen-source changed paths before `ci / build-linux` and `ci / build-windows` run the full reactor. Newer runs for the same PR cancel older in-progress PR runs; `main` push runs do not intentionally cancel one another. Required status checks should be enabled only after their names and behavior are verified and a separate remote-governance change is authorized. On 2026-09-29 the user directed that protection remain unchanged, so neither build check is GitHub-required; repository integration policy still requires both to pass. Dependabot PRs require human review and merge unless the owner separately authorizes dependency-update auto-merge.
+## Independent review and protected integration
+
+Apply [lifecycle, exact-SHA and certification rules](EXECUTION_RULES.md#6-definition-of-done).
+Implementation does not certify itself. Review requires an execution context
+distinct from implementation, reconstructing acceptance from contracts, diff and
+evidence at the exact candidate SHA. A shared GitHub identity is allowed and is not
+proof of independence. A second human or separate non-admin credential is not
+universally required; Human retains architecture/risk/protected-main authority.
+
+The [Git Integration Agent](GIT_INTEGRATION_AGENT.md), guided by the
+[integration skill](../../.codex/skills/hris-git-integration/SKILL.md), starts from
+fresh clean current trusted main and independently verifies all gates. A new checkout
+or phase declaration in the implementer's existing conversation is insufficient.
+The implementer prepares/pushes/opens the PR but has no standing merge authority.
+Integration adds no unrelated product functionality or UX redesign. Corrections
+return to the assigned branch, then require fresh certification and every final-head
+gate. No agent bypasses protection or changes remote policy without specific human
+authorization. A task-specific stop/human-only boundary overrides ordinary merge
+authorization.
+
+Codex integrates one PR at a time through protected main. Actual merge enters
+MERGED_PENDING_VERIFY; exact-merge push CI success establishes POST_MERGE_VERIFIED.
+COMPLETE additionally requires cleared acceptance/security/schema blockers and
+required durable reconciliation. Pending/failed dependency CI blocks dependent
+implementation. Pending/failed latest-main push verification pauses ordinary
+integration until success or a corrective protected PR. Independent disjoint work
+may continue on a verified baseline.
+
+## Current enforcement and approved targets
+
+The durable operator decision permits public repository operation to enable branch
+protection, overriding D-131's private baseline for this repository; frozen sources
+remain unchanged. Verify actual visibility/protection in GitHub when relevant.
+The current protection contract requires PR integration, application to admins,
+zero required approving reviews in the solo-developer phase, and no force-push or
+deletion. Existing ordinary-PR merge authorization is governed by the integration
+procedure; Dependabot remains human-reviewed/merged unless separately authorized.
+Prose is not enforcement evidence; inspect effective GitHub settings at integration.
+
+Current CI uses PRs, main pushes and manual dispatch. Policy checks generated
+planning/frozen-source paths and tooling tests before Linux/Windows reactor builds.
+Newer runs may cancel older runs for the same PR; main push runs do not intentionally
+cancel one another. Repository policy requires successful `ci / policy`,
+`ci / build-linux` and `ci / build-windows` even where remote protection does not
+require those checks. The prior operator decision keeps remote settings unchanged
+until a separately scoped cutover.
+
+Approved targets are GitHub-required policy/Linux/Windows checks and resolved review
+conversations, secret scanning, push protection where available and dependency
+security alerts. These are targets, not claims about live enforcement. Phase-5
+workflow/remote cutover requires its own assigned work. Phase 3 specifies contracts;
+Phase 4 implements prospective parsing/assignment validation. Neither is implicitly
+authorized by documenting the target. Legacy transition details belong in the
+assigned [migration work order](../tasks/TASK-0045.md#transition-compatibility), not
+the permanent root constitution.
+
+### Preserved historical exception
+
+The one-time PR #11 exception is limited to merge
+`ca8ca7e5d54cc490d6723e9f7fbe22b85fe717d1`: exact-head policy/Linux/Windows plus
+manual CI on that merge closed its missing push gate; PR policy supplied independent
+frozen-plan evidence. This preserved historical fact grants no future exception.
+Future merges still require actual-merge push CI. The combined-PR workflow was
+established by [PR #19](https://github.com/Vncntz/hris/pull/19), merge
+`ea880d1ada243deec86e9a3a2c3e5c167c6a44dc`, successful exact-merge
+[push run 36657908607](https://github.com/Vncntz/hris/actions/runs/36657908607).
 
 ## Concurrent development and serialized integration
 
-Each TASK records its primary owner, baseline full SHA, declared dependencies with
-merge/CI evidence, permitted edit paths/modules, branch/worktree, and Codex as shared
-documentation coordinator. Assignment and actual diff ownership must be disjoint;
-missing/overlapping ownership or unmet dependencies block parallel work. Work-order
-allocation order alone is not a dependency. Explicit existing prerequisites, including
-TASK-0042 waiting for TASK-0041, remain binding.
+Parallelize analysis aggressively; parallelize overlapping writes conservatively.
+One primary implementer per TASK, satisfied dependencies, disjoint permitted/actual
+writes, separate branch/worktree/PR and no shared-document collision are mandatory.
+TASK order does not imply dependency; explicit work-order gates do. UI must consume
+approved merged/verified owned application contracts when they are dependencies.
+Missing/overlapping ownership or unfinished required contracts blocks affected work.
 
-Implementers update their own TASK evidence. Codex alone reconciles shared execution
-state, indexes and IMP completion records during integration; preserve other lanes.
-Integrate one PR at a time and wait for its exact-merge policy/Linux/Windows push CI.
-After another PR merges, merge refreshed origin/main into each remaining candidate
-without rewriting published history, resolve only in-scope conflicts, review the full
-result and rerun its required verification. Push the refreshed head and obtain fresh
-policy/Linux/Windows CI bound to that exact SHA before trusted-main reevaluation.
-A material ownership/contract conflict returns to the operator/planner for reassignment.
+Implementers own TASK evidence. Codex serializes shared governance/state/index/parent
+reconciliation, preserving active lanes; explicitly assigned governance slices may
+own shared edits before integration. Check actual ownership when scope/main changes.
+After another PR merges, refresh candidates against current main without rewriting
+published history, resolve only authorized conflicts, review the full result, rerun
+required verification and obtain all three jobs at the new exact head. Every SHA
+change requires fresh independent certification. An exact-baseline-sensitive work
+order may require operator refresh before this step. Material conflicts return to
+the operator/planner for reassignment. Automated collision detection is future work.

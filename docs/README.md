@@ -1,6 +1,6 @@
 # Documentation index
 
-Use this index to find authoritative sources; current execution status and predecessor evidence live in [implementation state](implementation/IMPLEMENTATION_STATE.md), not here.
+Use this routing index to find contracts. Git/GitHub owns live PR/commit/CI/merge/protection facts. [Operator state](implementation/IMPLEMENTATION_STATE.md) records active assignments, manual blockers and next action; this index is a derived view and cannot create truth.
 
 | Authority / execution | Entry point |
 | --- | --- |
@@ -8,10 +8,10 @@ Use this index to find authoritative sources; current execution status and prede
 | Targeted planning retrieval | Generated [decision index](planning/INDEX.md); `python tools/plan-get.py D-131` retrieves the required range without preloading frozen sources |
 | Repository contract | [AGENTS.md](../AGENTS.md) |
 | Source precedence, authorization, and Definition of Done | [Execution rules](implementation/EXECUTION_RULES.md) |
-| Current milestone, active task, blockers, durable decisions | [Implementation state](implementation/IMPLEMENTATION_STATE.md) |
+| Active operator assignments, manual blockers, next operator action | [Implementation state](implementation/IMPLEMENTATION_STATE.md) |
 | Branch, combined PR, and CI conventions | [Repository workflow](implementation/REPOSITORY_WORKFLOW.md) |
 | Independent trusted-main integration | [Git Integration Agent procedure](implementation/GIT_INTEGRATION_AGENT.md); execute `tools/pr-gates.py` only from current clean trusted main |
-| Work orders and context packets | [Task index](tasks/README.md) and [packet usage](tasks/README.md#task-context-packets) |
+| TASK/IMP schema and context packets | [Task index](tasks/README.md) and [packet usage](tasks/README.md#task-context-packets) |
 | Local first-administrator operation | [Operator runbook](deployment/first-administrator.md) |
 
 | Area | Entry point |
@@ -33,9 +33,10 @@ Use this index to find authoritative sources; current execution status and prede
 
 These indexes route to focused records as work is implemented and verified. The planning index and task packets are derived routing aids, never authority or gate evidence. Read repository rules directly; operator prompts need only supply task authorization and specific constraints rather than repeat governance, source code, or full frozen plans.
 
-Current workflow maintenance is [IMP-088](implementation/tasks/IMP-088.md) /
-[TASK-0043](tasks/TASK-0043.md), independent Codex/Antigravity implementation lanes.
-Active assignments and dependency eligibility are routed through implementation state
-and the [execution rules](implementation/EXECUTION_RULES.md#3-one-active-task-per-agent).
-[AGENTS.md](../AGENTS.md) routes implementation roles and the two workspace skills.
-Current execution evidence and next action remain in implementation state.
+The core constitution and source categories are in [AGENTS](../AGENTS.md);
+[execution rules](implementation/EXECUTION_RULES.md) own hierarchy, lifecycle,
+exact-SHA certification, risk, assignment and deterministic resume. The
+[task guide](tasks/README.md#task-schema-version-2-prospective-specification) owns
+prospective schema v2/legacy compatibility. The [Phase-3 work order](tasks/TASK-0045.md)
+owns migration/active-candidate transition details. Live execution facts come from
+Git/GitHub; required durable closure belongs to TASK/IMP records, not operator state.
