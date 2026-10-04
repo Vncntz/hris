@@ -1,5 +1,6 @@
 package io.github.vncntz.hris.app.security;
 
+import java.lang.ref.Reference;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -322,8 +323,14 @@ class RouteAuthoritySecurityTest {
         filters.doFilter(request, response, (wrapped, ignored) -> {
             reached.set(true);
             HttpServletRequest servletRequest = (HttpServletRequest) wrapped;
-            service.setCurrentInstances(new VaadinServletRequest(servletRequest, service), null);
-            accepted.accept(servletRequest);
+            VaadinServletRequest vaadinRequest = new VaadinServletRequest(servletRequest, service);
+            service.setCurrentInstances(vaadinRequest, null);
+            try {
+                accepted.accept(servletRequest);
+            } finally {
+                Reference.reachabilityFence(vaadinRequest);
+                service.setCurrentInstances(null, null);
+            }
         });
         assertEquals(expectedStatus, response.getStatus());
         assertEquals(expectedStatus == 200, reached.get());
@@ -331,7 +338,6 @@ class RouteAuthoritySecurityTest {
             assertFalse(response.getContentAsString().contains("client:admin"));
             assertFalse(response.getContentAsString().contains(ProtectedRoute.class.getName()));
         }
-        service.setCurrentInstances(null, null);
         return response;
     }
 

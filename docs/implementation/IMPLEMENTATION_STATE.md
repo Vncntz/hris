@@ -1,6 +1,6 @@
 # HRIS implementation state
 
-Last updated: 2026-10-04. Current execution snapshot; historical verification belongs in linked TASK records and Git/PR evidence.
+Last updated: 2026-10-05. Current execution snapshot; historical verification belongs in linked TASK records and Git/PR evidence.
 
 ## Current milestone and active lanes
 
@@ -9,10 +9,25 @@ Last updated: 2026-10-04. Current execution snapshot; historical verification be
   IMP-014 remains ACTIVE; IMP-015 is not started.
 - Codex: [IMP-088](tasks/IMP-088.md) / [TASK-0043](../tasks/TASK-0043.md), independent
   implementation-lane governance. Status: Complete / POST_MERGE_VERIFIED.
-- Antigravity: IMP-014 / TASK-0041 is Complete / POST_MERGE_VERIFIED; no active UI implementation is assigned here.
-- Codex: [IMP-014](tasks/IMP-014.md) / [TASK-0042](../tasks/TASK-0042.md), route authority alignment on [PR #68](https://github.com/Vncntz/hris/pull/68). Refreshed against protected main `0e7e34cfddf1415893747191555d26f213225acc`; TASK-0041 prerequisite satisfied. Fresh local verification, exact-head CI and trusted-main integration remain required.
+- Antigravity: IMP-014 / TASK-0041 is Complete / POST_MERGE_VERIFIED. Separate
+  TASK-0044 UI candidate [PR #69](https://github.com/Vncntz/hris/pull/69) is preserved;
+  TASK-0046 does not certify or integrate it.
+- Codex: [IMP-014](tasks/IMP-014.md) / [TASK-0046](../tasks/TASK-0046.md), test-harness
+  request lifetime correction on baseline `9eee4924da09fddd10339c6044bf6f8299526c67`.
+  Required local verification passed; exact-head CI and independent integration remain.
+- Held candidate: IMP-088 / TASK-0045 / [PR #70](https://github.com/Vncntz/hris/pull/70)
+  remains Draft + BLOCKED by the intermittent baseline defect. No TASK-0045 changes
+  are authorized under TASK-0046; its implementation is not implicated.
 
 ## Verified baseline and dependency evidence
+
+TASK-0042 / [PR #68](https://github.com/Vncntz/hris/pull/68) is Complete /
+POST_MERGE_VERIFIED: final head `a2190b69069fd2451aa4de84e620ca2ca2409979`,
+successful exact-head [run 37187077608](https://github.com/Vncntz/hris/actions/runs/37187077608),
+merge `9eee4924da09fddd10339c6044bf6f8299526c67`, successful exact-merge main push
+[run 37187489775](https://github.com/Vncntz/hris/actions/runs/37187489775).
+Policy/Linux/Windows passed in both independently inspected runs. This is TASK-0046's
+declared dependency and current protected-main baseline.
 
 TASK-0041 / [PR #66](https://github.com/Vncntz/hris/pull/66) is Complete / POST_MERGE_VERIFIED: final head `c798e1e734cfa32b4f89c0f3ca15947789126a57`, successful exact-head [run 37185518688](https://github.com/Vncntz/hris/actions/runs/37185518688), merge `0e7e34cfddf1415893747191555d26f213225acc`, successful exact-merge main push [run 37185857649](https://github.com/Vncntz/hris/actions/runs/37185857649). Policy/Linux/Windows passed in both independently inspected runs.
 
@@ -46,9 +61,18 @@ progress records are preserved; this state reconciles its actual integration out
 
 ## Blockers and open verification
 
-TASK-0042 refreshed candidate requires repeated local checks, fresh exact-head policy/Linux/Windows CI, full trusted-main gate evaluation, protected merge and exact-merge push CI. No dependency blocker remains. Total administrator access loss, supported-hardware password-cost qualification,
+TASK-0046 requires fresh exact-head policy/Linux/Windows CI, independent adversarial
+trusted-main review, protected merge and exact-merge push CI. No dependency blocker
+remains. PR #70 remains Draft + BLOCKED until this correction is independently merged
+and POST_MERGE_VERIFIED, then requires an explicit operator baseline refresh and all
+fresh verification/certification. Its old head evidence cannot satisfy those gates.
+Total administrator access loss, supported-hardware password-cost qualification,
 key rotation tooling, broad Client UI and `repo-policy.py` remain deferred.
 
 ## Next action
 
-Integrate only IMP-014 / TASK-0042 on existing PR #68 after required fresh verification and all trusted-main gates. Require successful exact-merge policy/Linux/Windows push CI before reporting Complete / POST_MERGE_VERIFIED, then stop. Do not begin TASK-0044, Client Company/Site UI, IMP-015 or successor work.
+Integrate only IMP-014 / TASK-0046 through its separate protected PR after all gates.
+Require successful exact-merge policy/Linux/Windows push CI before reporting Complete /
+POST_MERGE_VERIFIED, then stop and return control to the architect/operator.
+Do not modify or merge PR #70, refresh TASK-0045 automatically, integrate PR #69,
+or begin successor work.
