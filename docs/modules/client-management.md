@@ -18,8 +18,12 @@ its actor using `requireUserId()`. Identity administration creates/assigns the p
 through existing services with recent proof; migrations never seed it or any assignment.
 
 `ClientReferences` returns Optional immutable `ClientCompanyReference`/`ClientSiteReference`
-records through short read-only READ COMMITTED transactions. Only public UUIDs, display names, activity and non-secret edit versions cross the
-boundary. Site includes its parent UUID and parent activity; `effectiveActive()` is the
+records through independent 15-second REQUIRES_NEW read-only READ COMMITTED transactions
+([TASK-0037](../tasks/TASK-0037.md)). Ambient caller transactions are suspended, so older
+snapshots cannot hide committed Company/Site lifecycle changes. Each ambient caller retains
+its connection while the read uses another; callers must keep transactions short and account
+for that connection in pool capacity. Only public UUIDs, display names, activity and non-secret
+edit versions cross the boundary. Site includes its parent UUID and parent activity; `effectiveActive()` is the
 conjunction of stored Site and Company activity. Joined projection queries observe both
 in one database statement, without entities, repositories, lazy state or internal IDs.
 Consumers must resolve current effective activity before new active business references;
