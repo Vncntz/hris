@@ -12,7 +12,7 @@ Last updated: 2026-10-04. Current execution snapshot; historical verification be
 - Antigravity: [IMP-014](tasks/IMP-014.md) / [TASK-0041](../tasks/TASK-0041.md) login polish on [PR #66](https://github.com/Vncntz/hris/pull/66).
   Status: LOCAL_VERIFIED. Refreshed against main b3f0da4, factor ordering corrected, 6 unit tests
   and 7 headless Edge browser verification scenarios passed. Ready for serialized Codex trusted-main integration.
-- Codex: [TASK-0042](../tasks/TASK-0042.md) route authority alignment. Local development/PR authorized;
+- Codex: TASK-0042 route authority alignment. Local development/PR authorized;
   trusted-main integration remains blocked until TASK-0041 is Complete / POST_MERGE_VERIFIED.
 
 ## Verified baseline and dependency evidence
@@ -29,7 +29,8 @@ POST_MERGE_VERIFIED: final head `0f7293f30078faae7e59aadf77e88c7636686841`, succ
 actual merge `b3f0da4ff7303f3735184b05513f0301a7cf7635`, successful exact-merge main push
 [run 37178329705](https://github.com/Vncntz/hris/actions/runs/37178329705).
 Policy/Linux/Windows and required verification steps succeeded in both runs.
-This is TASK-0041's verified baseline and declared dependency; TASK-0039 remains
+TASK-0043 is TASK-0041's verified refreshed governance baseline; TASK-0041's
+declared product dependency is TASK-0040. TASK-0039 remains
 POST_MERGE_VERIFIED with evidence in its retained TASK. Historical TASK-0040 local
 progress records are preserved; this state reconciles its actual integration outcome.
 
