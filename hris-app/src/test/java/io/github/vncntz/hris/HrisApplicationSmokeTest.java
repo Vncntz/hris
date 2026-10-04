@@ -36,6 +36,8 @@ class HrisApplicationSmokeTest {
     @MockitoBean
     private io.github.vncntz.hris.clientmanagement.ClientReferences clientReferences;
     @MockitoBean
+    private io.github.vncntz.hris.clientmanagement.ClientAdministrationQueries clientAdministrationQueries;
+    @MockitoBean
     io.github.vncntz.hris.identityaccess.MfaAdministrationService mfaAdministration;
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     private io.github.vncntz.hris.identityaccess.RoleAdministrationService roleAdministration;
