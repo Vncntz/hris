@@ -547,6 +547,75 @@ class ClientAdministrationBrowserVerificationTest {
         }
     }
 
+    @Test
+    void clientAdminCompanySwitchWithSiteQueryFailureInvalidatesPriorSitesAndGuardsMutations() throws Exception {
+        try (EdgeCdpSession session = EdgeCdpSession.start("1920,1080")) {
+            loginAsAdmin(session);
+            navigateToClients(session);
+
+            // Select Alpha Corp (company 1)
+            clickGridRow(session, "#hris-company-grid", "Alpha Corp");
+            assertTrue(session.waitForCondition("document.querySelector('#hris-sites-context')?.textContent.includes('Sites for Alpha Corp')", 5000));
+            assertTrue(session.waitForCondition("!document.querySelector('#hris-site-grid').classList.contains('hris-hidden')", 5000));
+
+            // Select Alpha HQ site row in site grid
+            clickGridRow(session, "#hris-site-grid", "Alpha HQ");
+            assertTrue(session.waitForCondition("!document.querySelector('#hris-rename-site-btn').hasAttribute('disabled')", 5000));
+            assertEquals("false", session.eval("String(document.querySelector('#hris-toggle-site-btn').hasAttribute('disabled'))"));
+
+            // Inject site query failure for Company 2 (Beta Ltd)
+            syntheticStore.failingSitesCompanyId = company2Id;
+
+            // Switch to Beta Ltd in company grid
+            clickGridRow(session, "#hris-company-grid", "Beta Ltd");
+            assertTrue(session.waitForCondition("document.querySelector('#hris-sites-context')?.textContent.includes('Beta Ltd')", 5000));
+
+            // Verify safe site load failure feedback is shown
+            assertTrue(session.waitForCondition("document.querySelector('#hris-site-feedback')?.textContent.includes('The operation could not be completed') && document.querySelector('#hris-site-feedback').classList.contains('hris-feedback-error')", 5000),
+                    "Site area must display safe failure feedback");
+
+            // Verify stale Company-A site rows are cleared or hidden and controls disabled
+            assertTrue(session.waitForCondition("document.querySelector('#hris-site-grid').classList.contains('hris-hidden')", 5000),
+                    "Site grid must be hidden upon load failure");
+            assertEquals("true", session.eval("String(document.querySelector('#hris-rename-site-btn').hasAttribute('disabled'))"),
+                    "Rename site button must be disabled");
+            assertEquals("true", session.eval("String(document.querySelector('#hris-toggle-site-btn').hasAttribute('disabled'))"),
+                    "Toggle site button must be disabled");
+
+            // Attempt to click stale site cell if present in DOM: selection must fail closed
+            session.eval("""
+                    (() => {
+                        const cells = Array.from(document.querySelectorAll('#hris-site-grid vaadin-grid-cell-content'));
+                        const target = cells.find(c => (c.textContent || '').includes('Alpha HQ'));
+                        if (target) {
+                            target.click();
+                        }
+                    })()
+                    """);
+            assertEquals("true", session.eval("String(document.querySelector('#hris-rename-site-btn').hasAttribute('disabled'))"),
+                    "Rename site button must remain disabled after attempting to select stale site");
+            assertEquals("true", session.eval("String(document.querySelector('#hris-toggle-site-btn').hasAttribute('disabled'))"),
+                    "Toggle site button must remain disabled after attempting to select stale site");
+
+            // Attempt to trigger rename / toggle buttons and verify no wrong-parent mutation occurs
+            clickElement(session, "#hris-rename-site-btn");
+            assertEquals("null", session.eval("String(document.querySelector('#hris-rename-site-dialog'))"));
+
+            // Verify no site mutation occurred on Beta Ltd or Alpha Corp
+            SyntheticClientStore.SyntheticSite alphaHq = syntheticStore.sites.stream()
+                    .filter(s -> s.id.equals(site1Id))
+                    .findFirst()
+                    .orElseThrow();
+            assertEquals(1L, alphaHq.version);
+            assertEquals("Alpha HQ", alphaHq.name);
+
+            // Capture screenshot of the safe terminal error state after company switch
+            session.captureScreenshot(SCREENSHOT_DIR.resolve("clients-company-switch-site-failure.png"));
+
+            assertTrue(session.getConsoleErrors().isEmpty(), "No console errors during company switch failure: " + session.getConsoleErrors());
+        }
+    }
+
     private void loginAsAdmin(EdgeCdpSession session) throws Exception {
         AccountPrincipal principal = new AccountPrincipal(UUID.randomUUID(), "synthetic.admin");
         AuthenticatedAccount account = new AuthenticatedAccount(
@@ -691,6 +760,7 @@ class ClientAdministrationBrowserVerificationTest {
         final List<SyntheticSite> sites = new CopyOnWriteArrayList<>();
         final AtomicBoolean simulateStaleVersion = new AtomicBoolean(false);
         final AtomicBoolean simulatePersistenceFailure = new AtomicBoolean(false);
+        volatile UUID failingSitesCompanyId = null;
 
         static class SyntheticCompany {
             final UUID id;
@@ -735,6 +805,7 @@ class ClientAdministrationBrowserVerificationTest {
             sites.clear();
             simulateStaleVersion.set(false);
             simulatePersistenceFailure.set(false);
+            failingSitesCompanyId = null;
 
             // Add Alpha Corp (active) and Beta Ltd (inactive)
             companies.add(new SyntheticCompany(c1Id, "Alpha Corp", true, 1L));
@@ -780,6 +851,9 @@ class ClientAdministrationBrowserVerificationTest {
         }
 
         ClientSitePage getSites(UUID companyId, int offset, int limit) {
+            if (failingSitesCompanyId != null && failingSitesCompanyId.equals(companyId)) {
+                throw new ClientManagementException(ClientManagementException.Reason.PERSISTENCE_FAILED);
+            }
             SyntheticCompany company = companies.stream()
                     .filter(c -> c.id.equals(companyId))
                     .findFirst()

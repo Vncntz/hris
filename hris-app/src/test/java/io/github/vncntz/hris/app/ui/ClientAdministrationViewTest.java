@@ -792,6 +792,100 @@ class ClientAdministrationViewTest {
         assertTrue(feedback.getClassNames().contains("hris-feedback-error"));
     }
 
+    @Test
+    void switchingCompanyWithSiteQueryFailureInvalidatesPriorSitesAndGuardsAgainstWrongParentMutations() {
+        ClientCompanyReference compA = new ClientCompanyReference(company1Id, "Company A", true, 1L);
+        ClientCompanyReference compB = new ClientCompanyReference(company2Id, "Company B", true, 1L);
+        ClientSiteReference siteA = new ClientSiteReference(site1Id, company1Id, "Site A1", true, true, 1L);
+
+        when(queries.companies(0, ClientAdministrationView.PAGE_SIZE))
+                .thenReturn(new ClientCompanyPage(List.of(compA, compB), false));
+        when(queries.sites(company1Id, 0, ClientAdministrationView.PAGE_SIZE))
+                .thenReturn(new ClientSitePage(List.of(siteA), false));
+        when(queries.sites(company2Id, 0, ClientAdministrationView.PAGE_SIZE))
+                .thenThrow(new ClientManagementException(ClientManagementException.Reason.PERSISTENCE_FAILED));
+
+        ClientAdministrationView view = createView();
+
+        @SuppressWarnings("unchecked")
+        Grid<ClientCompanyReference> companyGrid = find(view, Grid.class, "hris-company-grid");
+        @SuppressWarnings("unchecked")
+        Grid<ClientSiteReference> siteGrid = find(view, Grid.class, "hris-site-grid");
+        Button renameSiteBtn = find(view, Button.class, "hris-rename-site-btn");
+        Button toggleSiteBtn = find(view, Button.class, "hris-toggle-site-btn");
+
+        // 1. Load Company A and successfully load its Sites
+        companyGrid.asSingleSelect().setValue(compA);
+        verify(queries, times(1)).sites(company1Id, 0, ClientAdministrationView.PAGE_SIZE);
+        siteGrid.asSingleSelect().setValue(siteA);
+        assertTrue(renameSiteBtn.isEnabled());
+        assertTrue(toggleSiteBtn.isEnabled());
+
+        // 2. Switch the selected Company to Company B where Site query fails
+        companyGrid.asSingleSelect().setValue(compB);
+        verify(queries, times(1)).sites(company2Id, 0, ClientAdministrationView.PAGE_SIZE);
+
+        // 3. Assert Company A's prior Site rows/selection are cleared or otherwise non-actionable
+        assertTrue(siteGrid.getClassNames().contains("hris-hidden"));
+        assertNull(siteGrid.asSingleSelect().getValue());
+        assertFalse(renameSiteBtn.isEnabled());
+        assertFalse(toggleSiteBtn.isEnabled());
+
+        Div siteFeedback = find(view, Div.class, "hris-site-feedback");
+        assertFalse(siteFeedback.getClassNames().contains("hris-hidden"));
+        assertTrue(siteFeedback.getClassNames().contains("hris-feedback-error"));
+
+        // 4. Attempt selection using retained mismatched Company-A ClientSiteReference: must fail closed
+        siteGrid.asSingleSelect().setValue(siteA);
+        assertNull(siteGrid.asSingleSelect().getValue());
+        assertFalse(renameSiteBtn.isEnabled());
+        assertFalse(toggleSiteBtn.isEnabled());
+
+        view.onSiteSelected(siteA);
+        assertNull(siteGrid.asSingleSelect().getValue());
+        assertFalse(renameSiteBtn.isEnabled());
+        assertFalse(toggleSiteBtn.isEnabled());
+
+        // 5. Attempt actions/mutations with stale site reference
+        renameSiteBtn.click();
+        toggleSiteBtn.click();
+        view.openRenameSiteDialog();
+        view.toggleSiteLifecycle();
+
+        // 6. Verify zero calls to renameSite, activateSite, deactivateSite or wrong-parent site mutations
+        verify(service, never()).renameSite(any(), anyString(), anyLong());
+        verify(service, never()).activateSite(any(), anyLong());
+        verify(service, never()).deactivateSite(any(), anyLong());
+        verify(service, never()).createSite(eq(company1Id), anyString());
+
+        // 7. Retain bounded query count assertions: exactly 1 for A and 1 for B, zero retry
+        verify(queries, times(1)).sites(company1Id, 0, ClientAdministrationView.PAGE_SIZE);
+        verify(queries, times(1)).sites(company2Id, 0, ClientAdministrationView.PAGE_SIZE);
+    }
+
+    @Test
+    void isSiteOwnedByCurrentCompanyReturnsFalseForMismatchedOrNullParent() {
+        ClientCompanyReference compA = new ClientCompanyReference(company1Id, "Company A", true, 1L);
+        ClientSiteReference siteA = new ClientSiteReference(site1Id, company1Id, "Site A", true, true, 1L);
+        ClientSiteReference siteB = new ClientSiteReference(site2Id, company2Id, "Site B", true, true, 1L);
+
+        when(queries.companies(0, ClientAdministrationView.PAGE_SIZE))
+                .thenReturn(new ClientCompanyPage(List.of(compA), false));
+        when(queries.sites(company1Id, 0, ClientAdministrationView.PAGE_SIZE))
+                .thenReturn(new ClientSitePage(List.of(siteA), false));
+
+        ClientAdministrationView view = createView();
+        assertFalse(view.isSiteOwnedByCurrentCompany(siteA), "No company selected yet");
+
+        @SuppressWarnings("unchecked")
+        Grid<ClientCompanyReference> companyGrid = find(view, Grid.class, "hris-company-grid");
+        companyGrid.asSingleSelect().setValue(compA);
+
+        assertTrue(view.isSiteOwnedByCurrentCompany(siteA), "Site A belongs to Company A");
+        assertFalse(view.isSiteOwnedByCurrentCompany(siteB), "Site B does not belong to Company A");
+        assertFalse(view.isSiteOwnedByCurrentCompany(null), "Null site reference is not owned");
+    }
+
     private static <T extends Component> T find(Component root, Class<T> type, String id) {
         return descendants(root).filter(type::isInstance).map(type::cast)
                 .filter(c -> c.getId().equals(Optional.of(id))).findFirst().orElseThrow();

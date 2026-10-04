@@ -404,11 +404,8 @@ public class ClientAdministrationView extends Div {
 
     private void loadSites(boolean allowPageRecovery) {
         if (selectedCompany == null) {
-            siteGrid.addClassName("hris-hidden");
-            siteEmpty.addClassName("hris-hidden");
+            invalidateSiteState();
             siteNoCompany.removeClassName("hris-hidden");
-            sitePaging.addClassName("hris-hidden");
-            clearSiteSelection();
             return;
         }
 
@@ -447,15 +444,20 @@ public class ClientAdministrationView extends Div {
                         .filter(s -> s.publicId().equals(targetSiteId))
                         .findFirst();
                 if (matching.isPresent()) {
-                    selectedSite = matching.get();
-                    selectedSiteId = selectedSite.publicId();
-                    programmaticSelectionChange = true;
-                    try {
-                        siteGrid.asSingleSelect().setValue(selectedSite);
-                    } finally {
-                        programmaticSelectionChange = false;
+                    ClientSiteReference found = matching.get();
+                    if (isSiteOwnedByCurrentCompany(found)) {
+                        selectedSite = found;
+                        selectedSiteId = selectedSite.publicId();
+                        programmaticSelectionChange = true;
+                        try {
+                            siteGrid.asSingleSelect().setValue(selectedSite);
+                        } finally {
+                            programmaticSelectionChange = false;
+                        }
+                        updateSiteActionButtons();
+                    } else {
+                        clearSiteSelection();
                     }
-                    updateSiteActionButtons();
                 } else {
                     clearSiteSelection();
                 }
@@ -477,19 +479,49 @@ public class ClientAdministrationView extends Div {
 
     private void handleSiteLoadFailure(ClientManagementException ex) {
         showSiteError(ex != null ? userMessageFor(ex) : "The operation could not be completed. Please try again later.");
+        invalidateSiteState();
         sitePrevBtn.setEnabled(siteOffset > 0);
         siteNextBtn.setEnabled(false);
         int pageNum = (siteOffset / PAGE_SIZE) + 1;
         sitePageInfo.setText("Page " + pageNum);
     }
 
+    private void invalidateSiteState() {
+        siteOffset = 0;
+        siteHasMore = false;
+        clearSiteSelection();
+        programmaticSelectionChange = true;
+        try {
+            siteGrid.setItems(List.of());
+        } finally {
+            programmaticSelectionChange = false;
+        }
+        siteGrid.addClassName("hris-hidden");
+        siteEmpty.addClassName("hris-hidden");
+        sitePaging.addClassName("hris-hidden");
+        sitePrevBtn.setEnabled(false);
+        siteNextBtn.setEnabled(false);
+        sitePageInfo.setText("Page 1");
+    }
+
+    boolean isSiteOwnedByCurrentCompany(ClientSiteReference site) {
+        if (site == null || selectedCompany == null || selectedCompanyId == null) {
+            return false;
+        }
+        UUID siteCompanyId = site.companyPublicId();
+        return siteCompanyId != null
+                && siteCompanyId.equals(selectedCompanyId)
+                && siteCompanyId.equals(selectedCompany.publicId());
+    }
+
     private void onCompanySelected(ClientCompanyReference company) {
         if (company != null) {
+            boolean companyChanged = selectedCompanyId == null || !selectedCompanyId.equals(company.publicId());
             selectedCompanyId = company.publicId();
             selectedCompany = company;
-            siteOffset = 0;
-            selectedSiteId = null;
-            selectedSite = null;
+            if (companyChanged) {
+                invalidateSiteState();
+            }
             updateCompanyActionButtons();
             loadSites();
         } else {
@@ -497,8 +529,12 @@ public class ClientAdministrationView extends Div {
         }
     }
 
-    private void onSiteSelected(ClientSiteReference site) {
+    void onSiteSelected(ClientSiteReference site) {
         if (site != null) {
+            if (!isSiteOwnedByCurrentCompany(site)) {
+                clearSiteSelection();
+                return;
+            }
             selectedSiteId = site.publicId();
             selectedSite = site;
             updateSiteActionButtons();
@@ -510,12 +546,14 @@ public class ClientAdministrationView extends Div {
     private void clearCompanySelection() {
         selectedCompanyId = null;
         selectedCompany = null;
+        invalidateSiteState();
         programmaticSelectionChange = true;
         try {
             companyGrid.asSingleSelect().clear();
         } finally {
             programmaticSelectionChange = false;
         }
+        siteNoCompany.removeClassName("hris-hidden");
         updateCompanyActionButtons();
         loadSites();
     }
@@ -567,9 +605,9 @@ public class ClientAdministrationView extends Div {
     }
 
     private void updateSiteActionButtons() {
-        boolean hasSelection = selectedSite != null;
-        renameSiteBtn.setEnabled(hasSelection);
-        if (!hasSelection) {
+        boolean hasValidSelection = isSiteOwnedByCurrentCompany(selectedSite);
+        if (!hasValidSelection) {
+            renameSiteBtn.setEnabled(false);
             toggleSiteBtn.setEnabled(false);
             toggleSiteBtn.setText("Deactivate");
             toggleSiteBtn.setIcon(new Icon(VaadinIcon.BAN));
@@ -578,6 +616,7 @@ public class ClientAdministrationView extends Div {
             return;
         }
 
+        renameSiteBtn.setEnabled(true);
         if (selectedSite.active()) {
             toggleSiteBtn.setEnabled(true);
             toggleSiteBtn.setText("Deactivate");
@@ -901,8 +940,11 @@ public class ClientAdministrationView extends Div {
         dialog.open();
     }
 
-    private void openRenameSiteDialog() {
-        if (selectedSite == null) return;
+    void openRenameSiteDialog() {
+        if (!isSiteOwnedByCurrentCompany(selectedSite)) {
+            clearSiteSelection();
+            return;
+        }
         Dialog dialog = new Dialog();
         dialog.setId("hris-rename-site-dialog");
         dialog.setHeaderTitle("Rename Site");
@@ -924,6 +966,13 @@ public class ClientAdministrationView extends Div {
         renameBtn.setId("hris-save-rename-site-btn");
         renameBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         renameBtn.addClickListener(e -> {
+            if (!isSiteOwnedByCurrentCompany(selectedSite)) {
+                dialog.close();
+                clearSiteSelection();
+                showSiteError("The selected record is no longer available. The view has been refreshed.");
+                loadSites();
+                return;
+            }
             String raw = nameField.getValue();
             String name = raw != null ? raw.strip() : "";
             if (name.isBlank()) {
@@ -983,8 +1032,12 @@ public class ClientAdministrationView extends Div {
         dialog.open();
     }
 
-    private void toggleSiteLifecycle() {
-        if (selectedSite == null || selectedCompany == null) return;
+    void toggleSiteLifecycle() {
+        if (!isSiteOwnedByCurrentCompany(selectedSite)) {
+            clearSiteSelection();
+            return;
+        }
+        if (selectedCompany == null) return;
         boolean willActivate = !selectedSite.active();
         if (willActivate && !selectedCompany.active()) {
             showSiteError("The company must be active to perform this site action. Current status has been refreshed.");
@@ -1001,6 +1054,12 @@ public class ClientAdministrationView extends Div {
         boolean isDestructive = !willActivate;
 
         openConfirmDialog(title, message, confirmText, isDestructive, () -> {
+            if (!isSiteOwnedByCurrentCompany(selectedSite)) {
+                clearSiteSelection();
+                showSiteError("The selected record is no longer available. The view has been refreshed.");
+                loadSites();
+                return;
+            }
             try {
                 if (willActivate) {
                     service.activateSite(selectedSite.publicId(), selectedSite.version());
