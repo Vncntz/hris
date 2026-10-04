@@ -5,12 +5,13 @@ next operator action only. [Execution rules](EXECUTION_RULES.md#14-implementatio
 define its limited authority. It does not select work or certify candidate SHA,
 CI, merge SHA, mergeability or completion; inspect Git/GitHub for those facts.
 Historical state evidence is preserved in the
-[Phase-3 migration record](../tasks/TASK-0045.md#preserved-migration-evidence).
+[Phase-3 migration record](../tasks/TASK-0045.md#preserved-migration-evidence), including
+[TASK-0046 verified closeout](../tasks/TASK-0045.md#authorized-baseline-refresh-2026-10-05).
 
 ## Active operator assignments
 
 - CODEX: [IMP-088](tasks/IMP-088.md) / [TASK-0045](../tasks/TASK-0045.md), Phase-3
-  core repository constitution implementation only. No integration/next-phase authority.
+  core repository constitution baseline refresh and fresh owner verification only. No integration/next-phase authority.
 - ANTIGRAVITY: IMP-014 / TASK-0044, separate client administration UI candidate;
   work order is on its candidate branch. The
   [transition record](../tasks/TASK-0045.md#transition-compatibility) preserves its
