@@ -6,18 +6,18 @@ Last updated: 2026-10-04. Current execution snapshot; historical verification be
 
 - M0 is complete through [IMP-011](tasks/IMP-011.md).
 - M1 - Workforce Foundation: [IMP-012](tasks/IMP-012.md) and [IMP-013](tasks/IMP-013.md) are complete after verified closeout and fresh completion review.
-- Active work: [IMP-014](tasks/IMP-014.md) / [TASK-0039](../tasks/TASK-0039.md), Client administration browse/query backend contract. Owner: CODEX. Status: LOCAL_VERIFIED; exact-head CI, trusted integration and exact-merge push CI pending.
-- TASK-0037 remains Complete / POST_MERGE_VERIFIED. Fresh external review supplied with TASK-0039 found its foundation sound and selected bounded administrator browsing as the remaining backend gap. IMP-014 remains ACTIVE pending fresh external review after TASK-0039.
+- Active work: [IMP-014](tasks/IMP-014.md) / [TASK-0040](../tasks/TASK-0040.md), authenticated Vaadin application shell foundation. Owner: ANTIGRAVITY. Status: LOCAL_VERIFIED; exact-head CI, trusted integration and exact-merge push CI pending.
+- TASK-0039 is Complete / POST_MERGE_VERIFIED. IMP-014 remains ACTIVE.
 
 ## Immediately relevant predecessor
 
-TASK-0038 [PR #63](https://github.com/Vncntz/hris/pull/63), final head
-`6ddb5af2b095542f396f13516c8f478a715ee536`, merged as
-`babf78ea2cb38dd5ba74f87f2bca6bec46057cea`. Independently refreshed exact-head
-[run 37165002074](https://github.com/Vncntz/hris/actions/runs/37165002074) and exact-merge
-main push [run 37165401785](https://github.com/Vncntz/hris/actions/runs/37165401785)
+TASK-0039 [PR #64](https://github.com/Vncntz/hris/pull/64), final head
+`1f75324c26aec6638a15c9708d77fd310f4d551d`, merged as
+`e6e7361b434a772873da37c6dc9f5a1cf4553a03`. Independently refreshed exact-head
+[run 37169911990](https://github.com/Vncntz/hris/actions/runs/37169911990) and exact-merge
+main push [run 37170347005](https://github.com/Vncntz/hris/actions/runs/37170347005)
 passed policy/Linux/Windows, including their required verification steps.
-TASK-0038 is Complete / POST_MERGE_VERIFIED; no predecessor CI blocker remains.
+TASK-0039 is Complete / POST_MERGE_VERIFIED; no predecessor CI blocker remains.
 
 ## Active durable decisions
 
@@ -32,18 +32,18 @@ TASK-0038 is Complete / POST_MERGE_VERIFIED; no predecessor CI blocker remains.
 
 ## Blockers and open verification
 
-TASK-0039 local verification passed: Windows 178 ordinary and Linux 178 ordinary / 158
-MySQL tests, all final reports inspected with zero failures/errors/skips/flaky/reruns;
-focused Client 21 unit / 18 MySQL tests, architecture checks, 42 tooling tests,
-planning/task routing, local documentation links/anchors, whitespace, released-migration
-preservation and full-diff/security/privacy review passed. Exact-final-head CI,
+TASK-0040 local verification passed: Windows 177 tests across 26 Surefire XML reports,
+zero failures/errors/skips/flaky/reruns; 6 shell unit tests passed, planning index check passed,
+42 tooling tests passed, 186 local links/anchors validated, whitespace clean. Browser subagent
+Playwright driver download encountered remote CDN 404 (playwright-1.57.0-win32_x64.zip),
+documented as an external browser environment gap per operator instruction; HTTP probe confirmed
+anonymous /login (200), /lumo/lumo.css (200), and root redirection to login (302). Exact-final-head CI,
 trusted-main gates and exact-merge push CI remain required. Total administrator access loss,
 supported-hardware password-cost qualification, key rotation tooling, broad Client UI
 and `repo-policy.py` remain deferred.
 
 ## Next action
 
-Complete only IMP-014 / TASK-0039 and its combined work-order/implementation PR through
-all required verification and protected integration gates. After successful exact-merge push CI,
-report POST_MERGE_VERIFIED and stop. Fresh external review selects any later work or IMP closure.
-No frontend implementation, TASK-0040, IMP-015, Position or other successor work is authorized.
+Integrate only IMP-014 / TASK-0040 through Codex trusted-main integration gates. After successful
+exact-merge push CI, report POST_MERGE_VERIFIED and stop. Do not begin Client Company/Site CRUD,
+IMP-015 or any successor TASK.

@@ -44,7 +44,8 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0036](TASK-0036.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Client Company and Client Site master-data lifecycle |
 | [TASK-0037](TASK-0037.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Isolate Client reference queries from ambient transactions |
 | [TASK-0038](TASK-0038.md) | [IMP-088](../implementation/tasks/IMP-088.md) | Complete; POST_MERGE_VERIFIED | Onboard Antigravity as Vaadin UI specialist |
-| [TASK-0039](TASK-0039.md) | [IMP-014](../implementation/tasks/IMP-014.md) | LOCAL_VERIFIED | Client administration browse/query backend contract |
+| [TASK-0039](TASK-0039.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Client administration browse/query backend contract |
+| [TASK-0040](TASK-0040.md) | [IMP-014](../implementation/tasks/IMP-014.md) | LOCAL_VERIFIED | Authenticated Vaadin application shell foundation |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. The frozen backlog reserves IMP-001 through IMP-086; IMP-087 and IMP-088 are separately authorized maintenance parents. Current execution routing and verified predecessor evidence live in [implementation state](../implementation/IMPLEMENTATION_STATE.md).
 
@@ -55,8 +56,9 @@ TASK-0035 is Complete / POST_MERGE_VERIFIED after PR #60. IMP-013 is complete af
 TASK-0036 is Complete / POST_MERGE_VERIFIED after PR #61.
 TASK-0037 is Complete / POST_MERGE_VERIFIED after PR #62.
 TASK-0038 is Complete / POST_MERGE_VERIFIED after PR #63.
-Only IMP-014 / TASK-0039 backend browsing is currently authorized.
-IMP-014 remains active pending fresh external post-TASK-0039 review; IMP-015 is not started.
+TASK-0039 is Complete / POST_MERGE_VERIFIED after PR #64.
+Only IMP-014 / TASK-0040 authenticated Vaadin shell foundation is currently authorized.
+IMP-014 remains active; IMP-015 is not started.
 Current evidence and action are routed through implementation state.
 TASK-0031's verified correction closes TASK-0030's failed post-merge chain and IMP-012 reopening.
 `repo-policy.py` remains deferred without a work-order allocation.
