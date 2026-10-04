@@ -326,6 +326,10 @@ public class ClientAdministrationView extends Div {
     }
 
     private void loadCompanies() {
+        loadCompanies(true);
+    }
+
+    private void loadCompanies(boolean allowPageRecovery) {
         try {
             ClientCompanyPage page = queries.companies(companyOffset, PAGE_SIZE);
             companyHasMore = page.hasMore();
@@ -374,13 +378,31 @@ public class ClientAdministrationView extends Div {
                 clearCompanySelection();
             }
         } catch (ClientManagementException ex) {
-            handleCompanyException(ex);
+            if (allowPageRecovery && ex.reason() == ClientManagementException.Reason.INVALID_PAGE && companyOffset > 0) {
+                companyOffset = 0;
+                showCompanyError(userMessageFor(ex));
+                loadCompanies(false);
+            } else {
+                handleCompanyLoadFailure(ex);
+            }
         } catch (Exception ex) {
-            showCompanyError("The operation could not be completed. Please try again later.");
+            handleCompanyLoadFailure(null);
         }
     }
 
+    private void handleCompanyLoadFailure(ClientManagementException ex) {
+        showCompanyError(ex != null ? userMessageFor(ex) : "The operation could not be completed. Please try again later.");
+        companyPrevBtn.setEnabled(companyOffset > 0);
+        companyNextBtn.setEnabled(false);
+        int pageNum = (companyOffset / PAGE_SIZE) + 1;
+        companyPageInfo.setText("Page " + pageNum);
+    }
+
     private void loadSites() {
+        loadSites(true);
+    }
+
+    private void loadSites(boolean allowPageRecovery) {
         if (selectedCompany == null) {
             siteGrid.addClassName("hris-hidden");
             siteEmpty.addClassName("hris-hidden");
@@ -441,10 +463,24 @@ public class ClientAdministrationView extends Div {
                 clearSiteSelection();
             }
         } catch (ClientManagementException ex) {
-            handleSiteException(ex);
+            if (allowPageRecovery && ex.reason() == ClientManagementException.Reason.INVALID_PAGE && siteOffset > 0) {
+                siteOffset = 0;
+                showSiteError(userMessageFor(ex));
+                loadSites(false);
+            } else {
+                handleSiteLoadFailure(ex);
+            }
         } catch (Exception ex) {
-            showSiteError("The operation could not be completed. Please try again later.");
+            handleSiteLoadFailure(null);
         }
+    }
+
+    private void handleSiteLoadFailure(ClientManagementException ex) {
+        showSiteError(ex != null ? userMessageFor(ex) : "The operation could not be completed. Please try again later.");
+        sitePrevBtn.setEnabled(siteOffset > 0);
+        siteNextBtn.setEnabled(false);
+        int pageNum = (siteOffset / PAGE_SIZE) + 1;
+        sitePageInfo.setText("Page " + pageNum);
     }
 
     private void onCompanySelected(ClientCompanyReference company) {
@@ -647,7 +683,7 @@ public class ClientAdministrationView extends Div {
                     nameField.setInvalid(true);
                 } else {
                     dialog.close();
-                    handleCompanyException(ex);
+                    handleCompanyMutationException(ex);
                 }
             } catch (Exception ex) {
                 dialog.close();
@@ -730,7 +766,7 @@ public class ClientAdministrationView extends Div {
                     nameField.setInvalid(true);
                 } else {
                     dialog.close();
-                    handleCompanyException(ex);
+                    handleCompanyMutationException(ex);
                 }
             } catch (Exception ex) {
                 dialog.close();
@@ -773,7 +809,7 @@ public class ClientAdministrationView extends Div {
                 loadCompanies();
                 loadSites();
             } catch (ClientManagementException ex) {
-                handleCompanyException(ex);
+                handleCompanyMutationException(ex);
             } catch (Exception ex) {
                 showCompanyError("The operation could not be completed. Please try again later.");
                 loadCompanies();
@@ -845,7 +881,7 @@ public class ClientAdministrationView extends Div {
                     nameField.setInvalid(true);
                 } else {
                     dialog.close();
-                    handleSiteException(ex);
+                    handleSiteMutationException(ex);
                 }
             } catch (Exception ex) {
                 dialog.close();
@@ -927,7 +963,7 @@ public class ClientAdministrationView extends Div {
                     nameField.setInvalid(true);
                 } else {
                     dialog.close();
-                    handleSiteException(ex);
+                    handleSiteMutationException(ex);
                 }
             } catch (Exception ex) {
                 dialog.close();
@@ -975,7 +1011,7 @@ public class ClientAdministrationView extends Div {
                 }
                 loadSites();
             } catch (ClientManagementException ex) {
-                handleSiteException(ex);
+                handleSiteMutationException(ex);
             } catch (Exception ex) {
                 showSiteError("The operation could not be completed. Please try again later.");
                 loadSites();
@@ -1022,7 +1058,7 @@ public class ClientAdministrationView extends Div {
         dialog.open();
     }
 
-    private void handleCompanyException(ClientManagementException ex) {
+    private void handleCompanyMutationException(ClientManagementException ex) {
         showCompanyError(userMessageFor(ex));
         switch (ex.reason()) {
             case NOT_FOUND, INVALID_TARGET -> {
@@ -1037,11 +1073,13 @@ public class ClientAdministrationView extends Div {
                 companyOffset = 0;
                 loadCompanies();
             }
-            default -> loadCompanies();
+            default -> {
+                // Safe error message is displayed; no automatic retry
+            }
         }
     }
 
-    private void handleSiteException(ClientManagementException ex) {
+    private void handleSiteMutationException(ClientManagementException ex) {
         showSiteError(userMessageFor(ex));
         switch (ex.reason()) {
             case NOT_FOUND, INVALID_TARGET -> {
@@ -1059,7 +1097,9 @@ public class ClientAdministrationView extends Div {
                 siteOffset = 0;
                 loadSites();
             }
-            default -> loadSites();
+            default -> {
+                // Safe error message is displayed; no automatic retry
+            }
         }
     }
 

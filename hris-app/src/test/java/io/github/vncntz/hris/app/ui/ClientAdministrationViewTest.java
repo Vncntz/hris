@@ -668,6 +668,130 @@ class ClientAdministrationViewTest {
         assertTrue(feedback.getElement().getTextRecursively().contains("Reset to the first page"));
     }
 
+    @Test
+    void persistentCompanyQueryFailureDoesNotRecursivelyRetryAndRendersSafeFeedback() {
+        when(queries.companies(0, ClientAdministrationView.PAGE_SIZE))
+                .thenThrow(new ClientManagementException(ClientManagementException.Reason.PERSISTENCE_FAILED));
+
+        ClientAdministrationView view = createView();
+
+        // Must query exactly once; zero recursive retry
+        verify(queries, times(1)).companies(0, ClientAdministrationView.PAGE_SIZE);
+
+        Div feedback = find(view, Div.class, "hris-company-feedback");
+        assertFalse(feedback.getClassNames().contains("hris-hidden"));
+        assertTrue(feedback.getClassNames().contains("hris-feedback-error"));
+        String text = feedback.getElement().getTextRecursively();
+        assertTrue(text.contains("The operation could not be completed"));
+        assertFalse(text.contains("SQL"));
+        assertFalse(text.contains("Exception"));
+
+        Button prevBtn = find(view, Button.class, "hris-company-prev-btn");
+        Button nextBtn = find(view, Button.class, "hris-company-next-btn");
+        assertFalse(prevBtn.isEnabled());
+        assertFalse(nextBtn.isEnabled());
+        Span pageInfo = find(view, Span.class, "hris-company-page-info");
+        assertEquals("Page 1", pageInfo.getText());
+    }
+
+    @Test
+    void persistentSiteQueryFailureDoesNotRecursivelyRetryAndRendersSafeFeedback() {
+        ClientCompanyReference c1 = new ClientCompanyReference(company1Id, "Alpha Corp", true, 1L);
+        when(queries.companies(0, ClientAdministrationView.PAGE_SIZE))
+                .thenReturn(new ClientCompanyPage(List.of(c1), false));
+        when(queries.sites(company1Id, 0, ClientAdministrationView.PAGE_SIZE))
+                .thenThrow(new ClientManagementException(ClientManagementException.Reason.PERSISTENCE_FAILED));
+
+        ClientAdministrationView view = createView();
+
+        @SuppressWarnings("unchecked")
+        Grid<ClientCompanyReference> companyGrid = find(view, Grid.class, "hris-company-grid");
+        companyGrid.asSingleSelect().setValue(c1);
+
+        // Must query sites exactly once; zero recursive retry
+        verify(queries, times(1)).sites(company1Id, 0, ClientAdministrationView.PAGE_SIZE);
+
+        Div feedback = find(view, Div.class, "hris-site-feedback");
+        assertFalse(feedback.getClassNames().contains("hris-hidden"));
+        assertTrue(feedback.getClassNames().contains("hris-feedback-error"));
+        String text = feedback.getElement().getTextRecursively();
+        assertTrue(text.contains("The operation could not be completed"));
+        assertFalse(text.contains("SQL"));
+        assertFalse(text.contains("Exception"));
+
+        Button prevBtn = find(view, Button.class, "hris-site-prev-btn");
+        Button nextBtn = find(view, Button.class, "hris-site-next-btn");
+        assertFalse(prevBtn.isEnabled());
+        assertFalse(nextBtn.isEnabled());
+        Span pageInfo = find(view, Span.class, "hris-site-page-info");
+        assertEquals("Page 1", pageInfo.getText());
+    }
+
+    @Test
+    void invalidPageRecoveryStopsIfRecoveryQueryAlsoFails() {
+        when(queries.companies(0, ClientAdministrationView.PAGE_SIZE))
+                .thenReturn(new ClientCompanyPage(List.of(new ClientCompanyReference(company1Id, "C", true, 1L)), true));
+        when(queries.companies(ClientAdministrationView.PAGE_SIZE, ClientAdministrationView.PAGE_SIZE))
+                .thenThrow(new ClientManagementException(ClientManagementException.Reason.INVALID_PAGE));
+
+        ClientAdministrationView view = createView();
+
+        // Prepare page 0 query to fail when recovery attempts to reload it
+        when(queries.companies(0, ClientAdministrationView.PAGE_SIZE))
+                .thenThrow(new ClientManagementException(ClientManagementException.Reason.PERSISTENCE_FAILED));
+
+        Button nextBtn = find(view, Button.class, "hris-company-next-btn");
+        assertTrue(nextBtn.isEnabled());
+        nextBtn.click();
+
+        // Exactly 1 initial load + 1 page-next attempt + 1 recovery query = 3 queries max, no loop
+        verify(queries, times(2)).companies(0, ClientAdministrationView.PAGE_SIZE);
+        verify(queries, times(1)).companies(ClientAdministrationView.PAGE_SIZE, ClientAdministrationView.PAGE_SIZE);
+
+        Div feedback = find(view, Div.class, "hris-company-feedback");
+        assertFalse(feedback.getClassNames().contains("hris-hidden"));
+        assertTrue(feedback.getClassNames().contains("hris-feedback-error"));
+
+        Button prevBtn = find(view, Button.class, "hris-company-prev-btn");
+        assertFalse(prevBtn.isEnabled());
+        assertFalse(nextBtn.isEnabled());
+    }
+
+    @Test
+    void mutationRefreshFailureTerminatesSafelyWithoutRecursiveRetry() {
+        ClientCompanyReference c1 = new ClientCompanyReference(company1Id, "Acme", true, 1L);
+        when(queries.companies(0, ClientAdministrationView.PAGE_SIZE))
+                .thenReturn(new ClientCompanyPage(List.of(c1), false));
+        when(service.renameCompany(company1Id, "New Name", 1L))
+                .thenThrow(new ClientManagementException(ClientManagementException.Reason.STALE_VERSION));
+
+        ClientAdministrationView view = createView();
+
+        // Make subsequent refresh query fail
+        when(queries.companies(0, ClientAdministrationView.PAGE_SIZE))
+                .thenThrow(new ClientManagementException(ClientManagementException.Reason.PERSISTENCE_FAILED));
+
+        @SuppressWarnings("unchecked")
+        Grid<ClientCompanyReference> companyGrid = find(view, Grid.class, "hris-company-grid");
+        companyGrid.asSingleSelect().setValue(c1);
+
+        Button renameBtn = find(view, Button.class, "hris-rename-company-btn");
+        renameBtn.click();
+
+        Dialog dialog = find(view, Dialog.class, "hris-rename-company-dialog");
+        TextField input = find(dialog, TextField.class, "hris-rename-company-input");
+        input.setValue("New Name");
+        Button saveBtn = find(dialog, Button.class, "hris-save-rename-company-btn");
+        saveBtn.click();
+
+        // Exactly 1 initial load + 1 mutation refresh attempt = 2 invocations total
+        verify(queries, times(2)).companies(0, ClientAdministrationView.PAGE_SIZE);
+
+        Div feedback = find(view, Div.class, "hris-company-feedback");
+        assertFalse(feedback.getClassNames().contains("hris-hidden"));
+        assertTrue(feedback.getClassNames().contains("hris-feedback-error"));
+    }
+
     private static <T extends Component> T find(Component root, Class<T> type, String id) {
         return descendants(root).filter(type::isInstance).map(type::cast)
                 .filter(c -> c.getId().equals(Optional.of(id))).findFirst().orElseThrow();
