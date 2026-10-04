@@ -7,8 +7,20 @@ description: Implements an explicitly assigned HRIS Vaadin UI TASK as Antigravit
 
 Start only from an exact operator/planner-assigned IMP/TASK that designates Antigravity
 as primary implementer. Skill discovery does not authorize backlog selection. Follow the
-root [AGENTS.md](../../../AGENTS.md) and its one-primary-implementer rule; no concurrent
-Codex/Antigravity feature-branch implementation without explicit TASK collaboration authority.
+root [AGENTS.md](../../../AGENTS.md) and its one-primary-implementer rule. One active
+TASK per agent; independent Codex and Antigravity assignments may run concurrently only
+under [assignment eligibility](../../../docs/implementation/EXECUTION_RULES.md#3-one-active-task-per-agent).
+Verify owner, baseline SHA, declared dependencies with exact-head/exact-merge CI,
+permitted edit paths/modules and separate branch/worktree before editing. Never share
+an active checkout or branch or overlap another lane's source/test ownership. Same-TASK
+collaboration still requires explicit operator authorization.
+
+Use only verified application contracts. An unfinished required backend contract blocks
+this UI TASK even when its view files are disjoint. Record evidence in this TASK;
+Codex reconciles shared execution/index/parent documentation during serialized integration.
+After another PR merges, refresh the candidate with current main, rerun required checks
+and obtain new exact-head policy/Linux/Windows CI before integration. Skill discovery
+and an unrelated task's completion never authorize successor work.
 
 Read the exact work order from the [task index](../../../docs/tasks/README.md), its parent
 IMP, [execution rules](../../../docs/implementation/EXECUTION_RULES.md),

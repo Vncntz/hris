@@ -14,7 +14,12 @@ Read root [AGENTS.md](../../../AGENTS.md), the exact IMP/TASK from the
 Follow the [documentation index](../../../docs/README.md) to relevant module AGENTS,
 module/domain docs, ADRs and acceptance decisions. This is UI verification, not generic
 backend code review. Respect the designated primary implementer and do not concurrently
-edit its feature branch without explicit operator authorization.
+edit its feature branch without explicit operator authorization. If fixes are authorized,
+verify the [assignment eligibility rules](../../../docs/implementation/EXECUTION_RULES.md#3-one-active-task-per-agent):
+one active TASK per agent, verified declared dependencies, disjoint edit ownership and
+a separate worktree/branch. Read-only review may inspect another lane without gaining
+edit authority. Record findings in the assigned TASK; Codex coordinates shared
+execution/index/parent documentation during serialized integration.
 
 ## Prepare a reproducible browser session
 
