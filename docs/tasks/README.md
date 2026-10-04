@@ -45,7 +45,8 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0037](TASK-0037.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Isolate Client reference queries from ambient transactions |
 | [TASK-0038](TASK-0038.md) | [IMP-088](../implementation/tasks/IMP-088.md) | Complete; POST_MERGE_VERIFIED | Onboard Antigravity as Vaadin UI specialist |
 | [TASK-0039](TASK-0039.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Client administration browse/query backend contract |
-| [TASK-0040](TASK-0040.md) | [IMP-014](../implementation/tasks/IMP-014.md) | LOCAL_VERIFIED | Authenticated Vaadin application shell foundation |
+| [TASK-0040](TASK-0040.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Authenticated Vaadin application shell foundation |
+| [TASK-0041](TASK-0041.md) | [IMP-014](../implementation/tasks/IMP-014.md) | LOCAL_VERIFIED | Polish responsive HRIS login experience |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. The frozen backlog reserves IMP-001 through IMP-086; IMP-087 and IMP-088 are separately authorized maintenance parents. Current execution routing and verified predecessor evidence live in [implementation state](../implementation/IMPLEMENTATION_STATE.md).
 
@@ -57,7 +58,8 @@ TASK-0036 is Complete / POST_MERGE_VERIFIED after PR #61.
 TASK-0037 is Complete / POST_MERGE_VERIFIED after PR #62.
 TASK-0038 is Complete / POST_MERGE_VERIFIED after PR #63.
 TASK-0039 is Complete / POST_MERGE_VERIFIED after PR #64.
-Only IMP-014 / TASK-0040 authenticated Vaadin shell foundation is currently authorized.
+TASK-0040 is Complete / POST_MERGE_VERIFIED after PR #65.
+Only IMP-014 / TASK-0041 polished responsive login experience is currently authorized.
 IMP-014 remains active; IMP-015 is not started.
 Current evidence and action are routed through implementation state.
 TASK-0031's verified correction closes TASK-0030's failed post-merge chain and IMP-012 reopening.
