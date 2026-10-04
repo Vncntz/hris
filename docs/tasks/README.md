@@ -47,8 +47,9 @@ Allocate the next unused four-digit TASK ID after checking this directory and Gi
 | [TASK-0039](TASK-0039.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Client administration browse/query backend contract |
 | [TASK-0040](TASK-0040.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Authenticated Vaadin application shell foundation |
 | [TASK-0041](TASK-0041.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Polish responsive HRIS login experience |
-| [TASK-0042](TASK-0042.md) | [IMP-014](../implementation/tasks/IMP-014.md) | LOCAL_VERIFIED; WAITING_CI | Align Vaadin route authorization with persisted permission authorities |
+| [TASK-0042](TASK-0042.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Align Vaadin route authorization with persisted permission authorities |
 | [TASK-0043](TASK-0043.md) | [IMP-088](../implementation/tasks/IMP-088.md) | Complete; POST_MERGE_VERIFIED | Independent Codex and Antigravity implementation lanes |
+| [TASK-0046](TASK-0046.md) | [IMP-014](../implementation/tasks/IMP-014.md) | LOCAL_VERIFIED; integration pending | Stabilize Vaadin request ownership in route-authority test harness |
 
 IMP-001 predates this convention and has no corresponding `TASK-####` file. The frozen backlog reserves IMP-001 through IMP-086; IMP-087 and IMP-088 are separately authorized maintenance parents. Current execution routing and verified predecessor evidence live in [implementation state](../implementation/IMPLEMENTATION_STATE.md).
 
@@ -63,7 +64,8 @@ TASK-0039 is Complete / POST_MERGE_VERIFIED after PR #64.
 TASK-0040 is Complete / POST_MERGE_VERIFIED through PR #65 and exact-merge push run 37172767555.
 TASK-0043 is Complete / POST_MERGE_VERIFIED through PR #67 and exact-merge push run 37178329705.
 IMP-014 / TASK-0041 is Complete / POST_MERGE_VERIFIED through PR #66 and exact-merge push run 37185857649.
-TASK-0042 is refreshed with its dependency satisfied; current verification and integration gates are routed through implementation state.
+TASK-0042 is Complete / POST_MERGE_VERIFIED through PR #68 and exact-merge push run 37187489775.
+TASK-0046 corrects the intermittent baseline test-harness lifetime defect; current gates are routed through implementation state.
 IMP-014 remains active; IMP-015 is not started.
 Current evidence and action are routed through implementation state.
 TASK-0031's verified correction closes TASK-0030's failed post-merge chain and IMP-012 reopening.
