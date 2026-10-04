@@ -9,13 +9,12 @@ Last updated: 2026-10-04. Current execution snapshot; historical verification be
   IMP-014 remains ACTIVE; IMP-015 is not started.
 - Codex: [IMP-088](tasks/IMP-088.md) / [TASK-0043](../tasks/TASK-0043.md), independent
   implementation-lane governance. Status: Complete / POST_MERGE_VERIFIED.
-- Antigravity: [IMP-014](tasks/IMP-014.md) / [TASK-0041](../tasks/TASK-0041.md) login polish on [PR #66](https://github.com/Vncntz/hris/pull/66).
-  Status: LOCAL_VERIFIED. Refreshed against main b3f0da4, factor ordering corrected, 6 unit tests
-  and 7 headless Edge browser verification scenarios passed. Ready for serialized Codex trusted-main integration.
-- Codex: TASK-0042 route authority alignment. Local development/PR authorized;
-  trusted-main integration remains blocked until TASK-0041 is Complete / POST_MERGE_VERIFIED.
+- Antigravity: IMP-014 / TASK-0041 is Complete / POST_MERGE_VERIFIED; no active UI implementation is assigned here.
+- Codex: [IMP-014](tasks/IMP-014.md) / [TASK-0042](../tasks/TASK-0042.md), route authority alignment on [PR #68](https://github.com/Vncntz/hris/pull/68). Refreshed against protected main `0e7e34cfddf1415893747191555d26f213225acc`; TASK-0041 prerequisite satisfied. Fresh local verification, exact-head CI and trusted-main integration remain required.
 
 ## Verified baseline and dependency evidence
+
+TASK-0041 / [PR #66](https://github.com/Vncntz/hris/pull/66) is Complete / POST_MERGE_VERIFIED: final head `c798e1e734cfa32b4f89c0f3ca15947789126a57`, successful exact-head [run 37185518688](https://github.com/Vncntz/hris/actions/runs/37185518688), merge `0e7e34cfddf1415893747191555d26f213225acc`, successful exact-merge main push [run 37185857649](https://github.com/Vncntz/hris/actions/runs/37185857649). Policy/Linux/Windows passed in both independently inspected runs.
 
 TASK-0040 / [PR #65](https://github.com/Vncntz/hris/pull/65) is independently Complete /
 POST_MERGE_VERIFIED: final head `6d4b9264382f31547f0b542c31b1918330645b17`, successful
@@ -47,16 +46,9 @@ progress records are preserved; this state reconciles its actual integration out
 
 ## Blockers and open verification
 
-TASK-0041 local verification passed: clean Maven verify across modules; 6 LoginView unit tests passed;
-7 LoginViewBrowserVerificationTest browser tests passed in headless Edge across desktop (1920x1080),
-laptop (1366x768), narrow mobile (500x800 and 375x667), natural keyboard tab navigation, invalid credential
-authentication failure, synthetic authentication to authenticated shell, and logout; planning index check passed,
-42 tooling tests passed, diff clean. Exact-final-head CI, trusted-main gates and exact-merge push CI
-remain required. Total administrator access loss, supported-hardware password-cost qualification,
+TASK-0042 refreshed candidate requires repeated local checks, fresh exact-head policy/Linux/Windows CI, full trusted-main gate evaluation, protected merge and exact-merge push CI. No dependency blocker remains. Total administrator access loss, supported-hardware password-cost qualification,
 key rotation tooling, broad Client UI and `repo-policy.py` remain deferred.
 
 ## Next action
 
-Integrate only IMP-014 / TASK-0041 through Codex trusted-main integration gates. After successful
-exact-merge push CI, report POST_MERGE_VERIFIED and stop. TASK-0042 remains blocked from merge until
-TASK-0041 is POST_MERGE_VERIFIED. Do not begin Client Company/Site CRUD, IMP-015 or any successor TASK.
+Integrate only IMP-014 / TASK-0042 on existing PR #68 after required fresh verification and all trusted-main gates. Require successful exact-merge policy/Linux/Windows push CI before reporting Complete / POST_MERGE_VERIFIED, then stop. Do not begin TASK-0044, Client Company/Site UI, IMP-015 or successor work.

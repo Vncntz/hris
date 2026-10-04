@@ -11,12 +11,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration(proxyBeanMethods = false)
 class SecurityConfiguration {
+    @Bean
+    static GrantedAuthorityDefaults grantedAuthorityDefaults() {
+        // Vaadin @RolesAllowed uses Identity & Access's exact persisted authority keys.
+        return new GrantedAuthorityDefaults("");
+    }
+
     @Bean
     HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();
