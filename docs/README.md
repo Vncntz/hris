@@ -33,7 +33,9 @@ Use this index to find authoritative sources; current execution status and prede
 
 These indexes route to focused records as work is implemented and verified. The planning index and task packets are derived routing aids, never authority or gate evidence. Read repository rules directly; operator prompts need only supply task authorization and specific constraints rather than repeat governance, source code, or full frozen plans.
 
-Current authorized work is [IMP-014](implementation/tasks/IMP-014.md) /
-[TASK-0039](tasks/TASK-0039.md), Client administration browse/query backend contract.
+Current workflow maintenance is [IMP-088](implementation/tasks/IMP-088.md) /
+[TASK-0043](tasks/TASK-0043.md), independent Codex/Antigravity implementation lanes.
+Active assignments and dependency eligibility are routed through implementation state
+and the [execution rules](implementation/EXECUTION_RULES.md#3-one-active-task-per-agent).
 [AGENTS.md](../AGENTS.md) routes implementation roles and the two workspace skills.
 Current execution evidence and next action remain in implementation state.

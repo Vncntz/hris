@@ -1,7 +1,7 @@
 # HRIS IMPLEMENTATION EXECUTION RULES
 
-Version: 1.3
-Last Updated: 2026-10-03
+Version: 1.4
+Last Updated: 2026-10-04
 
 ## 1. MISSION
 
@@ -57,15 +57,54 @@ If implementation reveals that a frozen architecture decision should change:
 4. propose an ADR;
 5. wait for explicit approval before changing the architecture.
 
-## 3. ONE-TASK RULE
+## 3. ONE ACTIVE TASK PER AGENT
 
-Work on ONE `IMP-###` implementation item at a time.
+Each implementation agent works on one explicitly assigned IMP/TASK at a time.
+Codex normally owns backend/security/tooling; Antigravity normally owns Vaadin UI.
+Independent tasks may be implemented concurrently, including across IMP items,
+without combining their scopes or PRs. Exactly one primary implementer owns each TASK.
+An agent may hand off a locally verified candidate for integration before accepting
+another explicit assignment; pending correction returns ownership to that task and
+requires handing off or stopping any other active implementation first.
+
+Before either agent starts, the operator/planner assignment must record in the TASK:
+
+- Primary owner and lane, exact IMP/TASK, baseline full main SHA.
+- Declared dependencies (or explicit `none`) and independently verified PR, actual
+  merge SHA and successful exact-head/exact-merge policy/Linux/Windows CI evidence.
+- Permitted repository-relative edit paths/modules; use explicit files or directory
+  prefixes, not ambiguous broad ownership. Overlapping prefixes count as overlap.
+- Separate branch and worktree; never use another agent's active checkout or branch.
+- Shared documentation coordinator: Codex during serialized integration.
+
+Check assignments and actual changed paths against all active tasks before editing
+and whenever scope or main changes. Missing assignment fields, unverified dependencies,
+overlapping source/test ownership, or a second active TASK for the same agent block
+implementation until the operator/planner resolves the assignment. Both agents may
+read shared files. Each owns its TASK evidence; shared execution state, indexes and
+parent IMP completion metadata are reconciled only by Codex during integration, with
+all other active assignments preserved. Shared-document updates are serialized and
+must be reviewed against refreshed main before merge.
+
+New assignments depend on their declared technical/governance prerequisites, not
+TASK-number allocation order. All declared dependencies must be Complete /
+POST_MERGE_VERIFIED and their verified merge commits must be contained in the recorded
+main baseline before implementation begins. Existing explicit work-order or
+operator predecessor gates remain binding unless explicitly revised by the operator:
+TASK-0042 still waits for TASK-0041's actual protected merge and exact-merge push CI.
+Independence must be established from source/contracts, not merely different filenames.
+UI work requiring an unfinished backend/application contract is dependent and blocked;
+Antigravity must use verified owned contracts, never invent a speculative contract or
+reach into another module's private JPA entities/repositories.
+
+Dependency and ownership checks are mandatory independent assignment/integration
+review; task-context packets and pr-gates.py do not certify them automatically.
 
 Do not implement later backlog items merely because they are nearby or convenient.
 
 Supporting changes are allowed only when they are strictly necessary for the current task.
 
-The next task PR may also reconcile the immediately preceding TASK/IMP's verified completion metadata. This predecessor closeout is an explicit exception to the one-task scope rule; it does not authorize predecessor implementation changes or later-task implementation.
+An authorized task PR may also reconcile verified dependency or latest integrated TASK/IMP completion metadata. This factual closeout exception does not authorize another task's implementation. Codex serializes these shared-document edits during integration.
 
 If discovered work belongs to another backlog item:
 
@@ -121,9 +160,9 @@ Prospective IMP/TASK writing rules are in the [task index](../tasks/README.md): 
 3. The IMP and TASK are internally consistent.
 4. The agent has refreshed `origin/main` and reviewed current tracked governance and implementation state.
 5. The work order does not conflict with the latest explicit operator instruction, verified external constraints, approved ADRs, frozen planning decisions, current architecture/security/compliance rules, or already-completed repository work.
-6. The immediately preceding task's required exact-merge-SHA post-merge `push` CI passed when applicable. Any material conflict is reported as a blocker, not silently resolved.
+6. Every declared dependency's required exact-head and exact-merge-SHA post-merge `push` CI passed, and the assignment satisfies Section 3. Explicit predecessor gates in existing work orders remain binding. Any material conflict is reported as a blocker, not silently resolved.
 
-Preserve the exact operator-supplied local IMP/TASK versions outside the PR before editing them. Under `LOCAL_WORK_ORDER_AUTHORIZATION`, the Developer Agent may create one focused branch, implement only the exact TASK, commit the IMP/TASK and implementation together, run verification, push, and open or update one reviewable PR. The PR may also record the immediately preceding task's verified closeout. The local files authorize development; the committed files establish the tracked work order when the combined PR merges. No separate planning PR or planning post-merge CI gate is required.
+Preserve the exact operator-supplied local IMP/TASK versions outside the PR before editing them. Under `LOCAL_WORK_ORDER_AUTHORIZATION`, the Developer Agent may create one focused branch, implement only the exact TASK, commit the IMP/TASK and implementation together, run verification, push, and open or update one reviewable PR. The PR may also record verified dependency and latest integrated task closeout during serialized Codex integration. The local files authorize development; the committed files establish the tracked work order when the combined PR merges. No separate planning PR or planning post-merge CI gate is required.
 
 Before merge, compare the IMP/TASK committed on the final PR head with the preserved operator-supplied versions. Review every material difference against the operator's instruction and higher-authority sources; do not silently revise scope or acceptance criteria. Confirm the implementation satisfies the final committed work order and evaluate the complete PR diff against current `main`. All task-required exact-head policy, Linux, and Windows checks and all normal trusted-main integration gates must pass on the final combined-PR head. A check from another SHA cannot satisfy this gate.
 
@@ -145,7 +184,7 @@ An implementation task is complete only when:
 - implementation state will be reconciled in the next task PR from verified GitHub evidence;
 - no unresolved blocker prevents completion.
 
-After merge, the task reaches `POST_MERGE_VERIFIED` and is complete when the required `push` CI on the actual `main` merge SHA passes and all applicable criteria above are satisfied. GitHub merge and CI evidence is authoritative for these facts. A standalone closeout-only PR is not required. The next task PR must reconcile stale tracked completion state before implementing the new task, recording the predecessor PR number, merge SHA, post-merge CI evidence, completion status, and resulting next action. `IMPLEMENTATION_STATE.md` remains the tracked execution summary. Pending or failed post-merge CI keeps the predecessor and next task blocked.
+After merge, the task reaches `POST_MERGE_VERIFIED` and is complete when the required `push` CI on the actual `main` merge SHA passes and all applicable criteria above are satisfied. GitHub merge and CI evidence is authoritative for these facts. A standalone closeout-only PR is not required. Codex reconciles stale tracked dependency and latest integrated task completion state during the next authorized PR integration, recording PR number, merge SHA, post-merge CI evidence, completion status, and resulting action while preserving independent active assignments. `IMPLEMENTATION_STATE.md` remains the tracked execution summary. Pending or failed post-merge CI blocks dependent implementation. Codex pauses further integration until the latest main push verification succeeds or a corrective protected PR restores it; independent disjoint implementation may continue on its verified baseline.
 
 A task is not complete merely because the happy path works or the code compiles.
 
@@ -281,7 +320,7 @@ The coding agent must not automatically:
 
 Conversation history is not authoritative implementation state.
 
-When a task is completed, the next task PR must reconcile state against verified GitHub evidence and record:
+When a task is completed, Codex must reconcile shared state during the next authorized PR integration against verified GitHub evidence and preserve every active lane, recording:
 
 - completed task;
 - current milestone;
