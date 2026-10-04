@@ -1,0 +1,259 @@
+/* HRIS authenticated shell. Loaded only by MainLayout (authenticated routes). */
+
+.hris-shell {
+    --hris-brand: hsl(222, 62%, 38%);
+    --hris-brand-strong: hsl(224, 64%, 30%);
+    --hris-brand-soft: hsl(220, 70%, 96%);
+    --hris-accent: hsl(172, 58%, 34%);
+    --hris-surface: hsl(220, 30%, 98%);
+    --hris-card-border: hsl(220, 20%, 88%);
+    --lumo-primary-color: var(--hris-brand);
+    --lumo-primary-text-color: var(--hris-brand);
+    --lumo-primary-color-50pct: hsla(222, 62%, 38%, 0.5);
+    --lumo-primary-color-10pct: hsla(222, 62%, 38%, 0.1);
+    --lumo-font-family: "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+vaadin-app-layout.hris-shell::part(navbar) {
+    background: var(--lumo-base-color);
+    border-bottom: 1px solid var(--hris-card-border);
+    box-shadow: 0 1px 2px hsla(220, 30%, 20%, 0.06);
+    min-height: 3.75rem;
+}
+
+vaadin-app-layout.hris-shell::part(drawer) {
+    background: linear-gradient(180deg, var(--hris-brand-strong) 0%, hsl(226, 58%, 22%) 100%);
+    border-inline-end: none;
+}
+
+vaadin-app-layout.hris-shell::part(content) {
+    background: var(--hris-surface);
+}
+
+/* Navbar */
+.hris-navbar {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    width: 100%;
+    padding-inline: var(--lumo-space-s) var(--lumo-space-m);
+    box-sizing: border-box;
+}
+
+.hris-view-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--lumo-font-size-l);
+    font-weight: 600;
+    color: var(--lumo-header-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hris-account {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    flex: 0 0 auto;
+}
+
+.hris-user-avatar {
+    --vaadin-avatar-size: 2rem;
+    background-color: var(--hris-brand-soft);
+    color: var(--hris-brand);
+}
+
+.hris-user-name {
+    font-size: var(--lumo-font-size-s);
+    font-weight: 500;
+    color: var(--lumo-body-text-color);
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Drawer */
+.hris-drawer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: hsl(0, 0%, 100%);
+}
+
+.hris-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    padding: var(--lumo-space-l) var(--lumo-space-m) var(--lumo-space-m);
+}
+
+.hris-brand-mark {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0.45rem;
+    box-sizing: border-box;
+    border-radius: var(--lumo-border-radius-l);
+    background: linear-gradient(135deg, var(--hris-accent), hsl(196, 70%, 45%));
+    color: hsl(0, 0%, 100%);
+    box-shadow: 0 4px 12px hsla(180, 60%, 20%, 0.35);
+}
+
+.hris-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.hris-brand-name {
+    font-size: var(--lumo-font-size-l);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.hris-brand-tagline {
+    font-size: var(--lumo-font-size-xs);
+    color: hsla(0, 0%, 100%, 0.78);
+}
+
+.hris-drawer-scroller {
+    flex: 1 1 auto;
+    padding: var(--lumo-space-s);
+}
+
+.hris-side-nav {
+    --vaadin-side-nav-item-color: hsla(0, 0%, 100%, 0.9);
+    --lumo-primary-text-color: hsl(0, 0%, 100%);
+    --lumo-contrast-60pct: hsla(0, 0%, 100%, 0.9);
+    --lumo-contrast-5pct: hsla(0, 0%, 100%, 0.08);
+    --lumo-primary-color-10pct: hsla(0, 0%, 100%, 0.16);
+    --lumo-body-text-color: hsla(0, 0%, 100%, 0.92);
+}
+
+.hris-side-nav vaadin-side-nav-item::part(content) {
+    border-radius: var(--lumo-border-radius-m);
+    transition: background-color 150ms ease;
+}
+
+.hris-side-nav vaadin-side-nav-item:hover::part(content) {
+    background-color: hsla(0, 0%, 100%, 0.1);
+}
+
+.hris-side-nav vaadin-side-nav-item[current]::part(content) {
+    background-color: hsla(0, 0%, 100%, 0.18);
+    font-weight: 600;
+}
+
+.hris-side-nav vaadin-side-nav-item::part(content):focus-visible,
+.hris-side-nav vaadin-side-nav-item[focus-ring]::part(content) {
+    outline: 2px solid hsl(0, 0%, 100%);
+    outline-offset: 1px;
+}
+
+.hris-drawer-footer {
+    padding: var(--lumo-space-m);
+    font-size: var(--lumo-font-size-xs);
+    color: hsla(0, 0%, 100%, 0.72);
+    border-top: 1px solid hsla(0, 0%, 100%, 0.12);
+}
+
+/* Dashboard */
+.hris-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: var(--lumo-space-l);
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: var(--lumo-space-l);
+    box-sizing: border-box;
+}
+
+.hris-hero {
+    grid-column: 1 / -1;
+    padding: var(--lumo-space-l) var(--lumo-space-xl);
+    border-radius: var(--lumo-border-radius-l);
+    background:
+        radial-gradient(circle at 92% 20%, hsla(172, 60%, 60%, 0.28), transparent 45%),
+        linear-gradient(120deg, var(--hris-brand) 0%, var(--hris-brand-strong) 100%);
+    color: hsl(0, 0%, 100%);
+    box-shadow: 0 10px 30px hsla(224, 60%, 25%, 0.22);
+    animation: hris-rise 320ms ease-out both;
+}
+
+.hris-hero h2 {
+    margin: 0 0 var(--lumo-space-xs);
+    color: inherit;
+    font-size: var(--lumo-font-size-xxl);
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.hris-lead {
+    margin: 0;
+    max-width: 44rem;
+    color: hsla(0, 0%, 100%, 0.88);
+    font-size: var(--lumo-font-size-m);
+}
+
+.hris-card {
+    padding: var(--lumo-space-l);
+    border: 1px solid var(--hris-card-border);
+    border-radius: var(--lumo-border-radius-l);
+    background: var(--lumo-base-color);
+    box-shadow: 0 1px 3px hsla(220, 30%, 20%, 0.05);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+    animation: hris-rise 380ms ease-out both;
+}
+
+.hris-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px hsla(220, 30%, 20%, 0.1);
+}
+
+.hris-card h3 {
+    margin: var(--lumo-space-s) 0 var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-l);
+}
+
+.hris-card p {
+    margin: var(--lumo-space-xs) 0 0;
+    color: var(--lumo-secondary-text-color);
+}
+
+.hris-card .hris-card-emphasis {
+    color: var(--lumo-body-text-color);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.hris-card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.55rem;
+    box-sizing: border-box;
+    border-radius: var(--lumo-border-radius-m);
+    background: var(--hris-brand-soft);
+    color: var(--hris-brand);
+}
+
+.hris-card-empty {
+    border-style: dashed;
+}
+
+@keyframes hris-rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hris-hero, .hris-card { animation: none; transition: none; }
+    .hris-card:hover { transform: none; }
+}
+
+@media (max-width: 40rem) {
+    .hris-user-name { display: none; }
+    .hris-dashboard { padding: var(--lumo-space-m); gap: var(--lumo-space-m); }
+    .hris-hero { padding: var(--lumo-space-l); }
+}
