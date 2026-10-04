@@ -103,6 +103,28 @@ class LoginViewTest {
                 .anyMatch(s -> "Manpower & Staffing".equals(s.getText())));
     }
 
+    @Test
+    void factorInstallationScriptEnforcesNaturalDOMOrderingAndSecurityContract() {
+        String script = LoginView.FACTOR_INSTALL_SCRIPT;
+        assertNotNull(script, "Factor installation script must be defined");
+
+        // Security-sensitive contract attributes
+        assertTrue(script.contains("name = 'factor'"), "Field name must be factor");
+        assertTrue(script.contains("type = 'password'"), "Field type must be password");
+        assertTrue(script.contains("maxLength = 32"), "Field maxLength must be 32");
+        assertTrue(script.contains("autocomplete = 'one-time-code'"), "Field autocomplete must be one-time-code");
+        assertTrue(script.contains("formdata"), "Must clear factor on formdata event");
+
+        // Natural DOM ordering after password and before submit control
+        assertTrue(script.contains("passwordField"), "Script must target password field");
+        assertTrue(script.contains("passwordField.after(group)") && script.contains("insertBefore(group, passwordField.nextSibling)"),
+                "Factor must be placed naturally after password field");
+        assertTrue(script.contains("submitInside"), "Script must account for submit control position");
+
+        // Prohibited patterns: positive tabindex, custom submit buttons
+        assertFalse(script.toLowerCase().contains("tabindex"), "Must not use positive tabindex workaround");
+    }
+
     private static <T extends Component> T find(Component root, Class<T> type) {
         return descendants(root).filter(type::isInstance).map(type::cast).findFirst().orElseThrow();
     }

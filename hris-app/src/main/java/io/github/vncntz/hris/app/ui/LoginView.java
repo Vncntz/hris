@@ -23,6 +23,76 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 @AnonymousAllowed
 @StyleSheet("themes/hris/login.css")
 public class LoginView extends Div implements BeforeEnterObserver {
+    static final String FACTOR_INSTALL_SCRIPT = """
+            const install = () => {
+                const form = this.querySelector('form');
+                if (!form || form.querySelector('[name=factor]')) return !!form;
+
+                const passwordField = form.querySelector('#vaadinLoginPassword')
+                    || form.querySelector('vaadin-password-field')
+                    || form.querySelector('[name=password]');
+                if (!passwordField) return false;
+
+                const group = document.createElement('div');
+                group.className = 'hris-factor-group';
+
+                const label = document.createElement('label');
+                label.htmlFor = 'hris-factor-input';
+                label.className = 'hris-factor-label';
+                label.textContent = 'Authenticator or recovery code ';
+
+                const badge = document.createElement('span');
+                badge.className = 'hris-factor-badge';
+                badge.textContent = 'Optional';
+                label.appendChild(badge);
+
+                const inputWrapper = document.createElement('div');
+                inputWrapper.className = 'hris-factor-input-wrapper';
+
+                const input = document.createElement('input');
+                input.id = 'hris-factor-input';
+                input.name = 'factor';
+                input.type = 'password';
+                input.maxLength = 32;
+                input.autocomplete = 'one-time-code';
+                input.className = 'hris-factor-input';
+                input.placeholder = '6-digit code or recovery key';
+                input.setAttribute('aria-describedby', 'hris-factor-hint');
+
+                inputWrapper.appendChild(input);
+
+                const hint = document.createElement('div');
+                hint.id = 'hris-factor-hint';
+                hint.className = 'hris-factor-hint';
+                hint.textContent = 'Enter only if two-factor authentication is enrolled for your account.';
+
+                group.appendChild(label);
+                group.appendChild(inputWrapper);
+                group.appendChild(hint);
+
+                // Natural DOM and keyboard order: after Password and before Sign in control
+                const submitInside = form.querySelector('vaadin-button[slot=submit], button[type=submit], input[type=submit]');
+                if (submitInside) {
+                    form.insertBefore(group, submitInside);
+                } else if (passwordField.nextSibling) {
+                    form.insertBefore(group, passwordField.nextSibling);
+                } else {
+                    passwordField.after(group);
+                }
+
+                form.addEventListener('formdata', () => {
+                    input.value = '';
+                });
+                return true;
+            };
+            if (!install()) {
+                const observer = new MutationObserver(() => {
+                    if (install()) observer.disconnect();
+                });
+                observer.observe(this, { childList: true, subtree: true });
+            }
+            """;
+
     private final LoginForm login = new LoginForm();
 
     public LoginView() {
@@ -44,62 +114,7 @@ public class LoginView extends Div implements BeforeEnterObserver {
 
         // LoginForm posts native inputs in its form. Keep factor solely in the browser request,
         // rather than synchronizing secret text into Vaadin's server-side component/session tree.
-        login.getElement().executeJs("""
-                const install = () => {
-                    const form = this.querySelector('form');
-                    if (!form || form.querySelector('[name=factor]')) return !!form;
-
-                    const group = document.createElement('div');
-                    group.className = 'hris-factor-group';
-
-                    const label = document.createElement('label');
-                    label.htmlFor = 'hris-factor-input';
-                    label.className = 'hris-factor-label';
-                    label.textContent = 'Authenticator or recovery code ';
-
-                    const badge = document.createElement('span');
-                    badge.className = 'hris-factor-badge';
-                    badge.textContent = 'Optional';
-                    label.appendChild(badge);
-
-                    const inputWrapper = document.createElement('div');
-                    inputWrapper.className = 'hris-factor-input-wrapper';
-
-                    const input = document.createElement('input');
-                    input.id = 'hris-factor-input';
-                    input.name = 'factor';
-                    input.type = 'password';
-                    input.maxLength = 32;
-                    input.autocomplete = 'one-time-code';
-                    input.className = 'hris-factor-input';
-                    input.placeholder = '6-digit code or recovery key';
-                    input.setAttribute('aria-describedby', 'hris-factor-hint');
-
-                    inputWrapper.appendChild(input);
-
-                    const hint = document.createElement('div');
-                    hint.id = 'hris-factor-hint';
-                    hint.className = 'hris-factor-hint';
-                    hint.textContent = 'Enter only if two-factor authentication is enrolled for your account.';
-
-                    group.appendChild(label);
-                    group.appendChild(inputWrapper);
-                    group.appendChild(hint);
-
-                    form.appendChild(group);
-
-                    form.addEventListener('formdata', () => {
-                        input.value = '';
-                    });
-                    return true;
-                };
-                if (!install()) {
-                    const observer = new MutationObserver(() => {
-                        if (install()) observer.disconnect();
-                    });
-                    observer.observe(this, { childList: true, subtree: true });
-                }
-                """);
+        login.getElement().executeJs(FACTOR_INSTALL_SCRIPT);
 
         Icon mark = new Icon(VaadinIcon.USERS);
         mark.addClassName("hris-brand-mark");
