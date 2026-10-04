@@ -30,6 +30,31 @@ Consumers must resolve current effective activity before new active business ref
 no future deployment/requisition workflow is implemented here. Reads are an internal module
 contract; a future user-facing adapter must enforce its own authorized read policy.
 
+## Bounded administrator browsing
+
+[TASK-0039](../tasks/TASK-0039.md) adds `ClientAdministrationQueries.companies(offset, limit)`
+and `sites(companyPublicId, offset, limit)`. Both require authenticated `CurrentActor`
+`client:admin` authority before validation or database work. Offsets are zero-based nonnegative
+Java integers; limits are 1 through `MAX_LIMIT` (200). Invalid pages return `INVALID_PAGE`;
+null parent UUIDs return `INVALID_TARGET`; unknown parents return `NOT_FOUND`. Known Companies
+with no Sites and offsets beyond the end return empty pages with `hasMore=false`.
+
+`ClientCompanyPage` and `ClientSitePage` defensively copy immutable reference rows and expose
+only `rows` and `hasMore`. Each query fetches at most limit plus one projection rows, discards
+the look-ahead row, and uses it to determine `hasMore`; no full-table materialization or total
+count query is exposed. Display names sort ascending under the installed database collation,
+then public UUIDs ascending give equal names a stable tie-breaker. Sites are restricted to
+one parent UUID, with stored and parent activity projected in the same joined statement.
+
+Reads use independent 15-second REQUIRES_NEW read-only READ COMMITTED transactions, including
+when a caller already has an older snapshot. Results include current committed edit versions.
+Each call is a new committed-state read: concurrent inserts/renames may shift later offset
+pages; callers should refresh after changes. No cross-call snapshot or locking is promised.
+As with reference reads, an ambient transaction retains its connection while browsing uses
+another. Query/commit failures return fixed `PERSISTENCE_FAILED` without causes or SQL details.
+Browsing creates no mutation audit events. The existing known-UUID contract and mutation
+semantics are preserved; no schema or frontend change is introduced.
+
 ## Lifecycle and transaction invariants
 
 Creation is active. Site creation and activation reject an inactive parent. Company deactivation

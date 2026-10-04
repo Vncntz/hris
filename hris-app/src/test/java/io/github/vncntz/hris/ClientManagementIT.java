@@ -31,6 +31,7 @@ class ClientManagementIT {
         .withCommand("--log-bin-trust-function-creators=1");
     @Autowired ClientManagementService commands;
     @Autowired ClientReferences queries;
+    @Autowired ClientAdministrationQueries administration;
     @Autowired JdbcTemplate jdbc;
     @Autowired PlatformTransactionManager transactions;
     @MockitoSpyBean AuditRecorder audit;
@@ -228,5 +229,112 @@ class ClientManagementIT {
             assertTrue(activate.get(30,TimeUnit.SECONDS).active()); assertFalse(deactivate.get(30,TimeUnit.SECONDS).active());
         } finally { releaseSite.countDown(); }
         var result=queries.site(s.publicId()).orElseThrow(); assertTrue(result.active()); assertFalse(result.effectiveActive());
+    }
+
+    @Test void administrationCompanyPagesHaveTotalOrderDistinctDuplicateNamesAndNoMissingRows() {
+        var first = commands.createCompany("000 Synthetic browse duplicate");
+        var second = commands.createCompany(first.displayName());
+        var inactive = commands.deactivateCompany(first.publicId(), first.version());
+        int before = audits();
+        List<UUID> expected = jdbc.queryForList("SELECT BIN_TO_UUID(public_id) FROM client_company ORDER BY display_name, public_id", String.class)
+            .stream().map(UUID::fromString).toList();
+        var observed = new ArrayList<ClientCompanyReference>();
+        int offset = 0;
+        do {
+            var page = administration.companies(offset, 2);
+            assertTrue(page.rows().size() <= 2);
+            assertEquals(offset + page.rows().size() < expected.size(), page.hasMore());
+            observed.addAll(page.rows()); offset += page.rows().size();
+            if (!page.hasMore()) { break; }
+        } while (offset <= expected.size());
+        assertEquals(expected, observed.stream().map(ClientCompanyReference::publicId).toList());
+        assertEquals(expected.size(), new HashSet<>(observed.stream().map(ClientCompanyReference::publicId).toList()).size());
+        assertTrue(observed.contains(inactive)); assertTrue(observed.contains(second));
+        assertEquals(observed.subList(0, 2), administration.companies(0, 2).rows());
+        assertEquals(new ClientCompanyPage(List.of(), false), administration.companies(expected.size(), 2));
+        assertEquals(new ClientCompanyPage(List.of(), false), administration.companies(Integer.MAX_VALUE, 1));
+        assertEquals(before, audits());
+    }
+
+    @Test void administrationSitePagesRestrictParentAndKeepDuplicateNamesAndLifecycleStates() {
+        var parent = company(); var other = company();
+        var first = commands.createSite(parent.publicId(), "Synthetic duplicate");
+        var second = commands.createSite(parent.publicId(), first.displayName());
+        var third = commands.createSite(parent.publicId(), "Synthetic later");
+        commands.createSite(other.publicId(), first.displayName());
+        commands.deactivateSite(second.publicId(), second.version());
+        commands.deactivateCompany(parent.publicId(), parent.version());
+        int before = audits();
+        List<UUID> expected = jdbc.queryForList("SELECT BIN_TO_UUID(s.public_id) FROM client_site s JOIN client_company c ON c.id=s.company_id WHERE c.public_id=UUID_TO_BIN(?) ORDER BY s.display_name, s.public_id", String.class, parent.publicId().toString())
+            .stream().map(UUID::fromString).toList();
+        var observed = new ArrayList<ClientSiteReference>();
+        for (int offset = 0; offset < expected.size(); offset++) {
+            var page = administration.sites(parent.publicId(), offset, 1);
+            assertEquals(1, page.rows().size()); assertEquals(offset < expected.size() - 1, page.hasMore());
+            observed.addAll(page.rows());
+        }
+        assertEquals(expected, observed.stream().map(ClientSiteReference::publicId).toList());
+        assertEquals(Set.of(first.publicId(), second.publicId(), third.publicId()), new HashSet<>(expected));
+        assertTrue(observed.stream().allMatch(s -> s.companyPublicId().equals(parent.publicId()) && !s.companyActive() && !s.effectiveActive()));
+        var inactive = observed.stream().filter(s -> s.publicId().equals(second.publicId())).findFirst().orElseThrow();
+        assertFalse(inactive.active()); assertEquals(1, inactive.version());
+        assertTrue(observed.stream().filter(s -> !s.publicId().equals(second.publicId())).allMatch(ClientSiteReference::active));
+        assertEquals(observed, administration.sites(parent.publicId(), 0, 3).rows());
+        assertEquals(new ClientSitePage(List.of(), false), administration.sites(parent.publicId(), 3, 2));
+        assertEquals(new ClientSitePage(List.of(), false), administration.sites(company().publicId(), 0, 1));
+        // Only the explicit empty Company creation above is a mutation.
+        assertEquals(before + 1, audits());
+        bounded(NOT_FOUND, () -> administration.sites(UUID.randomUUID(), 0, 1));
+    }
+
+    @Test void administrationReadsUseAuthenticatedAuthorityBeforeInvalidArguments() {
+        int before = audits();
+        SecurityContextHolder.clearContext();
+        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> administration.companies(-1, 0));
+        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> administration.sites(null, -1, 0));
+        login(administrator, false);
+        assertThrows(AccessDeniedException.class, () -> administration.companies(0, 1));
+        assertThrows(AccessDeniedException.class, () -> administration.sites(UUID.randomUUID(), 0, 1));
+        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.unauthenticated(new AccountPrincipal(administrator,"synthetic"),null));
+        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> administration.companies(0, 1));
+        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> administration.sites(UUID.randomUUID(), 0, 1));
+        login(administrator, true);
+        bounded(INVALID_PAGE, () -> administration.companies(-1, 1));
+        bounded(INVALID_PAGE, () -> administration.sites(UUID.randomUUID(), 0, 201));
+        bounded(INVALID_TARGET, () -> administration.sites(null, 0, 1));
+        assertEquals(before, audits());
+    }
+
+    @Test void administrationReadsObserveCommittedCompanyAndSiteVersionsDespiteAmbientSnapshot() throws Exception {
+        var parent = commands.createCompany("000 Synthetic stale browse");
+        var site = commands.createSite(parent.publicId(), "Synthetic stale browse");
+        int before = audits();
+        var ambient = new TransactionTemplate(transactions);
+        ambient.setIsolationLevel(TransactionTemplate.ISOLATION_REPEATABLE_READ); ambient.setTimeout(30);
+        try (var executor = Executors.newSingleThreadExecutor()) {
+            ambient.executeWithoutResult(status -> {
+                assertEquals(1, jdbc.queryForObject("SELECT active FROM client_company WHERE public_id=UUID_TO_BIN(?)", Integer.class, parent.publicId().toString()));
+                assertEquals(1, jdbc.queryForObject("SELECT active FROM client_site WHERE public_id=UUID_TO_BIN(?)", Integer.class, site.publicId().toString()));
+                var change = executor.submit(() -> {
+                    login(administrator, true);
+                    try {
+                        commands.deactivateSite(site.publicId(), site.version());
+                        return commands.deactivateCompany(parent.publicId(), parent.version());
+                    } finally { SecurityContextHolder.clearContext(); }
+                });
+                try { assertFalse(change.get(10, TimeUnit.SECONDS).active()); }
+                catch (InterruptedException failure) { Thread.currentThread().interrupt(); throw new AssertionError(failure); }
+                catch (ExecutionException | TimeoutException failure) { throw new AssertionError(failure); }
+                assertEquals(1, jdbc.queryForObject("SELECT active FROM client_company WHERE public_id=UUID_TO_BIN(?)", Integer.class, parent.publicId().toString()));
+                var current = administration.companies(0, ClientAdministrationQueries.MAX_LIMIT).rows().stream()
+                    .filter(c -> c.publicId().equals(parent.publicId())).findFirst().orElseThrow();
+                assertFalse(current.active()); assertEquals(parent.version() + 1, current.version());
+                var currentSite = administration.sites(parent.publicId(), 0, 1).rows().getFirst();
+                assertEquals(site.publicId(), currentSite.publicId()); assertFalse(currentSite.active());
+                assertFalse(currentSite.companyActive()); assertFalse(currentSite.effectiveActive()); assertEquals(site.version() + 1, currentSite.version());
+                assertEquals(1, jdbc.queryForObject("SELECT active FROM client_site WHERE public_id=UUID_TO_BIN(?)", Integer.class, site.publicId().toString()));
+            });
+        }
+        assertEquals(before + 2, audits());
     }
 }
