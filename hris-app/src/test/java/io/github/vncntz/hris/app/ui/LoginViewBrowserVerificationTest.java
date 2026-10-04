@@ -121,13 +121,60 @@ class LoginViewBrowserVerificationTest {
             assertTrue(dom.contains("HRIS"), "Brand name HRIS must exist");
             assertTrue(dom.contains("Manpower &amp; Staffing") || dom.contains("Manpower & Staffing"), "Brand tagline must exist");
 
-            // Native form & factor attributes
-            assertTrue(dom.contains("name=\"factor\""), "Factor input name must be 'factor'");
-            assertTrue(dom.contains("type=\"password\""), "Factor input type must be 'password'");
-            assertTrue(dom.contains("maxlength=\"32\""), "Factor input maxLength must be 32");
-            assertTrue(dom.contains("autocomplete=\"one-time-code\""), "Factor autocomplete must be 'one-time-code'");
-            assertTrue(dom.contains("hris-factor-group"), "Factor group wrapper must exist");
-            assertTrue(dom.contains("hris-factor-hint"), "Factor hint element must exist");
+            // Inspect the actual factor control element directly in the browser DOM
+            String factorControlJson = session.eval("""
+                    (() => {
+                        const form = document.querySelector('vaadin-login-form form');
+                        const factorInput = form ? form.querySelector('input#hris-factor-input') : null;
+                        const factorGroup = form ? form.querySelector('.hris-factor-group') : null;
+                        const factorLabel = factorGroup ? factorGroup.querySelector('label[for=hris-factor-input]') : null;
+                        const factorHint = factorGroup ? factorGroup.querySelector('#hris-factor-hint') : null;
+                        const factorBadge = factorGroup ? factorGroup.querySelector('.hris-factor-badge') : null;
+                        if (!factorInput) return JSON.stringify({ found: false });
+                        return JSON.stringify({
+                            found: true,
+                            tagName: factorInput.tagName.toLowerCase(),
+                            id: factorInput.id,
+                            name: factorInput.getAttribute('name'),
+                            type: factorInput.getAttribute('type'),
+                            maxLength: factorInput.maxLength,
+                            maxLengthAttr: factorInput.getAttribute('maxlength'),
+                            autocomplete: factorInput.getAttribute('autocomplete'),
+                            required: factorInput.required,
+                            hasPositiveTabIndex: factorInput.hasAttribute('tabindex') && parseInt(factorInput.getAttribute('tabindex'), 10) > 0,
+                            tabIndex: factorInput.tabIndex,
+                            inForm: factorInput.closest('form') === form,
+                            hasGroup: factorGroup !== null,
+                            hasLabel: factorLabel !== null,
+                            hasHint: factorHint !== null,
+                            hasBadge: factorBadge !== null,
+                            ariaDescribedby: factorInput.getAttribute('aria-describedby')
+                        });
+                    })()
+                    """);
+            assertTrue(factorControlJson.contains("\"found\":true"), "Actual factor control input#hris-factor-input must exist in DOM");
+            assertTrue(factorControlJson.contains("\"name\":\"factor\""), "Actual factor control must have name='factor'");
+            assertTrue(factorControlJson.contains("\"type\":\"password\""), "Actual factor control must have type='password'");
+            assertTrue(factorControlJson.contains("\"maxLength\":32") || factorControlJson.contains("\"maxLengthAttr\":\"32\""),
+                    "Actual factor control must enforce maxLength=32");
+            assertTrue(factorControlJson.contains("\"autocomplete\":\"one-time-code\""),
+                    "Actual factor control must have autocomplete='one-time-code'");
+            assertTrue(factorControlJson.contains("\"inForm\":true"),
+                    "Actual factor control must reside directly inside the login form");
+            assertTrue(factorControlJson.contains("\"hasGroup\":true"),
+                    "Factor group wrapper must enclose the factor control");
+            assertTrue(factorControlJson.contains("\"hasLabel\":true"),
+                    "Factor control must have an associated label");
+            assertTrue(factorControlJson.contains("\"hasHint\":true"),
+                    "Factor control must have an associated hint");
+            assertTrue(factorControlJson.contains("\"hasBadge\":true"),
+                    "Factor control must have an optional badge");
+            assertTrue(factorControlJson.contains("\"hasPositiveTabIndex\":false"),
+                    "Factor control must not use positive tabindex");
+            assertTrue(factorControlJson.contains("\"required\":false"),
+                    "Factor control must be optional (required=false)");
+            assertTrue(factorControlJson.contains("\"ariaDescribedby\":\"hris-factor-hint\""),
+                    "Factor control must be aria-describedby the hint element");
 
             // Natural DOM placement verification in actual browser DOM
             String inForm = session.eval("String(document.querySelector('vaadin-login-form form')?.contains(document.querySelector('.hris-factor-group')))");
@@ -217,24 +264,125 @@ class LoginViewBrowserVerificationTest {
     }
 
     @Test
-    void genericErrorStateRendersWithoutDetailExposure() throws Exception {
-        String url = "http://127.0.0.1:" + port + "/login?error";
+    void invalidAuthenticationShowsOnlyGenericError() throws Exception {
+        String url = "http://127.0.0.1:" + port + "/login";
         Path screenshot = SCREENSHOT_DIR.resolve("login-error-state.png");
 
         try (EdgeCdpSession session = EdgeCdpSession.start("1280,800")) {
             session.navigate(url);
+
+            // Submit invalid synthetic credentials through native login form controls
+            session.eval("""
+                    (() => {
+                        const u = document.querySelector('#vaadinLoginUsername');
+                        if (u) {
+                            u.value = 'invalid.synthetic.user';
+                            const input = u.querySelector('input');
+                            if (input) {
+                                input.value = 'invalid.synthetic.user';
+                                input.dispatchEvent(new Event('input', { bubbles: true }));
+                                input.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        }
+
+                        const p = document.querySelector('#vaadinLoginPassword');
+                        if (p) {
+                            p.value = 'WrongPassword999!';
+                            const input = p.querySelector('input');
+                            if (input) {
+                                input.value = 'WrongPassword999!';
+                                input.dispatchEvent(new Event('input', { bubbles: true }));
+                                input.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        }
+
+                        const form = document.querySelector('vaadin-login-form');
+                        if (form && typeof form.submit === 'function') {
+                            form.submit();
+                        } else {
+                            const submit = document.querySelector('vaadin-button[slot=submit]');
+                            if (submit) submit.click();
+                        }
+                    })()
+                    """);
+
+            // Wait for navigation / redirect to error state and for Vaadin error rendering
+            boolean errorRendered = false;
+            long deadline = System.currentTimeMillis() + 10000;
+            String errorInfoJson = "";
+            while (System.currentTimeMillis() < deadline) {
+                errorInfoJson = session.eval("""
+                        (() => {
+                            const f = document.querySelector('vaadin-login-form');
+                            if (!f) return JSON.stringify({ rendered: false });
+                            let title = '';
+                            let desc = '';
+                            let hasError = f.error === true || f.hasAttribute('error');
+
+                            function inspect(root) {
+                                if (!root) return;
+                                const t = root.querySelector('[part=error-message-title]');
+                                if (t) title = t.textContent;
+                                const d = root.querySelector('[part=error-message-description]');
+                                if (d) desc = d.textContent;
+                                const errSection = root.querySelector('[part=error-message]');
+                                if (errSection && !title) title = errSection.textContent;
+
+                                root.querySelectorAll('*').forEach(el => {
+                                    if (el.hasAttribute && el.hasAttribute('error')) hasError = true;
+                                    if (el.shadowRoot) inspect(el.shadowRoot);
+                                });
+                            }
+                            if (f.shadowRoot) inspect(f.shadowRoot);
+
+                            return JSON.stringify({
+                                rendered: (hasError || title.length > 0) && window.location.search.includes('error'),
+                                hasError: hasError,
+                                title: title.trim(),
+                                description: desc.trim()
+                            });
+                        })()
+                        """);
+                if (errorInfoJson.contains("\"rendered\":true")) {
+                    errorRendered = true;
+                    break;
+                }
+                Thread.sleep(100);
+            }
+            assertTrue(errorRendered, "Submitting invalid credentials must redirect to error state and display error notification");
+
+            // Allow layout to settle and capture screenshot of verified error state
+            Thread.sleep(200);
             session.captureScreenshot(screenshot);
 
             String dom = session.eval("document.documentElement.outerHTML");
-            assertTrue(dom.contains("hris-login-card"));
-            assertTrue(dom.contains("error") || dom.contains("Sign in failed") || dom.contains("Check that you have entered"),
-                    "Generic error notification must be rendered");
-            assertFalse(dom.toLowerCase(Locale.ROOT).contains("badcredentialsexception"),
-                    "Must not leak BadCredentialsException");
-            assertFalse(dom.toLowerCase(Locale.ROOT).contains("lockedexception"),
-                    "Must not leak LockedException");
-            assertFalse(dom.toLowerCase(Locale.ROOT).contains("disabledexception"),
-                    "Must not leak DisabledException");
+            assertTrue(dom.contains("hris-login-card"), "Login card must remain intact during error");
+            assertTrue(errorInfoJson.contains("Sign in failed") || errorInfoJson.contains("Incorrect username or password")
+                    || dom.contains("Sign in failed"), "Generic failure notification must be visible");
+
+            // Verify strict non-exposure of internal security details across light and shadow DOM
+            String deepDom = session.eval("""
+                    (() => {
+                        function collectText(root) {
+                            let text = root.textContent || '';
+                            if (root.querySelectorAll) {
+                                root.querySelectorAll('*').forEach(el => {
+                                    if (el.shadowRoot) text += ' ' + collectText(el.shadowRoot);
+                                });
+                            }
+                            return text;
+                        }
+                        return collectText(document.body);
+                    })()
+                    """);
+            String domLower = (dom + " " + deepDom).toLowerCase(Locale.ROOT);
+            assertFalse(domLower.contains("badcredentialsexception"), "Must not leak BadCredentialsException");
+            assertFalse(domLower.contains("lockedexception"), "Must not leak LockedException");
+            assertFalse(domLower.contains("disabledexception"), "Must not leak DisabledException");
+            assertFalse(domLower.contains("usernamenotfoundexception"), "Must not leak UsernameNotFoundException");
+            assertFalse(domLower.contains("org.springframework"), "Must not leak Spring internals");
+            assertFalse(domLower.contains("java.lang"), "Must not leak Java stack traces");
+            assertFalse(domLower.contains("wrongpassword999!"), "Entered password must not be leaked into DOM");
         }
     }
 
