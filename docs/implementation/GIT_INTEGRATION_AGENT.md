@@ -47,17 +47,53 @@ verification before another ordinary merge. Antigravity has no merge authority.
 Shared execution/index/parent metadata is reconciled by Codex in this serialized phase;
 implementers maintain their own TASK evidence, not another lane's shared state.
 
-When another PR merges, refresh trusted main, merge origin/main into remaining
-candidate branches without rewriting published history, review actual paths/contracts
-and resolve only authorized in-scope conflicts. Rerun all task-required verification
-and obtain policy/Linux/Windows CI on each refreshed exact head. Reenter clean trusted
-main and reevaluate all gates; pre-refresh CI and development conclusions are not proof.
+When another PR merges, refresh trusted main and route remaining candidate refreshes
+to each TASK's assigned primary implementation owner. Review actual paths/contracts;
+the owner merges origin/main into the existing TASK branch without rewriting published
+history and owns any authorized conflict-resolution edits or substantive candidate
+modification. Honor any work-order requirement for operator assignment refresh first.
+Every changed candidate SHA requires fresh task-required local verification,
+policy/Linux/Windows CI and independent certification; pre-refresh evidence is historical.
+
+A reviewer/integration context that reviewed a candidate must not mutate it and then
+independently certify the resulting SHA. Even an automatically created merge commit
+or other history-mutating refresh in that context disqualifies it from independently
+certifying the resulting candidate. After the owner produces the refreshed SHA,
+use a fresh reviewer execution context distinct from every context that implemented
+changes included in that SHA. That reviewer reconstructs conclusions from contracts,
+the full diff and exact-head evidence on clean current trusted main and reevaluates
+all gates. Switching checkout, worktree, branch, role label or Developer/Integration
+phase does not restore independence. Do not rewrite published history to satisfy
+this boundary.
 Block and request reassignment if the refreshed changes reveal overlapping ownership
 or an unfinished required contract. Explicit task dependencies remain binding.
 
 ## Correction and escalation
 
-For an ordinary defect, return to the Developer phase with the IMP/TASK, PR number, head SHA, failed gate, exact defect, expected correction, required verification, and scope boundary. Make the smallest in-scope correction on the existing task branch and verify it there. Reenter the fresh trusted-main integration boundary and independently reevaluate **all** gates after each correction; never execute candidate tooling as trusted integration tooling.
+For an ordinary defect, the independent reviewer supplies a precise correction
+specification to the TASK's assigned primary implementation owner: IMP/TASK, PR
+number, exact candidate SHA, failed gate, defect, expected correction, required
+verification and scope boundary. The owner makes the smallest authorized in-scope
+correction on the existing TASK branch; no new TASK is required for that correction.
+
+The required cross-context flow is:
+
+1. Independent reviewer finds the defect and specifies the correction.
+2. Assigned primary implementation owner changes the existing TASK branch and
+   produces a new exact candidate SHA.
+3. Implementation owner runs fresh task-required local verification and obtains
+   fresh exact-head CI.
+4. A fresh independent reviewer execution context, distinct from every context that
+   implemented changes included in that SHA, adversarially certifies the exact SHA
+   by reconstructing conclusions from contracts, full diff and exact-head evidence
+   and reevaluating **all** gates.
+5. Trusted-main integration proceeds only after certification and all gates pass.
+
+The reviewer may describe the defect and required correction, but must not implement
+the correction and then independently certify the resulting SHA. A checkout,
+worktree, branch, role-label or phase switch cannot turn that implementation context
+back into an independent certifier. Never execute candidate tooling as trusted
+integration tooling.
 
 If the same substantive defect persists after three correction cycles, record integration lifecycle position plus `BLOCKED` and request a specific human decision or investigation. Escalate immediately for architecture or frozen-plan changes, Philippine statutory interpretation, new product decisions, unapproved remote-governance changes, destructive Git recovery, possible repository/customer-data loss, another IMP's work, unresolved security/privacy risk, or contradictory authoritative requirements. Stop if a required security or governance fact cannot be verified or branch protection requires unavailable human action. A PR is human-only only when a later explicit instruction or its active task specifically says so.
 
