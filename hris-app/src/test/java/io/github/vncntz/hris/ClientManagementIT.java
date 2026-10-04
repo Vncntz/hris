@@ -154,6 +154,39 @@ class ClientManagementIT {
         assertEquals(c,queries.company(c.publicId()).orElseThrow()); assertEquals(before,audits());
     }
 
+    @Test void referenceReadsObserveCommittedDeactivationOutsideAnOlderAmbientSnapshot() throws Exception {
+        var c = company(); var s = commands.createSite(c.publicId(), "Synthetic Snapshot Site");
+        int before = audits();
+        var ambient = new TransactionTemplate(transactions);
+        ambient.setIsolationLevel(TransactionTemplate.ISOLATION_REPEATABLE_READ);
+        ambient.setTimeout(30);
+        try (var executor = Executors.newSingleThreadExecutor()) {
+            ambient.executeWithoutResult(status -> {
+                assertEquals(1, jdbc.queryForObject("SELECT active FROM client_company WHERE public_id=UUID_TO_BIN(?)", Integer.class, c.publicId().toString()));
+                assertEquals(1, jdbc.queryForObject("SELECT c.active AND s.active FROM client_site s JOIN client_company c ON c.id=s.company_id WHERE s.public_id=UUID_TO_BIN(?)", Integer.class, s.publicId().toString()));
+                var deactivation = executor.submit(() -> {
+                    login(administrator, true);
+                    try { return commands.deactivateCompany(c.publicId(), c.version()); }
+                    finally { SecurityContextHolder.clearContext(); }
+                });
+                try { assertFalse(deactivation.get(10, TimeUnit.SECONDS).active()); }
+                catch (InterruptedException failure) { Thread.currentThread().interrupt(); throw new AssertionError(failure); }
+                catch (ExecutionException | TimeoutException failure) { throw new AssertionError(failure); }
+                // Ordinary reads still see the original snapshot; the reference boundary must not.
+                assertEquals(1, jdbc.queryForObject("SELECT active FROM client_company WHERE public_id=UUID_TO_BIN(?)", Integer.class, c.publicId().toString()));
+                var currentCompany = queries.company(c.publicId()).orElseThrow();
+                assertFalse(currentCompany.active()); assertEquals(c.version() + 1, currentCompany.version());
+                var currentSite = queries.site(s.publicId()).orElseThrow();
+                assertEquals(s.publicId(), currentSite.publicId()); assertEquals(c.publicId(), currentSite.companyPublicId());
+                assertTrue(currentSite.active()); assertFalse(currentSite.companyActive()); assertFalse(currentSite.effectiveActive());
+                assertEquals(s.version(), currentSite.version());
+                assertEquals(1, jdbc.queryForObject("SELECT c.active AND s.active FROM client_site s JOIN client_company c ON c.id=s.company_id WHERE s.public_id=UUID_TO_BIN(?)", Integer.class, s.publicId().toString()));
+            });
+        }
+        assertEquals(before + 1, audits());
+        assertFalse(queries.company(c.publicId()).orElseThrow().active());
+    }
+
     @Test void ambientTransactionCannotReportAnIndependentCommit() {
         int before=count("client_company");
         new TransactionTemplate(transactions).executeWithoutResult(status -> bounded(PERSISTENCE_FAILED, () -> commands.createCompany("Synthetic Rejected")));

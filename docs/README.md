@@ -34,7 +34,7 @@ Use this index to find authoritative sources; current execution status and prede
 These indexes route to focused records as work is implemented and verified. The planning index and task packets are derived routing aids, never authority or gate evidence. Read repository rules directly; operator prompts need only supply task authorization and specific constraints rather than repeat governance, source code, or full frozen plans.
 
 Current authorized maintenance is [IMP-088](implementation/tasks/IMP-088.md) /
-[TASK-0037](tasks/TASK-0037.md), Antigravity Vaadin UI specialist onboarding.
+[TASK-0038](tasks/TASK-0038.md), Antigravity Vaadin UI specialist onboarding.
 [AGENTS.md](../AGENTS.md) routes implementation roles and the two workspace skills.
 Current execution evidence and next action remain in implementation state; product UI
 and IMP-015 are not authorized by this setup.

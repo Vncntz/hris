@@ -6,16 +6,16 @@ Last updated: 2026-10-04. Current execution snapshot; historical verification be
 
 - M0 is complete through [IMP-011](tasks/IMP-011.md).
 - M1 - Workforce Foundation: [IMP-012](tasks/IMP-012.md) and [IMP-013](tasks/IMP-013.md) are complete after verified closeout and fresh completion review.
-- Active work: [IMP-088](tasks/IMP-088.md) / [TASK-0037](../tasks/TASK-0037.md), Antigravity Vaadin UI specialist onboarding. Status: LOCAL_VERIFIED; exact-head CI, trusted integration and exact-merge push CI pending.
-- [TASK-0036](../tasks/TASK-0036.md) is Complete / POST_MERGE_VERIFIED. IMP-014 remains ACTIVE pending external fresh completion review; no such review is recorded on current main.
+- Active work: [IMP-088](tasks/IMP-088.md) / [TASK-0038](../tasks/TASK-0038.md), Antigravity Vaadin UI specialist onboarding. Status: LOCAL_VERIFIED; exact-head CI, trusted integration and exact-merge push CI pending.
+- [TASK-0037](../tasks/TASK-0037.md) is Complete / POST_MERGE_VERIFIED. IMP-014 remains ACTIVE pending external fresh post-TASK-0037 completion review; no such review is recorded on current main.
 
 ## Immediately relevant predecessor
 
-TASK-0036 [PR #61](https://github.com/Vncntz/hris/pull/61), final head
-`308ddbfb2a9506e9cdc6c08f388f524f5c673339`, merged as
-`b7f834f2b1ea560f13d43b1c0589b46c336b16da`. Independently refreshed exact-head
-[run 37130865630](https://github.com/Vncntz/hris/actions/runs/37130865630) and exact-merge
-main push [run 37131439302](https://github.com/Vncntz/hris/actions/runs/37131439302)
+TASK-0037 [PR #62](https://github.com/Vncntz/hris/pull/62), final head
+`42b02f8fc9a2f013db74ca9019195d4bc0a3f850`, merged as
+`b8b5f122cc6392eb45bd378a3d7ace04d3d07e5c`. Independently refreshed exact-head
+[run 37164160229](https://github.com/Vncntz/hris/actions/runs/37164160229) and exact-merge
+main push [run 37164569723](https://github.com/Vncntz/hris/actions/runs/37164569723)
 passed policy/Linux/Windows, including their build/test steps. Refreshed main matches this merge.
 No predecessor CI blocker remains. IMP-014 closure awaits external fresh review rather than CI alone.
 
@@ -32,15 +32,16 @@ No predecessor CI blocker remains. IMP-014 closure awaits external fresh review 
 
 ## Blockers and open verification
 
-TASK-0037 local verification passed: Windows 171 tests (zero failures/errors/skips/flaky/reruns),
-42 tooling tests, planning index, task context, 183 local links/anchors and both skill validators.
-Exact-final-head CI, trusted-main review and exact-merge push CI remain required. IMP-014 fresh completion review remains open but does not authorize
-product implementation in this maintenance task. Total administrator access loss,
-supported-hardware password-cost qualification, key rotation tooling, broad Client UI
-and `repo-policy.py` remain deferred.
+TASK-0038 local verification passed after main refresh: Windows 171 tests (zero failures/errors/
+skips/flaky/reruns), 42 tooling tests, planning index, task context, 186 local links/anchors
+and both skill validators. Exact-final-head CI, trusted-main review and exact-merge push CI
+remain required. IMP-014 fresh completion review remains open but
+does not authorize product implementation in this maintenance task. Total administrator
+access loss, supported-hardware password-cost qualification, key rotation tooling,
+broad Client UI and `repo-policy.py` remain deferred.
 
 ## Next action
 
-Verify and integrate only IMP-088 / TASK-0037 through all trusted-main gates. After successful
+Verify and integrate only IMP-088 / TASK-0038 through all trusted-main gates. After successful
 exact-merge push CI, report POST_MERGE_VERIFIED and stop. Do not begin application-shell,
 Client UI, IMP-015 or any successor TASK. The next authorized combined PR reconciles closeout.
