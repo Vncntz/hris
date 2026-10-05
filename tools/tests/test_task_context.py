@@ -509,6 +509,64 @@ class TaskContextTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(marker.exists())
 
+    def test_v2_packet_preserves_shape_hashes_determinism_and_read_only_behavior(self):
+        from test_task_schema import contract_text
+        legacy = self.packet()
+        self.write(TASK, contract_text() + '\nRead D-140 and the [focused guide](../guide.md).\n')
+        before = self.git("status", "--porcelain")
+        packet = self.packet()
+        self.assertEqual(set(packet), set(legacy))
+        self.assertEqual(packet, self.packet())
+        self.assertEqual(packet["version"], 1)
+        self.assert_reference(packet["task"], text=True)
+        self.assert_reference(packet["imp"], text=True)
+        self.assertEqual(self.git("status", "--porcelain"), before)
+
+    def test_validate_only_cli_reports_v2_and_legacy_without_changing_packets(self):
+        from test_task_schema import contract_text, METADATA
+        before = self.packet()
+        result = self.cli("TASK-0020", "--validate-only")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {"task": "TASK-0020", "imp": "IMP-088",
+                                                    "schema": "legacy", "metadata": None})
+        self.assertEqual(self.packet(), before)
+        self.write(TASK, contract_text() + '\nRead D-140 and the [focused guide](../guide.md).\n')
+        result = self.cli("TASK-0020", "--validate-only")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+        self.assertEqual(json.loads(result.stdout), {"task": "TASK-0020", "imp": "IMP-088",
+                                                    "schema": 2, "metadata": METADATA})
+        self.assertEqual(self.cli("TASK-0020", "--validate-only").stdout, result.stdout)
+
+    def test_malformed_v2_fails_cli_without_partial_json_in_both_modes(self):
+        from test_task_schema import contract_text, METADATA
+        for text in (contract_text({**METADATA, "owner": "HUMAN"}),
+                     contract_text({**METADATA, "imp": "IMP-089"}),
+                     contract_text().replace('"schema": 2', '"schema": 2, "schema": 2'),
+                     contract_text().replace("## Invariants", "## Missing section")):
+            with self.subTest(text=text[:130]):
+                self.write(TASK, text)
+                self.assert_cli_failure("TASK-0020")
+                self.assert_cli_failure("TASK-0020", "--validate-only")
+
+    def test_v2_still_requires_existing_parent_and_consistent_backlink(self):
+        from test_task_schema import contract_text
+        self.write(TASK, contract_text())
+        self.write(IMP, "# IMP-088 - Synthetic parent without backlink\n")
+        self.assert_cli_failure("TASK-0020", "--validate-only")
+        (self.root / IMP).unlink()
+        self.assert_cli_failure("TASK-0020", "--validate-only")
+
+    def test_target_repository_cannot_supply_executable_task_validator(self):
+        from test_task_schema import contract_text
+        self.write(TASK, contract_text() + '\nRead D-140 and the [focused guide](../guide.md).\n')
+        marker = self.root / "executed-validator.txt"
+        self.write("tools/task-context.py", "raise RuntimeError('untrusted validator ran')\n")
+        self.write("tools/task-schema.py", "from pathlib import Path\nPath('executed-validator.txt').touch()\n")
+        result = self.cli("TASK-0020", "--validate-only")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(marker.exists())
+
     def test_non_repository_fails_without_partial_output(self):
         outside = Path(self.temporary.name) / "not-a-repository"
         outside.mkdir()

@@ -29,15 +29,27 @@ NOTICE = (
     "and conflicts under the repository source precedence."
 )
 LINK = re.compile(r"\[([^\]\n]+)\]\(([^)\s]+)\)")
+TASK_SECTIONS = (
+    "Objective", "In scope", "Out of scope", "Invariants",
+    "Permitted repository scope", "Forbidden repository scope",
+    "Observable acceptance criteria", "Required verification",
+    "Evidence / handoff requirements",
+)
 
 
-def contained_file(repo: Path, source: str) -> Path:
-    """Require canonical relative spelling and containment after resolving symlinks."""
+def relative_path(source: str) -> PurePosixPath:
+    """Check repository-relative spelling without interpreting it as executable input."""
     if not isinstance(source, str) or not source or "\\" in source or ":" in source:
         raise ValueError("invalid repository-relative path")
     relative = PurePosixPath(source)
     if relative.is_absolute() or any(part in ("", ".", "..") for part in source.split("/")):
         raise ValueError("path traversal or non-canonical path")
+    return relative
+
+
+def contained_file(repo: Path, source: str) -> Path:
+    """Require canonical relative spelling and containment after resolving symlinks."""
+    relative_path(source)
     path = (repo / source).resolve(strict=True)
     if not path.is_relative_to(repo) or not path.is_file():
         raise ValueError(f"source is not a repository-contained file: {source}")
@@ -97,6 +109,106 @@ def unique_object(pairs: list[tuple[str, object]]) -> dict:
             raise ValueError(f"duplicate JSON key: {key}")
         result[key] = value
     return result
+
+
+def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
+    """Strict opt-in v2 syntax validation; None preserves the legacy contract.
+
+    This checks declarations, not authorization, dependency eligibility, section
+    meaning, scope, GitHub evidence or independent acceptance. No TASK order is used.
+    """
+    lines = text.splitlines()
+    markers = [number for number, line in enumerate(lines)
+               if re.match(r"^[ \t]*[`~]+[ \t]*task-schema", line, re.IGNORECASE)]
+    if not markers:
+        return None
+    if markers != [2] or lines[1] != "" or lines[2] != "```task-schema-v2":
+        raise ValueError("expected one task-schema-v2 block immediately after TASK heading")
+    try:
+        end = lines.index("```", 3)
+    except ValueError:
+        raise ValueError("unclosed task-schema-v2 metadata block") from None
+    metadata = json.loads("\n".join(lines[3:end]), object_pairs_hook=unique_object)
+    fields = {"schema", "task", "imp", "title", "owner", "baseline_main_sha", "dependencies"}
+    if not isinstance(metadata, dict) or set(metadata) != fields:
+        raise ValueError("v2 metadata must have exactly schema/task/imp/title/owner/baseline_main_sha/dependencies")
+    if type(metadata["schema"]) is not int or metadata["schema"] != 2:
+        raise ValueError("unsupported TASK schema; expected integer 2")
+    for field, expected, pattern in (("task", task_id, r"TASK-[0-9]{4}"),
+                                     ("imp", imp_id, r"IMP-[0-9]{3}")):
+        value = metadata[field]
+        if not isinstance(value, str) or not re.fullmatch(pattern, value) or value != expected:
+            raise ValueError(f"v2 {field} identity mismatch or invalid ID")
+    title = metadata["title"]
+    if not isinstance(title, str) or not title.strip() or title != title.strip() or "\n" in title or "\r" in title:
+        raise ValueError("v2 title must be a nonempty single-line string without surrounding whitespace")
+    if not re.fullmatch(rf"# {re.escape(task_id)} [—–-] {re.escape(title)}", lines[0]):
+        raise ValueError("v2 title must match the TASK identity heading")
+    if metadata["owner"] not in ("CODEX", "ANTIGRAVITY"):
+        raise ValueError("v2 primary owner must be exactly CODEX or ANTIGRAVITY")
+    baseline = metadata["baseline_main_sha"]
+    if not isinstance(baseline, str) or not re.fullmatch(r"[0-9a-f]{40}", baseline):
+        raise ValueError("v2 baseline_main_sha must be an exact 40-character lowercase hex SHA")
+    dependencies = metadata["dependencies"]
+    if dependencies != "none":
+        if not isinstance(dependencies, list) or not dependencies:
+            raise ValueError("v2 dependencies must be explicit 'none' or a nonempty array")
+        seen = set()
+        for dependency in dependencies:
+            if isinstance(dependency, str) and re.fullmatch(r"TASK-[0-9]{4}", dependency):
+                key = ("task", dependency)
+                if dependency == task_id:
+                    raise ValueError("v2 TASK cannot depend on itself")
+            elif isinstance(dependency, dict) and set(dependency) == {"contract", "requirement"}:
+                relative_path(dependency["contract"])
+                if "#" in dependency["contract"] or "?" in dependency["contract"]:
+                    raise ValueError("v2 contract path must not have a query or fragment")
+                requirement = dependency["requirement"]
+                if (not isinstance(requirement, str) or not requirement.strip()
+                        or requirement != requirement.strip() or "\n" in requirement or "\r" in requirement):
+                    raise ValueError("v2 contract prerequisite requires a nonempty single-line requirement")
+                key = ("contract", dependency["contract"])
+            else:
+                raise ValueError("v2 dependency must be TASK-#### or a contract/requirement object")
+            if key in seen:
+                raise ValueError("duplicate v2 dependency declaration")
+            seen.add(key)
+    required_sections(text)
+    return metadata
+
+
+def required_sections(text: str) -> None:
+    """Require unique nonempty H2 sections; fenced/commented headings are examples."""
+    # HTML comments cannot supply a required heading or section content.
+    text = re.sub(r"<!--.*?(?:-->|\Z)", "", text, flags=re.DOTALL)
+    lines = text.splitlines()
+    headings = []
+    fence = None
+    for number, line in enumerate(lines):
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if marker:
+            run, suffix = marker.groups()
+            if fence is None:
+                fence = run
+            elif run[0] == fence[0] and len(run) >= len(fence) and not suffix.strip():
+                fence = None
+            continue
+        if fence is None:
+            heading = re.match(r"^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*$", line)
+            if heading:
+                headings.append((number, len(heading[1]), heading[2].casefold()))
+    for section in TASK_SECTIONS:
+        matches = [(number, level) for number, level, title in headings if title == section.casefold()]
+        if len(matches) != 1 or matches[0][1] != 2:
+            raise ValueError(f"v2 requires exactly one level-2 section: {section}")
+        start = matches[0][0]
+        end = next((number for number, level, _ in headings if number > start and level <= 2), len(lines))
+        body = "\n".join(lines[start + 1:end])
+        # Subheadings alone are not semantic content.
+        body = re.sub(r"^ {0,3}#{1,6}[ \t]+.*$", "", body, flags=re.MULTILINE)
+        body = re.sub(r"^ {0,3}(?:`{3,}|~{3,}).*$", "", body, flags=re.MULTILINE)
+        if not body.strip():
+            raise ValueError(f"empty required v2 section: {section}")
 
 
 def routing_manifest(data: bytes, task_id: str, imp_id: str) -> dict:
@@ -194,6 +306,7 @@ def build_packet(repo: Path, task_id: str, decisions: list[str]) -> dict:
     if parent is None:
         raise ValueError("missing, duplicate or malformed parent IMP link")
     imp_id, target = parent.groups()
+    task_contract(task_text, task_id, imp_id)
     imp_source = f"docs/implementation/tasks/{imp_id}.md"
     if linked_path(repo, task_source, target) != imp_source:
         raise ValueError("parent IMP link identity mismatch")
@@ -297,11 +410,19 @@ def main() -> int:
     parser.add_argument("task", help="one explicit TASK-#### ID")
     parser.add_argument("decisions", nargs="*", help="additional explicit D-### IDs")
     parser.add_argument("--repo", type=Path, default=ROOT, help="data worktree root; tooling stays trusted")
+    parser.add_argument("--validate-only", action="store_true",
+                        help="validate the work order/context sources and emit a compact syntax result")
     args = parser.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     try:
         packet = build_packet(args.repo, args.task, args.decisions)
+        if args.validate_only:
+            # Reuse the packet's validated, snapshotted sources and legacy link checks.
+            imp_id = Path(packet["imp"]["source"]).stem
+            metadata = task_contract(packet["task"]["text"], args.task, imp_id)
+            packet = {"task": args.task, "imp": imp_id,
+                      "schema": 2 if metadata is not None else "legacy", "metadata": metadata}
         output = json.dumps(packet, ensure_ascii=False, indent=2, sort_keys=True)
     except (OSError, UnicodeError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
         print(f"task-context: {error}", file=sys.stderr)
