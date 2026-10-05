@@ -54,7 +54,7 @@ prose, to reconstruct current state. Do not mass-rewrite completed records.
 | [TASK-0041](TASK-0041.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Polish responsive HRIS login experience |
 | [TASK-0042](TASK-0042.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Align Vaadin route authorization with persisted permission authorities |
 | [TASK-0043](TASK-0043.md) | [IMP-088](../implementation/tasks/IMP-088.md) | Complete; POST_MERGE_VERIFIED | Independent Codex and Antigravity implementation lanes |
-| [TASK-0045](TASK-0045.md) | [IMP-088](../implementation/tasks/IMP-088.md) | PR_REVIEW; independent certification pending | Establish the core AIDD repository constitution |
+| [TASK-0045](TASK-0045.md) | [IMP-088](../implementation/tasks/IMP-088.md) | PR_REVIEW + BLOCKED; fresh independent certification pending | Establish the core AIDD repository constitution |
 | [TASK-0046](TASK-0046.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Stabilize Vaadin request ownership in route-authority test harness |
 
 IMP-001 predates TASK convention. Frozen backlog parents are IMP-001 through IMP-086;

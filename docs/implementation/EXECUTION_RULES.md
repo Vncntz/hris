@@ -83,8 +83,8 @@ Concurrent implementation requires:
 - A complete assignment: exact pair, primary owner/lane, full baseline main SHA,
   declared dependencies (or explicit none), precise permitted/forbidden paths,
   separate branch/worktree/PR and shared-document coordination.
-- All declared dependencies protected-merged and post-merge verified, with required
-  durable closure complete and their merge commits in the baseline. Independently
+- All declared dependencies satisfy dependency eligibility below, with their actual
+  protected merge commits contained in the verified assignment baseline. Independently
   inspect dependency PR and exact-head/exact-merge CI evidence in Git/GitHub; link
   evidence rather than maintain moving head/run/result fields in TASK metadata.
 - Disjoint permitted scopes and actual writes, including directory-prefix overlaps;
@@ -93,6 +93,31 @@ Concurrent implementation requires:
 - Serialized shared governance/state/index/parent reconciliation by Codex, preserving
   other assignments. An explicitly assigned governance TASK may own these shared
   edits during implementation; normal implementers maintain their own TASK evidence.
+
+**Dependency eligibility** applies to assignment and implementation, whether serial
+or concurrent, and is rechecked before integration. It is a condition, not another
+lifecycle state or a synonym for COMPLETE. A usable verified predecessor requires:
+
+1. Protected merge and a known actual merge SHA contained in the dependent TASK's
+   verified baseline.
+2. All required exact-merge/post-merge verification successful on that actual SHA,
+   with unambiguous dependency identity and evidence.
+3. All substantive acceptance criteria satisfied; no unresolved security/privacy or
+   schema/data-integrity blocker, and no unresolved application/service/API/contract
+   blocker that the dependent work relies on.
+4. Every explicit stronger predecessor gate in the dependent TASK or applicable
+   governance passed, including COMPLETE when explicitly required.
+5. Any unfinished predecessor work consists only of factual/durable reconciliation
+   or closeout bookkeeping that does not alter verified behavior, contracts, schema,
+   security semantics or the dependency interface.
+
+When these conditions hold, dependent work may be assigned and implemented while
+the predecessor remains POST_MERGE_VERIFIED, not yet COMPLETE. A later authorized
+combined PR may carry its factual durable closeout under serialized Codex
+coordination; predecessor COMPLETE is not required to authorize that closeout.
+Pending/failed required exact-merge/post-merge CI, unresolved substantive acceptance
+defects, the blockers above, unmet stronger gates, ambiguous identity/evidence or a
+required merge absent from the verified baseline continue to block dependent work.
 
 Check assignments and actual diffs against active lanes before editing, on scope/main
 change and before integration. Missing/ambiguous ownership, unmet dependencies or
@@ -203,7 +228,12 @@ CI success alone is not semantic acceptance.
 Required durable reconciliation means affected contracts and required TASK/IMP
 closure records agree with verified evidence. Where evidence must be recorded in a
 later authorized combined PR, remain POST_MERGE_VERIFIED until that reconciliation
-is integrated; a standalone closeout-only PR is not mandatory. Historical records
+is integrated; a standalone closeout-only PR is not mandatory. Dependency eligibility
+under Section 3 can already hold when only factual closure remains: dependent work
+and its authorized combined closeout PR may proceed, but the predecessor cannot be
+marked COMPLETE until required durable reconciliation is actually integrated.
+Substantive contract, behavior, security or schema changes are not factual closeout
+and cannot use this exception. Historical records
 using 'Complete / POST_MERGE_VERIFIED' retain their original meaning; do not mass
 rewrite them. Git/GitHub owns merge/CI facts regardless of prose lag.
 Pending/failed dependency verification blocks dependent work. Failed/pending latest

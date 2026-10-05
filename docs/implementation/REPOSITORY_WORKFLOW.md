@@ -7,7 +7,13 @@ short-lived branch, and one focused PR containing its work order and implementat
 Follow [AGENTS](../../AGENTS.md), [execution rules](EXECUTION_RULES.md) and the assigned
 contracts. Independent implementation follows the
 [assignment eligibility rules](EXECUTION_RULES.md#3-one-active-task-per-agent):
-verified declared dependencies, disjoint writes and coordinated shared documents.
+dependency-eligible verified predecessors, disjoint writes and coordinated shared
+documents. Eligibility applies to serial and concurrent work: protected merge at a
+known actual SHA in the verified baseline, successful required exact-merge/post-merge
+verification, satisfied substantive acceptance, no unresolved security/privacy,
+schema/data-integrity or relied-on application/service/API/contract blocker, passed
+explicit stronger gates and unambiguous identity/evidence. Only factual durable
+closeout may remain; eligibility does not require COMPLETE unless explicitly gated.
 Never share another agent's active checkout/branch. Suggested names are
 `feat/imp-###-short-description`, `fix/imp-###-short-description` and
 `chore/imp-###-short-description`. Do not commit directly to protected main.
@@ -18,7 +24,12 @@ Preserve originals outside the PR and compare final contracts before integration
 A separate planning PR is not mandatory. Verified dependency/latest integrated
 durable closeout may accompany an authorized PR under serialized Codex coordination;
 it does not authorize predecessor implementation. No standalone closeout-only PR is
-mandatory, but required durable closure must finish before COMPLETE.
+mandatory, but required durable closure must finish before COMPLETE. A dependency-
+eligible predecessor may remain POST_MERGE_VERIFIED while dependent work is assigned
+and implemented. That dependent TASK's authorized combined PR may carry only factual
+predecessor closure without changing verified behavior, contracts, schema, security
+semantics or the dependency interface; predecessor COMPLETE is not an authorization
+prerequisite for that PR. Substantive predecessor changes require their own authority.
 
 ## Candidate and handoff
 
@@ -106,7 +117,7 @@ established by [PR #19](https://github.com/Vncntz/hris/pull/19), merge
 ## Concurrent development and serialized integration
 
 Parallelize analysis aggressively; parallelize overlapping writes conservatively.
-One primary implementer per TASK, satisfied dependencies, disjoint permitted/actual
+One primary implementer per TASK, Section 3 dependency eligibility, disjoint permitted/actual
 writes, separate branch/worktree/PR and no shared-document collision are mandatory.
 TASK order does not imply dependency; explicit work-order gates do. UI must consume
 approved merged/verified owned application contracts when they are dependencies.

@@ -11,7 +11,8 @@ Historical state evidence is preserved in the
 ## Active operator assignments
 
 - CODEX: [IMP-088](tasks/IMP-088.md) / [TASK-0045](../tasks/TASK-0045.md), Phase-3
-  core repository constitution baseline refresh and fresh owner verification only. No integration/next-phase authority.
+  core repository constitution dependency-eligibility correction and fresh owner
+  verification only. No integration/next-phase authority.
 - ANTIGRAVITY: IMP-014 / TASK-0044, separate client administration UI candidate;
   work order is on its candidate branch. The
   [transition record](../tasks/TASK-0045.md#transition-compatibility) preserves its
@@ -19,7 +20,8 @@ Historical state evidence is preserved in the
 
 ## Manual blockers
 
-- TASK-0045 requires a fresh reviewer execution context for independent certification;
+- TASK-0045 remains PR_REVIEW + BLOCKED pending fresh independent certification
+  of the dependency-eligibility correction in a fresh reviewer execution context;
   its implementation conversation cannot supply that certification or integrate it.
 - PR #52 has a human-approved superseded/conflicting disposition. Remote mutation
   requires a separate action; this assignment preserves its history and does not
