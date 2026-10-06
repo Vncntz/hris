@@ -242,6 +242,68 @@ vaadin-app-layout.hris-shell::part(content) {
     border-style: dashed;
 }
 
+/* Dashboard module navigation */
+.hris-dashboard-modules-nav {
+    margin-top: var(--lumo-space-m);
+}
+
+.hris-module-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.hris-module-item {
+    margin: 0;
+    padding: 0;
+}
+
+.hris-module-link {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius-m);
+    border: 1px solid var(--hris-card-border);
+    background: var(--hris-surface);
+    color: var(--lumo-body-text-color);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: var(--lumo-font-size-m);
+    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+    box-sizing: border-box;
+    min-height: 2.75rem;
+}
+
+.hris-module-link:hover {
+    background: var(--hris-brand-soft);
+    border-color: var(--hris-brand);
+    color: var(--hris-brand-strong);
+    box-shadow: 0 2px 6px hsla(222, 62%, 38%, 0.1);
+}
+
+.hris-module-link:focus-visible {
+    outline: 2px solid var(--hris-brand);
+    outline-offset: 2px;
+}
+
+.hris-module-link-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--hris-brand);
+    flex-shrink: 0;
+}
+
+.hris-module-link-title {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 @keyframes hris-rise {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }
@@ -250,6 +312,7 @@ vaadin-app-layout.hris-shell::part(content) {
 @media (prefers-reduced-motion: reduce) {
     .hris-hero, .hris-card { animation: none; transition: none; }
     .hris-card:hover { transform: none; }
+    .hris-module-link { transition: none; }
 }
 
 @media (max-width: 40rem) {
