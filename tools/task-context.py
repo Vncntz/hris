@@ -111,16 +111,25 @@ def unique_object(pairs: list[tuple[str, object]]) -> dict:
     return result
 
 
-def fence_content(line: str) -> str:
+def fence_content(line: str) -> tuple[str, tuple[str, ...], int]:
     """Expose fences behind whitespace and nested Markdown quote/list prefixes.
 
     Used only for reserved-marker discovery and fenced-example exclusion. It does
     not make a container's schema block or headings canonical TASK declarations.
     """
-    line = line.lstrip(" \t")
-    while prefix := re.match(r"(?:>[ \t]*|[-+*][ \t]+|[0-9]{1,9}[.)][ \t]+)", line):
-        line = line[prefix.end():].lstrip(" \t")
-    return line
+    line = line.expandtabs(4)
+    indentation = len(line) - len(line.lstrip(" "))
+    line = line.lstrip(" ")
+    containers = []
+    while prefix := re.match(r"(?:> ?|[-+*] +|[0-9]{1,9}[.)] +)", line):
+        kind = "quote" if line.startswith(">") else "list"
+        containers.append(kind)
+        if kind == "list":
+            indentation += prefix.end()
+        line = line[prefix.end():]
+        indentation += len(line) - len(line.lstrip(" "))
+        line = line.lstrip(" ")
+    return line, tuple(containers), indentation
 
 
 def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
@@ -131,7 +140,7 @@ def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
     """
     lines = text.splitlines()
     markers = [number for number, line in enumerate(lines)
-               if re.match(r"^[`~]+[ \t]*task-schema", fence_content(line), re.IGNORECASE)]
+               if re.match(r"^[`~]+[ \t]*task-schema", fence_content(line)[0], re.IGNORECASE)]
     if not markers:
         return None
     if markers != [2] or lines[1] != "" or lines[2] != "```task-schema-v2":
@@ -197,12 +206,17 @@ def required_sections(text: str) -> None:
     headings = []
     fence = None
     for number, line in enumerate(lines):
-        marker = re.match(r"^(`{3,}|~{3,})(.*)$", fence_content(line))
+        content, containers, indentation = fence_content(line)
+        marker = re.match(r"^(`{3,}|~{3,})(.*)$", content)
         if marker:
             run, suffix = marker.groups()
             if fence is None:
-                fence = run
-            elif run[0] == fence[0] and len(run) >= len(fence) and not suffix.strip():
+                # List items continue by indentation; quote markers continue explicitly.
+                fence = (run, tuple(kind for kind in containers if kind == "quote"),
+                         indentation + 3 if "list" in containers else 3)
+            elif (containers == fence[1] and run[0] == fence[0][0]
+                  and indentation <= fence[2] and len(run) >= len(fence[0])
+                  and not suffix.strip()):
                 fence = None
             continue
         if fence is None:

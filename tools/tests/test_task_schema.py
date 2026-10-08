@@ -199,6 +199,19 @@ class TaskSchemaTests(unittest.TestCase):
                     # Closing the container fence must expose subsequent real sections.
                     self.assertEqual(self.parse(text[:start] + example + text[start:]), METADATA)
 
+    def test_container_looking_code_lines_cannot_close_another_fence(self):
+        text = contract_text()
+        start = text.index("## Objective")
+        for opener, closer, indent in (("", "", ""), ("> ", "> ", "> "),
+                                       ("- ", "  ", "  ")):
+            for fake_close in ("- ```", "1. ```", "> ```", "    ```"):
+                example = (opener + "```text\n" + indent + fake_close + "\n"
+                           + "\n".join(indent + line for line in text[start:].splitlines())
+                           + "\n" + closer + "```\n")
+                with self.subTest(opener=opener, fake_close=fake_close):
+                    self.reject(text[:start] + example)
+                    self.assertEqual(self.parse(text[:start] + example + text[start:]), METADATA)
+
     def test_fenced_and_commented_headings_cannot_supply_sections(self):
         text = contract_text()
         block = "## Objective\n\nSynthetic required content."

@@ -564,6 +564,7 @@ class TaskContextTests(unittest.TestCase):
         cases.append(text[:start] + "- ```text\n"
                      + "\n".join("  " + line for line in text[start:].splitlines())
                      + "\n  ```\n")
+        cases.append(text[:start] + "```text\n- ```\n" + text[start:] + "\n```\n")
         for number, content in enumerate(cases):
             with self.subTest(case=number):
                 self.write(TASK, content + '\nRead D-140 and the [focused guide](../guide.md).\n')
