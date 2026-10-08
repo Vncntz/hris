@@ -111,23 +111,37 @@ def unique_object(pairs: list[tuple[str, object]]) -> dict:
     return result
 
 
-def fence_content(line: str) -> tuple[str, tuple[str, ...], int]:
+def fence_content(line: str, *, bounded: bool = False,
+                  continuation: int = 0) -> tuple[str, tuple[str, ...], int]:
     """Expose fences behind whitespace and nested Markdown quote/list prefixes.
 
-    Used only for reserved-marker discovery and fenced-example exclusion. It does
-    not make a container's schema block or headings canonical TASK declarations.
+    Reserved-marker/ambiguous-parent discovery deliberately exposes all indentation.
+    Fence opening uses bounded indentation: at most three columns before each
+    container or fence, and one to four columns after a list marker. It does not
+    make a container's schema block or headings canonical TASK declarations.
     """
     line = line.expandtabs(4)
     indentation = len(line) - len(line.lstrip(" "))
+    if bounded and indentation > continuation + 3:
+        return line, (), indentation
+    continuation = max(0, continuation - indentation)
     line = line.lstrip(" ")
     containers = []
-    while prefix := re.match(r"(?:> ?|[-+*] +|[0-9]{1,9}[.)] +)", line):
+    # Five or more spaces after a list marker leave indented code after its
+    # one-column padding, rather than becoming unlimited fence indentation.
+    spaces = r"(?: {1,4}(?! )| (?= {4}))" if bounded else r" +"
+    while prefix := re.match(rf"(?:> ?|[-+*]{spaces}|[0-9]{{1,9}}[.)]{spaces})", line):
         kind = "quote" if line.startswith(">") else "list"
         containers.append(kind)
         if kind == "list":
             indentation += prefix.end()
+            continuation = 0
         line = line[prefix.end():]
-        indentation += len(line) - len(line.lstrip(" "))
+        extra = len(line) - len(line.lstrip(" "))
+        indentation += extra
+        if bounded and extra > continuation + 3:
+            break
+        continuation = max(0, continuation - extra)
         line = line.lstrip(" ")
     return line, tuple(containers), indentation
 
@@ -235,10 +249,14 @@ def markdown_lines(lines: list[str]):
     fence = None
     comment = False
     span_end = None
+    list_context = None
 
     def fence_marker(line: str) -> bool:
         nonlocal fence
-        content, containers, indentation = fence_content(line)
+        content, containers, indentation = fence_content(
+            line, bounded=fence is None,
+            continuation=list_context[1] if list_context is not None else 0,
+        )
         marker = re.match(r"^(`{3,}|~{3,})(.*)$", content)
         if marker is None:
             return False
@@ -246,12 +264,30 @@ def markdown_lines(lines: list[str]):
         if fence is None:
             # List items continue by indentation; quote markers continue explicitly.
             fence = (run, tuple(kind for kind in containers if kind == "quote"),
-                     indentation + 3 if "list" in containers else 3)
+                     list_context[1] + 3 if list_context is not None else 3,
+                     list_context[1] if list_context is not None else 0)
         elif (containers == fence[1] and run[0] == fence[0][0]
               and indentation <= fence[2] and len(run) >= len(fence[0])
               and not suffix.strip()):
             fence = None
         return True
+
+    def fence_continues(line: str) -> bool:
+        # A container fence ends with its container, even without a closing run.
+        # Only quote prefixes/indentation are structural here; list-looking code
+        # inside an existing fence remains literal.
+        remaining = line.expandtabs(4)
+        indentation = 0
+        for _ in fence[1]:
+            indentation += len(remaining) - len(remaining.lstrip(" "))
+            remaining = remaining.lstrip(" ")
+            if not remaining.startswith(">"):
+                return False
+            remaining = remaining[1:]
+            if remaining.startswith(" "):
+                remaining = remaining[1:]
+        indentation += len(remaining) - len(remaining.lstrip(" "))
+        return not remaining.strip() or indentation >= fence[3]
 
     def closing_span(number: int, column: int, length: int):
         # Match an exact backtick run, including multiline paragraph spans. Block
@@ -273,6 +309,22 @@ def markdown_lines(lines: list[str]):
         return None
 
     for number, line in enumerate(lines):
+        if fence is not None and not fence_continues(line):
+            fence = None
+        if fence is None and not comment and span_end is None:
+            # Remember list content indentation across blank/continuation lines.
+            # Dedented prose or a different quote container ends that allowance.
+            _, containers, indentation = fence_content(line)
+            quotes = tuple(kind for kind in containers if kind == "quote")
+            if list_context is not None and line.strip() and (
+                    quotes != list_context[0] or indentation < list_context[1]):
+                list_context = None
+            content, containers, indentation = fence_content(
+                line, bounded=True,
+                continuation=list_context[1] if list_context is not None else 0,
+            )
+            if "list" in containers and not content.startswith("    "):
+                list_context = (quotes, indentation)
         # Block fences take precedence over inline syntax, including their info
         # strings. A fence-looking line inside a real comment is still comment.
         if not comment and span_end is None and fence_marker(line):
@@ -280,6 +332,14 @@ def markdown_lines(lines: list[str]):
             continue
         if fence is not None:
             yield number, line, None
+            continue
+        # Indented code is literal; its backticks/comments must not change later
+        # prose state. Keep the declaration view for strict ambiguous-parent checks.
+        if not comment and span_end is None and fence_content(
+                line, bounded=True,
+                continuation=list_context[1] if list_context is not None else 0,
+        )[0].startswith("    "):
+            yield number, line, line
             continue
         visible = []
         active = []

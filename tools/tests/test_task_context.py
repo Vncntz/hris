@@ -646,6 +646,44 @@ class TaskContextTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(json.loads(result.stdout)["schema"], "legacy")
 
+    def test_indented_pseudo_fences_reject_duplicate_parent_in_both_cli_modes(self):
+        from test_task_schema import contract_text, indented_pseudo_fence_examples, PARENT
+        examples = list(indented_pseudo_fence_examples())
+        examples.extend(code + "\n" + PARENT + "\n```" for code in
+                        ("    <!--", "\t<!--", "    ```text", "\t```text",
+                         ">     <!--", "-     <!--", "-     ```text"))
+        for example in examples:
+            self.write(TASK, contract_text() + "\n\n" + example + "\n")
+            for mode in ((), ("--validate-only",)):
+                with self.subTest(example=example, mode=mode):
+                    result = self.cli("TASK-0020", *mode)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(result.stdout, "")
+                    self.assertIn("parent", result.stderr.lower())
+
+    def test_permitted_fence_indentation_preserves_cli_packet_and_validation(self):
+        from test_task_schema import contract_text, permitted_indentation_examples, PARENT
+        for example in permitted_indentation_examples():
+            text = contract_text() + "\n\n" + example + '\nRead D-140 and the [focused guide](../guide.md).\n'
+            with self.subTest(example=example):
+                self.write(TASK, text)
+                for mode in ((), ("--validate-only",)):
+                    result = self.cli("TASK-0020", *mode)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stderr, "")
+                    output = json.loads(result.stdout)
+                    if mode:
+                        self.assertEqual(output["schema"], 2)
+                    else:
+                        self.assert_reference(output["task"], text=True)
+                        self.assertEqual(result.stdout, self.cli("TASK-0020").stdout)
+                self.write(TASK, text + "\n" + PARENT + "\n")
+                for mode in ((), ("--validate-only",)):
+                    result = self.cli("TASK-0020", *mode)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(result.stdout, "")
+                    self.assertIn("parent", result.stderr.lower())
+
     def test_target_repository_cannot_supply_executable_task_validator(self):
         from test_task_schema import contract_text
         self.write(TASK, contract_text() + '\nRead D-140 and the [focused guide](../guide.md).\n')

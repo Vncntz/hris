@@ -53,6 +53,40 @@ def inactive_parent_examples():
     )
 
 
+def indented_pseudo_fence_examples():
+    # CommonMark fences allow 0..3 columns before the fence/container; tabs stop
+    # at multiples of four. A blank separates indented code from active prose.
+    for prefix in ("    ", "\t", " \t", "  \t", "   \t", "\t ",
+                   "    > ", ">     ", "> \t  ", "-     ",
+                   "> -     ", "- >     "):
+        for marker in ("```", "~~~~"):
+            yield prefix + marker + "text\n\n" + PARENT + "\n\n" + marker
+    # Leaving a quote/list closes its fence, even when the closing run is absent.
+    for opener in ("> ```text", "- ```text", "> - ```text",
+                   "- Example item\n\n    ```text"):
+        yield opener + "\n\n" + PARENT
+
+
+def permitted_indentation_examples():
+    for prefix, continuation in (("", ""), (" ", ""), ("  ", ""), ("   ", ""),
+                                 ("- ", "  "), ("   - ", "     "),
+                                 ("-\t", "    "), ("1.\t", "    "),
+                                 ("- \t ", "     "), ("  -\t", "    "),
+                                 ("> ", "> "), (">\t", "> "), ("> \t ", "> "),
+                                 ("> - ", ">   "), ("- > ", "  > "),
+                                 ("- - ", "    "), ("> > ", "> > ")):
+        for marker in ("```", "~~~~"):
+            yield (prefix + marker + "text\n" + continuation + "<!--\n"
+                   + continuation + PARENT + "\n" + continuation + marker)
+    for item, continuation in (("- Example item", "    "),
+                               ("- Outer item\n  - Inner item", "      "),
+                               ("> - Quoted item", ">     ")):
+        for marker in ("```", "~~~~"):
+            yield (item + "\n\n" + continuation + marker + "text\n"
+                   + continuation + "<!--\n" + continuation + PARENT + "\n"
+                   + continuation + marker)
+
+
 class TaskSchemaTests(unittest.TestCase):
     def parse(self, text):
         return CONTEXT.task_contract(text, "TASK-0020", "IMP-088")
@@ -97,6 +131,41 @@ class TaskSchemaTests(unittest.TestCase):
         for example in inactive_parent_examples():
             with self.subTest(example=example):
                 self.assertEqual(self.parse(contract_text() + "\n" + example + "\n"), METADATA)
+
+    def test_indented_pseudo_fences_cannot_hide_active_duplicate_parent(self):
+        for example in indented_pseudo_fence_examples():
+            with self.subTest(example=example):
+                with self.assertRaisesRegex(ValueError, "parent"):
+                    self.parse(contract_text() + "\n\n" + example + "\n")
+
+    def test_permitted_fence_indentation_keeps_examples_inactive(self):
+        for example in permitted_indentation_examples():
+            with self.subTest(example=example):
+                self.assertEqual(self.parse(contract_text() + "\n\n" + example + "\n"), METADATA)
+                with self.assertRaisesRegex(ValueError, "parent"):
+                    self.parse(contract_text() + "\n\n" + example + "\n\n" + PARENT + "\n")
+
+    def test_indented_code_markers_stay_literal_without_hiding_later_prose(self):
+        for code in ("    <!--", "\t<!--", "    ```text", "\t```text",
+                     ">     <!--", "-     <!--", "-     ```text"):
+            with self.subTest(code=code):
+                text = contract_text() + "\n\n" + code + "\n" + PARENT + "\n```\n"
+                with self.assertRaisesRegex(ValueError, "parent"):
+                    self.parse(text)
+
+    def test_indentation_scan_preserves_source_lines_and_literal_code(self):
+        lines = ["\t```text", "", PARENT, "    <!--", "Active content."]
+        self.assertEqual(list(CONTEXT.markdown_lines(lines)),
+                         [(number, line, line) for number, line in enumerate(lines)])
+
+    def test_pseudo_fence_cannot_hide_or_supply_semantic_section(self):
+        block = "## Objective\n\nSynthetic required content."
+        for prefix in ("    ", "\t", " \t"):
+            with self.subTest(prefix=prefix):
+                example = prefix + "```text\n\n" + block + "\n\n" + prefix + "```\n"
+                with self.assertRaisesRegex(ValueError, "Objective"):
+                    self.parse(contract_text() + "\n\n" + example)
+                self.assertEqual(self.parse(contract_text().replace(block, example)), METADATA)
 
     def test_code_comment_markers_cannot_hide_active_parent_or_sections(self):
         examples = (
