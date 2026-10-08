@@ -140,7 +140,7 @@ def schema_markers(text: str) -> list[int]:
 def parent_link(text: str, *, strict: bool = False) -> tuple[str, str]:
     """Use active declarations for v2, preserving raw-line legacy extraction."""
     if strict:
-        parents = [line for _, line in active_markdown_lines(uncommented_lines(text))
+        parents = [line for _, line in active_markdown_lines(text.splitlines())
                    if fence_content(line)[0].startswith("Parent implementation item:")]
     else:
         parents = [line for line in text.splitlines()
@@ -225,37 +225,121 @@ def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
     return metadata
 
 
-def uncommented_lines(text: str) -> list[str]:
-    return re.sub(r"<!--.*?(?:-->|\Z)", "", text, flags=re.DOTALL).splitlines()
+def markdown_lines(lines: list[str]):
+    """Scan comments, code spans and fences together, preserving source line numbers.
+
+    Yield comment-free content and a declaration view (None inside fences). Code
+    spans remain content but are masked in the declaration view. Literal comment
+    markers in either kind of code never affect comment or fence state.
+    """
+    fence = None
+    comment = False
+    span_end = None
+
+    def fence_marker(line: str) -> bool:
+        nonlocal fence
+        content, containers, indentation = fence_content(line)
+        marker = re.match(r"^(`{3,}|~{3,})(.*)$", content)
+        if marker is None:
+            return False
+        run, suffix = marker.groups()
+        if fence is None:
+            # List items continue by indentation; quote markers continue explicitly.
+            fence = (run, tuple(kind for kind in containers if kind == "quote"),
+                     indentation + 3 if "list" in containers else 3)
+        elif (containers == fence[1] and run[0] == fence[0][0]
+              and indentation <= fence[2] and len(run) >= len(fence[0])
+              and not suffix.strip()):
+            fence = None
+        return True
+
+    def closing_span(number: int, column: int, length: int):
+        # Match an exact backtick run, including multiline paragraph spans. Block
+        # boundaries end inline parsing; an unmatched run is ordinary text.
+        quotes = tuple(kind for kind in fence_content(lines[number])[1] if kind == "quote")
+        for end_number in range(number, len(lines)):
+            candidate = lines[end_number]
+            if end_number > number:
+                content, containers, _ = fence_content(candidate)
+                if (not candidate.strip() or containers != quotes
+                        or re.match(r"^(?:`{3,}|~{3,}|#{1,6}[ \t]|<!--)", content)
+                        or re.fullmatch(r"(?:[-*_][ \t]*){3,}|=+[ \t]*", content)):
+                    break
+            for run in re.finditer(r"`+", candidate):
+                if end_number == number and run.start() < column:
+                    continue
+                if len(run[0]) == length:
+                    return end_number, run.end()
+        return None
+
+    for number, line in enumerate(lines):
+        # Block fences take precedence over inline syntax, including their info
+        # strings. A fence-looking line inside a real comment is still comment.
+        if not comment and span_end is None and fence_marker(line):
+            yield number, line, None
+            continue
+        if fence is not None:
+            yield number, line, None
+            continue
+        visible = []
+        active = []
+        column = 0
+        # Fence contents bypass inline/comment processing entirely. Outside a
+        # fence, process comments and spans in source order before finding fences.
+        while column < len(line):
+            if comment:
+                end = line.find("-->", column)
+                stop = len(line) if end < 0 else end + 3
+                visible.append(" " * (stop - column))
+                active.append(" " * (stop - column))
+                column = stop
+                comment = end < 0
+            elif span_end is not None:
+                stop = span_end[1] if number == span_end[0] else len(line)
+                visible.append(line[column:stop])
+                active.append("x" * (stop - column))
+                column = stop
+                if number == span_end[0]:
+                    span_end = None
+            elif line.startswith("<!--", column):
+                comment = True
+            elif line[column] == "\\" and column + 1 < len(line):
+                visible.append(line[column:column + 2])
+                active.append(line[column:column + 2])
+                column += 2
+            elif line[column] == "`":
+                run = re.match(r"`+", line[column:])[0]
+                span_end = closing_span(number, column + len(run), len(run))
+                visible.append(run)
+                active.append("x" * len(run) if span_end is not None else run)
+                column += len(run)
+            else:
+                visible.append(line[column])
+                active.append(line[column])
+                column += 1
+        cleaned = "".join(visible)
+        declaration = "".join(active)
+        if fence_marker(declaration):
+            yield number, cleaned, None
+            continue
+        yield number, cleaned, declaration
 
 
 def active_markdown_lines(lines: list[str]):
-    """Share the existing fence exclusion for v2 declarations and headings."""
-    fence = None
-    for number, line in enumerate(lines):
-        content, containers, indentation = fence_content(line)
-        marker = re.match(r"^(`{3,}|~{3,})(.*)$", content)
-        if marker:
-            run, suffix = marker.groups()
-            if fence is None:
-                # List items continue by indentation; quote markers continue explicitly.
-                fence = (run, tuple(kind for kind in containers if kind == "quote"),
-                         indentation + 3 if "list" in containers else 3)
-            elif (containers == fence[1] and run[0] == fence[0][0]
-                  and indentation <= fence[2] and len(run) >= len(fence[0])
-                  and not suffix.strip()):
-                fence = None
-            continue
-        if fence is None:
-            yield number, line
+    """Use the shared scanner for v2 declarations and headings."""
+    for number, _, declaration in markdown_lines(lines):
+        if declaration is not None:
+            yield number, declaration
 
 
 def required_sections(text: str) -> None:
     """Require unique nonempty H2 sections; fenced/commented headings are examples."""
-    # Keep the section body and scanner's line numbering in the same comment-free text.
-    lines = uncommented_lines(text)
+    scanned = list(markdown_lines(text.splitlines()))
+    lines = [line for _, line, _ in scanned]
     headings = []
-    for number, line in active_markdown_lines(lines):
+    for number, _, line in scanned:
+        if line is None:
+            continue
         heading = re.match(r"^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*$", line)
         if heading:
             headings.append((number, len(heading[1]), heading[2].casefold()))

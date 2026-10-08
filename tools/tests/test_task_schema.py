@@ -44,6 +44,12 @@ def inactive_parent_examples():
         "- ```text\n  " + PARENT + "\n  ```",
         "> ```text\n> " + PARENT + "\n> ```",
         "```text\n- ```\n" + PARENT + "\n```",
+        # A literal opener must not consume the next fence through its literal closer.
+        "`<!--`\n```text\n-->\n" + PARENT + "\n<!--\n```\n-->",
+        "`` <!-- ` literal ``\n~~~~text\n-->\n" + PARENT + "\n<!--\n~~~~\n-->",
+        "`<!--`\n- ```text\n  -->\n  " + PARENT + "\n  <!--\n  ```\n-->",
+        "`<!--`\n> ```text\n> -->\n> " + PARENT + "\n> <!--\n> ```\n-->",
+        "`literal\n" + PARENT + "\nliteral <!-- -->`",
     )
 
 
@@ -91,6 +97,48 @@ class TaskSchemaTests(unittest.TestCase):
         for example in inactive_parent_examples():
             with self.subTest(example=example):
                 self.assertEqual(self.parse(contract_text() + "\n" + example + "\n"), METADATA)
+
+    def test_code_comment_markers_cannot_hide_active_parent_or_sections(self):
+        examples = (
+            "`<!--`", "`` <!-- ` literal ``", "`<!--\nliteral -->`",
+            "```text\n<!--\n```", "~~~~text\n<!--\n~~~~",
+            "- ```text\n  <!--\n  ```", "> ```text\n> <!--\n> ```",
+            "~~~ <!--\nLiteral example.\n~~~",
+        )
+        for example in examples:
+            with self.subTest(example=example):
+                text = contract_text().replace(PARENT, example + "\n\n" + PARENT)
+                self.assertEqual(self.parse(text), METADATA)
+                self.reject(text + "\n" + PARENT + "\n")
+
+    def test_code_spans_and_real_comments_are_distinguished(self):
+        for example in ("`<!--`\n<!--\n" + PARENT + "\n-->",
+                        "``<!--` ``\n<!--\n" + PARENT + "\n-->",
+                        "`literal\n" + PARENT + "\nliteral <!-- -->`",
+                        "<!--\n```\n-->\n```text\n" + PARENT + "\n```",
+                        "`unmatched <!--\n" + PARENT + "\n-->",
+                        "``mismatched <!--`\n" + PARENT + "\n-->",
+                        "\\`<!--\n" + PARENT + "\n-->"):
+            with self.subTest(example=example):
+                self.reject(contract_text().replace(PARENT, example))
+
+    def test_unmatched_code_span_cannot_cross_block_boundaries_to_hide_parent(self):
+        for boundary in ("", "## Extra heading", "- New item", "> New quote",
+                         "<!-- Real comment -->", "---", "~~~text\n~~~"):
+            with self.subTest(boundary=boundary):
+                self.reject(contract_text() + "\n`unmatched\n" + boundary
+                            + "\n" + PARENT + "\nclosing`\n")
+
+    def test_scanner_preserves_lines_and_code_content_while_excluding_comments(self):
+        lines = ["`<!--`", "<!--", "```", "-->", "~~~~text", "<!--",
+                 "~~~~", "Active content."]
+        scanned = list(CONTEXT.markdown_lines(lines))
+        self.assertEqual([number for number, _, _ in scanned], list(range(len(lines))))
+        self.assertEqual([line for _, line, _ in scanned],
+                         [lines[0], " " * 4, " " * 3, " " * 3, *lines[4:]])
+        self.assertEqual(list(CONTEXT.active_markdown_lines(lines)),
+                         [(0, "x" * len(lines[0])), (1, " " * 4), (2, " " * 3),
+                          (3, " " * 3), (7, lines[7])])
 
     def test_duplicate_ambiguous_or_inconsistent_active_parent_fails(self):
         for declaration in (PARENT, " " + PARENT, "> " + PARENT, "- " + PARENT,

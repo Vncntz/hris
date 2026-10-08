@@ -618,6 +618,24 @@ class TaskContextTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(json.loads(result.stdout)["imp"], "IMP-088")
 
+    def test_code_comment_openers_cannot_hide_duplicate_active_parent_in_both_modes(self):
+        from test_task_schema import contract_text, PARENT
+        for example in ("`<!--`", "`` <!-- ` literal ``", "`<!--\nliteral -->`",
+                        "```text\n<!--\n```", "~~~~text\n<!--\n~~~~",
+                        "- ```text\n  <!--\n  ```", "> ```text\n> <!--\n> ```"):
+            with self.subTest(example=example):
+                text = contract_text().replace(PARENT, example + "\n\n" + PARENT)
+                self.write(TASK, text + '\nRead D-140 and the [focused guide](../guide.md).\n')
+                for mode in ((), ("--validate-only",)):
+                    result = self.cli("TASK-0020", *mode)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                self.write(TASK, text + "\n" + PARENT + "\n")
+                for mode in ((), ("--validate-only",)):
+                    result = self.cli("TASK-0020", *mode)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(result.stdout, "")
+                    self.assertIn("parent", result.stderr.lower())
+
     def test_legacy_parent_extraction_remains_compatible(self):
         from test_task_schema import PARENT
         for example in ("<!--\n" + PARENT + "\n-->", "```text\n" + PARENT + "\n```"):
