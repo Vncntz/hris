@@ -549,6 +549,27 @@ class TaskContextTests(unittest.TestCase):
                 self.assert_cli_failure("TASK-0020")
                 self.assert_cli_failure("TASK-0020", "--validate-only")
 
+    def test_container_schema_and_list_example_fail_cli_in_both_modes(self):
+        from test_task_schema import contract_text
+        text = contract_text()
+        start = text.index("## Objective")
+        cases = []
+        for prefix in ("> ", "- ", "1. "):
+            cases.extend((
+                text.replace('"schema": 2', '"schema":').replace(
+                    "```task-schema-v2", prefix + "```task-schema-v2"),
+                text[:start].replace("```task-schema-v2", prefix + "```task-schema-v2"),
+                text + "\n" + prefix + "```task-schema-v2\n{}\n```\n",
+            ))
+        cases.append(text[:start] + "- ```text\n"
+                     + "\n".join("  " + line for line in text[start:].splitlines())
+                     + "\n  ```\n")
+        for number, content in enumerate(cases):
+            with self.subTest(case=number):
+                self.write(TASK, content + '\nRead D-140 and the [focused guide](../guide.md).\n')
+                self.assert_cli_failure("TASK-0020", "--validate-only")
+                self.assert_cli_failure("TASK-0020")
+
     def test_v2_still_requires_existing_parent_and_consistent_backlink(self):
         from test_task_schema import contract_text
         self.write(TASK, contract_text())

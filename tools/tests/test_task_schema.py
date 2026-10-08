@@ -170,6 +170,35 @@ class TaskSchemaTests(unittest.TestCase):
             self.reject(text + "\n## " + section + "\n\nDuplicate content.\n")
         self.reject(text + "\n## objective\n\nDuplicate case-insensitive heading.\n")
 
+    def test_container_schema_markers_never_fall_back_to_legacy(self):
+        text = contract_text()
+        for prefix in ("> ", "- ", "1. ", "+ ", "* ", "12) ", "> - ", "- > ", "  > 1. "):
+            for invalid in (text.replace('"schema": 2', '"schema":'),
+                            text[:text.index("## Objective")], text):
+                with self.subTest(prefix=prefix, invalid=invalid[:100]):
+                    self.reject(invalid.replace("```task-schema-v2", prefix + "```task-schema-v2"))
+
+    def test_container_duplicate_reserved_blocks_fail(self):
+        for prefix in ("> ", "- ", "1. ", "> - ", "1. > "):
+            for marker in ("```task-schema-v2", "~~~task-schema-v3", "``task-schema"):
+                with self.subTest(prefix=prefix, marker=marker):
+                    self.reject(contract_text() + "\n" + prefix + marker + "\n{}\n```\n")
+
+    def test_container_fenced_examples_cannot_supply_semantic_sections(self):
+        text = contract_text()
+        start = text.index("## Objective")
+        # The reported counterexample: all nine H2 headings exist only in a list fence.
+        for opener, indent in (("- ", "  "), ("1. ", "   "), ("> ", "> "),
+                               ("> - ", ">   "), ("- - ", "    ")):
+            for fence in ("```", "~~~~"):
+                example = (opener + fence + "text\n"
+                           + "\n".join(indent + line for line in text[start:].splitlines())
+                           + "\n" + indent + fence + "\n")
+                with self.subTest(opener=opener, fence=fence):
+                    self.reject(text[:start] + example)
+                    # Closing the container fence must expose subsequent real sections.
+                    self.assertEqual(self.parse(text[:start] + example + text[start:]), METADATA)
+
     def test_fenced_and_commented_headings_cannot_supply_sections(self):
         text = contract_text()
         block = "## Objective\n\nSynthetic required content."

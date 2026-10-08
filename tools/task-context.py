@@ -111,6 +111,18 @@ def unique_object(pairs: list[tuple[str, object]]) -> dict:
     return result
 
 
+def fence_content(line: str) -> str:
+    """Expose fences behind whitespace and nested Markdown quote/list prefixes.
+
+    Used only for reserved-marker discovery and fenced-example exclusion. It does
+    not make a container's schema block or headings canonical TASK declarations.
+    """
+    line = line.lstrip(" \t")
+    while prefix := re.match(r"(?:>[ \t]*|[-+*][ \t]+|[0-9]{1,9}[.)][ \t]+)", line):
+        line = line[prefix.end():].lstrip(" \t")
+    return line
+
+
 def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
     """Strict opt-in v2 syntax validation; None preserves the legacy contract.
 
@@ -119,7 +131,7 @@ def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
     """
     lines = text.splitlines()
     markers = [number for number, line in enumerate(lines)
-               if re.match(r"^[ \t]*[`~]+[ \t]*task-schema", line, re.IGNORECASE)]
+               if re.match(r"^[`~]+[ \t]*task-schema", fence_content(line), re.IGNORECASE)]
     if not markers:
         return None
     if markers != [2] or lines[1] != "" or lines[2] != "```task-schema-v2":
@@ -185,7 +197,7 @@ def required_sections(text: str) -> None:
     headings = []
     fence = None
     for number, line in enumerate(lines):
-        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        marker = re.match(r"^(`{3,}|~{3,})(.*)$", fence_content(line))
         if marker:
             run, suffix = marker.groups()
             if fence is None:
