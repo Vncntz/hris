@@ -35,6 +35,18 @@ def contract_text(metadata=None):
                              for section in SEMANTIC_SECTIONS) + "\n")
 
 
+def inactive_parent_examples():
+    return (
+        "<!--\n" + PARENT + "\n-->",
+        "<!-- " + PARENT + " -->",
+        "```text\n" + PARENT + "\n```",
+        "~~~~text\n" + PARENT + "\n~~~~",
+        "- ```text\n  " + PARENT + "\n  ```",
+        "> ```text\n> " + PARENT + "\n> ```",
+        "```text\n- ```\n" + PARENT + "\n```",
+    )
+
+
 class TaskSchemaTests(unittest.TestCase):
     def parse(self, text):
         return CONTEXT.task_contract(text, "TASK-0020", "IMP-088")
@@ -69,6 +81,29 @@ class TaskSchemaTests(unittest.TestCase):
         text = "# TASK-0020 - Historical contract\n\n" + PARENT + "\n"
         self.assertIsNone(self.parse(text))
         self.assertIsNone(self.parse(text + '\nLegacy prose mentions schema v2 and {"schema": 2}.\n'))
+
+    def test_commented_or_fenced_parent_cannot_supply_v2_declaration(self):
+        for example in inactive_parent_examples():
+            with self.subTest(example=example):
+                self.reject(contract_text().replace(PARENT, example))
+
+    def test_one_active_parent_can_coexist_with_inactive_examples(self):
+        for example in inactive_parent_examples():
+            with self.subTest(example=example):
+                self.assertEqual(self.parse(contract_text() + "\n" + example + "\n"), METADATA)
+
+    def test_duplicate_ambiguous_or_inconsistent_active_parent_fails(self):
+        for declaration in (PARENT, " " + PARENT, "> " + PARENT, "- " + PARENT,
+                            "    " + PARENT, PARENT.replace("IMP-088", "IMP-089"),
+                            "Parent implementation item: ambiguous"):
+            with self.subTest(declaration=declaration):
+                self.reject(contract_text() + "\n" + declaration + "\n")
+        for declaration in ("> " + PARENT, "- " + PARENT, "    " + PARENT,
+                            PARENT.replace("IMP-088", "IMP-089"),
+                            PARENT.replace("tasks/IMP-088.md", "tasks/IMP-089.md"),
+                            PARENT.replace("IMP-088.md)", "IMP-088.md#example)")):
+            with self.subTest(declaration=declaration):
+                self.reject(contract_text().replace(PARENT, declaration))
 
     def test_every_missing_field_and_unknown_fields_fail(self):
         for field in METADATA:

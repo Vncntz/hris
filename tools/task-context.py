@@ -132,6 +132,32 @@ def fence_content(line: str) -> tuple[str, tuple[str, ...], int]:
     return line, tuple(containers), indentation
 
 
+def schema_markers(text: str) -> list[int]:
+    return [number for number, line in enumerate(text.splitlines())
+            if re.match(r"^[`~]+[ \t]*task-schema", fence_content(line)[0], re.IGNORECASE)]
+
+
+def parent_link(text: str, *, strict: bool = False) -> tuple[str, str]:
+    """Use active declarations for v2, preserving raw-line legacy extraction."""
+    if strict:
+        parents = [line for _, line in active_markdown_lines(uncommented_lines(text))
+                   if fence_content(line)[0].startswith("Parent implementation item:")]
+    else:
+        parents = [line for line in text.splitlines()
+                   if re.match(r"^ {0,3}Parent implementation item:", line)]
+    parent = re.fullmatch(
+        r" {0,3}Parent implementation item: \[(IMP-[0-9]{3})\]\(([^)\s]+)\)",
+        parents[0] if len(parents) == 1 else "",
+    )
+    if parent is None:
+        raise ValueError("missing, duplicate or malformed active parent IMP link" if strict
+                         else "missing, duplicate or malformed parent IMP link")
+    imp_id, target = parent.groups()
+    if strict and target != f"../implementation/tasks/{imp_id}.md":
+        raise ValueError("v2 parent IMP link must use the canonical matching path")
+    return imp_id, target
+
+
 def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
     """Strict opt-in v2 syntax validation; None preserves the legacy contract.
 
@@ -139,8 +165,7 @@ def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
     meaning, scope, GitHub evidence or independent acceptance. No TASK order is used.
     """
     lines = text.splitlines()
-    markers = [number for number, line in enumerate(lines)
-               if re.match(r"^[`~]+[ \t]*task-schema", fence_content(line)[0], re.IGNORECASE)]
+    markers = schema_markers(text)
     if not markers:
         return None
     if markers != [2] or lines[1] != "" or lines[2] != "```task-schema-v2":
@@ -155,6 +180,8 @@ def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
         raise ValueError("v2 metadata must have exactly schema/task/imp/title/owner/baseline_main_sha/dependencies")
     if type(metadata["schema"]) is not int or metadata["schema"] != 2:
         raise ValueError("unsupported TASK schema; expected integer 2")
+    if parent_link(text, strict=True)[0] != imp_id:
+        raise ValueError("v2 parent IMP identity mismatch")
     for field, expected, pattern in (("task", task_id, r"TASK-[0-9]{4}"),
                                      ("imp", imp_id, r"IMP-[0-9]{3}")):
         value = metadata[field]
@@ -198,12 +225,12 @@ def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
     return metadata
 
 
-def required_sections(text: str) -> None:
-    """Require unique nonempty H2 sections; fenced/commented headings are examples."""
-    # HTML comments cannot supply a required heading or section content.
-    text = re.sub(r"<!--.*?(?:-->|\Z)", "", text, flags=re.DOTALL)
-    lines = text.splitlines()
-    headings = []
+def uncommented_lines(text: str) -> list[str]:
+    return re.sub(r"<!--.*?(?:-->|\Z)", "", text, flags=re.DOTALL).splitlines()
+
+
+def active_markdown_lines(lines: list[str]):
+    """Share the existing fence exclusion for v2 declarations and headings."""
     fence = None
     for number, line in enumerate(lines):
         content, containers, indentation = fence_content(line)
@@ -220,9 +247,18 @@ def required_sections(text: str) -> None:
                 fence = None
             continue
         if fence is None:
-            heading = re.match(r"^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*$", line)
-            if heading:
-                headings.append((number, len(heading[1]), heading[2].casefold()))
+            yield number, line
+
+
+def required_sections(text: str) -> None:
+    """Require unique nonempty H2 sections; fenced/commented headings are examples."""
+    # Keep the section body and scanner's line numbering in the same comment-free text.
+    lines = uncommented_lines(text)
+    headings = []
+    for number, line in active_markdown_lines(lines):
+        heading = re.match(r"^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*$", line)
+        if heading:
+            headings.append((number, len(heading[1]), heading[2].casefold()))
     for section in TASK_SECTIONS:
         matches = [(number, level) for number, level, title in headings if title == section.casefold()]
         if len(matches) != 1 or matches[0][1] != 2:
@@ -323,15 +359,7 @@ def build_packet(repo: Path, task_id: str, decisions: list[str]) -> dict:
     task_data = read(task_source)
     task_text = task_data.decode("utf-8")
     identity(task_text, task_id, "TASK")
-    parents = [line.lstrip(" ") for line in task_text.splitlines()
-               if re.match(r"^ {0,3}Parent implementation item:", line)]
-    parent = re.fullmatch(
-        r"Parent implementation item: \[(IMP-[0-9]{3})\]\(([^)\s]+)\)",
-        parents[0] if len(parents) == 1 else "",
-    )
-    if parent is None:
-        raise ValueError("missing, duplicate or malformed parent IMP link")
-    imp_id, target = parent.groups()
+    imp_id, target = parent_link(task_text, strict=bool(schema_markers(task_text)))
     task_contract(task_text, task_id, imp_id)
     imp_source = f"docs/implementation/tasks/{imp_id}.md"
     if linked_path(repo, task_source, target) != imp_source:

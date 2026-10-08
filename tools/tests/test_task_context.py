@@ -579,6 +579,55 @@ class TaskContextTests(unittest.TestCase):
         (self.root / IMP).unlink()
         self.assert_cli_failure("TASK-0020", "--validate-only")
 
+    def test_commented_or_fenced_v2_parent_fails_cli_in_both_modes(self):
+        from test_task_schema import contract_text, PARENT, inactive_parent_examples
+        for example in inactive_parent_examples():
+            with self.subTest(example=example):
+                self.write(TASK, contract_text().replace(PARENT, example)
+                           + '\nRead D-140 and the [focused guide](../guide.md).\n')
+                for mode in ((), ("--validate-only",)):
+                    with self.subTest(mode=mode):
+                        result = self.cli("TASK-0020", *mode)
+                        self.assertNotEqual(result.returncode, 0)
+                        self.assertEqual(result.stdout, "")
+                        self.assertIn("parent", result.stderr.lower())
+
+    def test_duplicate_ambiguous_or_inconsistent_v2_parent_fails_cli_in_both_modes(self):
+        from test_task_schema import contract_text, PARENT
+        cases = [contract_text() + "\n" + declaration + "\n" for declaration in
+                 (PARENT, "> " + PARENT, "- " + PARENT, "    " + PARENT,
+                  PARENT.replace("IMP-088", "IMP-089"), "Parent implementation item: ambiguous")]
+        cases.extend((contract_text().replace("tasks/IMP-088.md", "tasks/IMP-089.md"),
+                      contract_text().replace('"imp": "IMP-088"', '"imp": "IMP-089"')))
+        for number, text in enumerate(cases):
+            with self.subTest(case=number):
+                self.write(TASK, text + '\nRead D-140 and the [focused guide](../guide.md).\n')
+                self.assert_cli_failure("TASK-0020")
+                self.assert_cli_failure("TASK-0020", "--validate-only")
+
+    def test_active_v2_parent_with_inactive_examples_preserves_packet(self):
+        from test_task_schema import contract_text, inactive_parent_examples
+        for example in inactive_parent_examples():
+            with self.subTest(example=example):
+                text = contract_text() + "\n" + example + '\nRead D-140 and the [focused guide](../guide.md).\n'
+                self.write(TASK, text)
+                packet = self.packet()
+                self.assertEqual(packet, self.packet())
+                self.assert_reference(packet["task"], text=True)
+                result = self.cli("TASK-0020", "--validate-only")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(result.stdout)["imp"], "IMP-088")
+
+    def test_legacy_parent_extraction_remains_compatible(self):
+        from test_task_schema import PARENT
+        for example in ("<!--\n" + PARENT + "\n-->", "```text\n" + PARENT + "\n```"):
+            with self.subTest(example=example):
+                self.write(TASK, TASK_TEXT.replace(PARENT, example))
+                self.assertEqual(self.packet()["imp"]["source"], IMP)
+                result = self.cli("TASK-0020", "--validate-only")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(result.stdout)["schema"], "legacy")
+
     def test_target_repository_cannot_supply_executable_task_validator(self):
         from test_task_schema import contract_text
         self.write(TASK, contract_text() + '\nRead D-140 and the [focused guide](../guide.md).\n')

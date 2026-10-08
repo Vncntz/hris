@@ -128,6 +128,9 @@ retroactive v2 gates. Active-candidate grandfathering is recorded in
 
 A v2 TASK retains its first-line `# TASK-#### - Title` identity and exactly one
 `Parent implementation item: [IMP-###](../implementation/tasks/IMP-###.md)` line.
+For v2, this declaration must be active, outside HTML comments and fenced examples.
+Duplicate or ambiguous active declarations fail; the canonical link, metadata IMP
+and linked parent identity must agree. Legacy extraction remains compatible.
 After the identity heading, one blank line and one unindented fenced block with
 the exact opening marker `task-schema-v2` carry the following JSON object.
 [TASK-0047](TASK-0047.md) is the first actual work order in this format.
