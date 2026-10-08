@@ -1,0 +1,380 @@
+"""Synthetic syntax tests for prospective v2 contracts, never integration gates."""
+
+import copy
+import importlib.util
+import json
+from pathlib import Path
+import unittest
+
+
+SCRIPT = Path(__file__).resolve().parents[1] / "task-context.py"
+SPEC = importlib.util.spec_from_file_location("hris_task_schema", SCRIPT)
+CONTEXT = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(CONTEXT)
+METADATA = {
+    "schema": 2, "task": "TASK-0020", "imp": "IMP-088",
+    "title": "Synthetic context packet", "owner": "CODEX",
+    "baseline_main_sha": "0123456789abcdef0123456789abcdef01234567",
+    "dependencies": "none",
+}
+PARENT = "Parent implementation item: [IMP-088](../implementation/tasks/IMP-088.md)"
+# Independent Phase-3 specification fixture; do not derive expectations from the parser.
+SEMANTIC_SECTIONS = (
+    "Objective", "In scope", "Out of scope", "Invariants",
+    "Permitted repository scope", "Forbidden repository scope",
+    "Observable acceptance criteria", "Required verification",
+    "Evidence / handoff requirements",
+)
+
+
+def contract_text(metadata=None):
+    metadata = copy.deepcopy(METADATA if metadata is None else metadata)
+    return ("# TASK-0020 - Synthetic context packet\n\n```task-schema-v2\n"
+            + json.dumps(metadata, indent=2) + "\n```\n\n" + PARENT + "\n\n"
+            + "\n\n".join("## " + section + "\n\nSynthetic required content."
+                             for section in SEMANTIC_SECTIONS) + "\n")
+
+
+def inactive_parent_examples():
+    return (
+        "<!--\n" + PARENT + "\n-->",
+        "<!-- " + PARENT + " -->",
+        "```text\n" + PARENT + "\n```",
+        "~~~~text\n" + PARENT + "\n~~~~",
+        "- ```text\n  " + PARENT + "\n  ```",
+        "> ```text\n> " + PARENT + "\n> ```",
+        "```text\n- ```\n" + PARENT + "\n```",
+        # A literal opener must not consume the next fence through its literal closer.
+        "`<!--`\n```text\n-->\n" + PARENT + "\n<!--\n```\n-->",
+        "`` <!-- ` literal ``\n~~~~text\n-->\n" + PARENT + "\n<!--\n~~~~\n-->",
+        "`<!--`\n- ```text\n  -->\n  " + PARENT + "\n  <!--\n  ```\n-->",
+        "`<!--`\n> ```text\n> -->\n> " + PARENT + "\n> <!--\n> ```\n-->",
+        "`literal\n" + PARENT + "\nliteral <!-- -->`",
+    )
+
+
+def indented_pseudo_fence_examples():
+    # CommonMark fences allow 0..3 columns before the fence/container; tabs stop
+    # at multiples of four. A blank separates indented code from active prose.
+    for prefix in ("    ", "\t", " \t", "  \t", "   \t", "\t ",
+                   "    > ", ">     ", "> \t  ", "-     ",
+                   "> -     ", "- >     "):
+        for marker in ("```", "~~~~"):
+            yield prefix + marker + "text\n\n" + PARENT + "\n\n" + marker
+    # Leaving a quote/list closes its fence, even when the closing run is absent.
+    for opener in ("> ```text", "- ```text", "> - ```text",
+                   "- Example item\n\n    ```text"):
+        yield opener + "\n\n" + PARENT
+
+
+def permitted_indentation_examples():
+    for prefix, continuation in (("", ""), (" ", ""), ("  ", ""), ("   ", ""),
+                                 ("- ", "  "), ("   - ", "     "),
+                                 ("-\t", "    "), ("1.\t", "    "),
+                                 ("- \t ", "     "), ("  -\t", "    "),
+                                 ("> ", "> "), (">\t", "> "), ("> \t ", "> "),
+                                 ("> - ", ">   "), ("- > ", "  > "),
+                                 ("- - ", "    "), ("> > ", "> > ")):
+        for marker in ("```", "~~~~"):
+            yield (prefix + marker + "text\n" + continuation + "<!--\n"
+                   + continuation + PARENT + "\n" + continuation + marker)
+    for item, continuation in (("- Example item", "    "),
+                               ("- Outer item\n  - Inner item", "      "),
+                               ("> - Quoted item", ">     ")):
+        for marker in ("```", "~~~~"):
+            yield (item + "\n\n" + continuation + marker + "text\n"
+                   + continuation + "<!--\n" + continuation + PARENT + "\n"
+                   + continuation + marker)
+
+
+class TaskSchemaTests(unittest.TestCase):
+    def parse(self, text):
+        return CONTEXT.task_contract(text, "TASK-0020", "IMP-088")
+
+    def reject(self, text):
+        with self.assertRaises(ValueError):
+            self.parse(text)
+
+    def test_valid_both_owners_and_line_endings(self):
+        for owner in ("CODEX", "ANTIGRAVITY"):
+            metadata = {**METADATA, "owner": owner}
+            for newline in ("\n", "\r\n"):
+                with self.subTest(owner=owner, newline=newline):
+                    self.assertEqual(self.parse(contract_text(metadata).replace("\n", newline)), metadata)
+        # JSON ordering/formatting and supported identity separators do not change meaning.
+        metadata = dict(reversed(list(METADATA.items())))
+        text = contract_text(metadata).replace("# TASK-0020 -", "# TASK-0020 —", 1)
+        self.assertEqual(self.parse(text), METADATA)
+
+    def test_valid_explicit_task_and_contract_prerequisites(self):
+        dependencies = ["TASK-0001", {"contract": "docs/tasks/README.md",
+                                    "requirement": "Approved Phase-3 contract"}]
+        metadata = {**METADATA, "dependencies": dependencies}
+        self.assertEqual(self.parse(contract_text(metadata)), metadata)
+
+    def test_numbering_never_creates_or_orders_dependencies(self):
+        for dependencies in ("none", ["TASK-9999", "TASK-0001"]):
+            metadata = {**METADATA, "dependencies": dependencies}
+            self.assertEqual(self.parse(contract_text(metadata))["dependencies"], dependencies)
+
+    def test_legacy_has_no_new_fields_or_sections_required(self):
+        text = "# TASK-0020 - Historical contract\n\n" + PARENT + "\n"
+        self.assertIsNone(self.parse(text))
+        self.assertIsNone(self.parse(text + '\nLegacy prose mentions schema v2 and {"schema": 2}.\n'))
+
+    def test_commented_or_fenced_parent_cannot_supply_v2_declaration(self):
+        for example in inactive_parent_examples():
+            with self.subTest(example=example):
+                self.reject(contract_text().replace(PARENT, example))
+
+    def test_one_active_parent_can_coexist_with_inactive_examples(self):
+        for example in inactive_parent_examples():
+            with self.subTest(example=example):
+                self.assertEqual(self.parse(contract_text() + "\n" + example + "\n"), METADATA)
+
+    def test_indented_pseudo_fences_cannot_hide_active_duplicate_parent(self):
+        for example in indented_pseudo_fence_examples():
+            with self.subTest(example=example):
+                with self.assertRaisesRegex(ValueError, "parent"):
+                    self.parse(contract_text() + "\n\n" + example + "\n")
+
+    def test_permitted_fence_indentation_keeps_examples_inactive(self):
+        for example in permitted_indentation_examples():
+            with self.subTest(example=example):
+                self.assertEqual(self.parse(contract_text() + "\n\n" + example + "\n"), METADATA)
+                with self.assertRaisesRegex(ValueError, "parent"):
+                    self.parse(contract_text() + "\n\n" + example + "\n\n" + PARENT + "\n")
+
+    def test_indented_code_markers_stay_literal_without_hiding_later_prose(self):
+        for code in ("    <!--", "\t<!--", "    ```text", "\t```text",
+                     ">     <!--", "-     <!--", "-     ```text"):
+            with self.subTest(code=code):
+                text = contract_text() + "\n\n" + code + "\n" + PARENT + "\n```\n"
+                with self.assertRaisesRegex(ValueError, "parent"):
+                    self.parse(text)
+
+    def test_indentation_scan_preserves_source_lines_and_literal_code(self):
+        lines = ["\t```text", "", PARENT, "    <!--", "Active content."]
+        self.assertEqual(list(CONTEXT.markdown_lines(lines)),
+                         [(number, line, line) for number, line in enumerate(lines)])
+
+    def test_pseudo_fence_cannot_hide_or_supply_semantic_section(self):
+        block = "## Objective\n\nSynthetic required content."
+        for prefix in ("    ", "\t", " \t"):
+            with self.subTest(prefix=prefix):
+                example = prefix + "```text\n\n" + block + "\n\n" + prefix + "```\n"
+                with self.assertRaisesRegex(ValueError, "Objective"):
+                    self.parse(contract_text() + "\n\n" + example)
+                self.assertEqual(self.parse(contract_text().replace(block, example)), METADATA)
+
+    def test_code_comment_markers_cannot_hide_active_parent_or_sections(self):
+        examples = (
+            "`<!--`", "`` <!-- ` literal ``", "`<!--\nliteral -->`",
+            "```text\n<!--\n```", "~~~~text\n<!--\n~~~~",
+            "- ```text\n  <!--\n  ```", "> ```text\n> <!--\n> ```",
+            "~~~ <!--\nLiteral example.\n~~~",
+        )
+        for example in examples:
+            with self.subTest(example=example):
+                text = contract_text().replace(PARENT, example + "\n\n" + PARENT)
+                self.assertEqual(self.parse(text), METADATA)
+                self.reject(text + "\n" + PARENT + "\n")
+
+    def test_code_spans_and_real_comments_are_distinguished(self):
+        for example in ("`<!--`\n<!--\n" + PARENT + "\n-->",
+                        "``<!--` ``\n<!--\n" + PARENT + "\n-->",
+                        "`literal\n" + PARENT + "\nliteral <!-- -->`",
+                        "<!--\n```\n-->\n```text\n" + PARENT + "\n```",
+                        "`unmatched <!--\n" + PARENT + "\n-->",
+                        "``mismatched <!--`\n" + PARENT + "\n-->",
+                        "\\`<!--\n" + PARENT + "\n-->"):
+            with self.subTest(example=example):
+                self.reject(contract_text().replace(PARENT, example))
+
+    def test_unmatched_code_span_cannot_cross_block_boundaries_to_hide_parent(self):
+        for boundary in ("", "## Extra heading", "- New item", "> New quote",
+                         "<!-- Real comment -->", "---", "~~~text\n~~~"):
+            with self.subTest(boundary=boundary):
+                self.reject(contract_text() + "\n`unmatched\n" + boundary
+                            + "\n" + PARENT + "\nclosing`\n")
+
+    def test_scanner_preserves_lines_and_code_content_while_excluding_comments(self):
+        lines = ["`<!--`", "<!--", "```", "-->", "~~~~text", "<!--",
+                 "~~~~", "Active content."]
+        scanned = list(CONTEXT.markdown_lines(lines))
+        self.assertEqual([number for number, _, _ in scanned], list(range(len(lines))))
+        self.assertEqual([line for _, line, _ in scanned],
+                         [lines[0], " " * 4, " " * 3, " " * 3, *lines[4:]])
+        self.assertEqual(list(CONTEXT.active_markdown_lines(lines)),
+                         [(0, "x" * len(lines[0])), (1, " " * 4), (2, " " * 3),
+                          (3, " " * 3), (7, lines[7])])
+
+    def test_duplicate_ambiguous_or_inconsistent_active_parent_fails(self):
+        for declaration in (PARENT, " " + PARENT, "> " + PARENT, "- " + PARENT,
+                            "    " + PARENT, PARENT.replace("IMP-088", "IMP-089"),
+                            "Parent implementation item: ambiguous"):
+            with self.subTest(declaration=declaration):
+                self.reject(contract_text() + "\n" + declaration + "\n")
+        for declaration in ("> " + PARENT, "- " + PARENT, "    " + PARENT,
+                            PARENT.replace("IMP-088", "IMP-089"),
+                            PARENT.replace("tasks/IMP-088.md", "tasks/IMP-089.md"),
+                            PARENT.replace("IMP-088.md)", "IMP-088.md#example)")):
+            with self.subTest(declaration=declaration):
+                self.reject(contract_text().replace(PARENT, declaration))
+
+    def test_every_missing_field_and_unknown_fields_fail(self):
+        for field in METADATA:
+            with self.subTest(field=field):
+                metadata = copy.deepcopy(METADATA)
+                metadata.pop(field)
+                self.reject(contract_text(metadata))
+        self.reject(contract_text({**METADATA, "current_pr_head": METADATA["baseline_main_sha"]}))
+
+    def test_duplicate_json_keys_at_every_object_level_fail(self):
+        text = contract_text()
+        for field in METADATA:
+            duplicate = json.dumps(field) + ": " + json.dumps(METADATA[field])
+            with self.subTest(field=field):
+                self.reject(text.replace("{", "{" + duplicate + ",", 1))
+        metadata = {**METADATA, "dependencies": [{"contract": "docs/tasks/README.md", "requirement": "Approved"}]}
+        self.reject(contract_text(metadata).replace('"requirement": "Approved"',
+                    '"requirement": "Approved", "requirement": "Conflicting"'))
+
+    def test_malformed_json_and_nonobject_roots_fail(self):
+        text = contract_text()
+        start = text.index("{", text.index("```task-schema-v2"))
+        end = text.index("\n```", start)
+        for payload in ("{", "[]", "null", "true", "2", '"text"', '{} {}', '{"schema": 2,}', '{/* comment */}'):
+            with self.subTest(payload=payload):
+                self.reject(text[:start] + payload + text[end:])
+
+    def test_bad_versions_owners_ids_titles_and_sha_fail(self):
+        cases = {
+            "schema": [True, "2", 1, 3, 2.0, None],
+            "task": ["TASK-20", "TASK-00200", "TASK-0021", "task-0020", None, ["TASK-0020"]],
+            "imp": ["IMP-88", "IMP-0088", "IMP-089", "imp-088", None],
+            "title": ["", " ", "Different title", " Synthetic context packet", "Synthetic context packet ", "Two\nlines", None],
+            "owner": ["HUMAN", "CODEX REVIEW", "codex", "CODEX,ANTIGRAVITY", ["CODEX"], ["CODEX", "ANTIGRAVITY"], None, True],
+            "baseline_main_sha": [None, True, "1401899", "f" * 39, "f" * 41, "f" * 64, "A" * 40, "g" * 40, " " + "f" * 40],
+        }
+        for field, values in cases.items():
+            for value in values:
+                with self.subTest(field=field, value=value):
+                    self.reject(contract_text({**METADATA, field: value}))
+
+    def test_dependency_syntax_fails_closed(self):
+        cases = (
+            [], None, True, {}, "", "None", "TASK-0001", "TASK-0001,TASK-0002",
+            ["none"], ["TASK-1"], ["TASK-00001"], ["IMP-088"], [True], [None],
+            ["TASK-0020"], ["TASK-0001", "TASK-0001"], ["TASK-0001", "none"],
+            [{"contract": "docs/tasks/README.md"}],
+            [{"contract": "docs/tasks/README.md", "requirement": ""}],
+            [{"contract": "docs/tasks/README.md", "requirement": " ", "unknown": True}],
+            [{"contract": "docs/tasks/README.md", "requirement": "Two\nlines"}],
+            [{"contract": "docs/tasks/README.md", "requirement": None}],
+            [{"task": "TASK-0001"}],
+        )
+        for dependencies in cases:
+            with self.subTest(dependencies=dependencies):
+                self.reject(contract_text({**METADATA, "dependencies": dependencies}))
+        for path in (None, [], "", "../outside.md", "/absolute.md", "C:/absolute.md",
+                     "docs\\README.md", "./docs/README.md", "docs//README.md",
+                     "docs/../README.md", "docs/README.md#anchor", "docs/README.md?query"):
+            with self.subTest(path=path):
+                self.reject(contract_text({**METADATA, "dependencies": [{"contract": path, "requirement": "Approved"}]}))
+        prerequisite = {"contract": "docs/README.md", "requirement": "Approved"}
+        self.reject(contract_text({**METADATA, "dependencies": [prerequisite, prerequisite]}))
+
+    def test_malformed_misplaced_duplicate_or_unsupported_blocks_do_not_become_legacy(self):
+        text = contract_text()
+        cases = (
+            text.replace("task-schema-v2", "task-schema-v3"),
+            text.replace("task-schema-v2", "TASK-SCHEMA-V2"),
+            text.replace("task-schema-v2", "task-schema_v2"),
+            text.replace("task-schema-v2", "task-schema"),
+            text.replace("task-schema-v2", "task-schema-v2 extra"),
+            text.replace("```task-schema-v2", "~~~task-schema-v2"),
+            text.replace("```task-schema-v2", "````task-schema-v2"),
+            text.replace("```task-schema-v2", "``task-schema-v2"),
+            text.replace("```task-schema-v2", "`~`task-schema-v2"),
+            text.replace("```task-schema-v2", " ```task-schema-v2"),
+            text.replace("```task-schema-v2", "``` task-schema-v2"),
+            text.replace("\n\n```task-schema-v2", "\n```task-schema-v2", 1),
+            text.replace("\n\n```task-schema-v2", "\n\nProse\n\n```task-schema-v2", 1),
+            text.replace("\n```\n", "\n", 1),
+            text + '\n```task-schema-v2\n{}\n```\n',
+            text + '\n```task-schema-v3\n{}\n```\n',
+        )
+        for content in cases:
+            with self.subTest(content=content[:130]):
+                self.reject(content)
+
+    def test_each_required_section_missing_duplicate_wrong_level_or_empty_fails(self):
+        text = contract_text()
+        for section in SEMANTIC_SECTIONS:
+            block = "## " + section + "\n\nSynthetic required content."
+            for replacement in ("", "### " + section + "\n\nContent.", "## " + section,
+                                "## " + section + "\n\n<!-- Not content -->",
+                                "## " + section + "\n\n```text\n```",
+                                "## " + section + "\n\n### Empty subsection"):
+                with self.subTest(section=section, replacement=replacement):
+                    self.reject(text.replace(block, replacement))
+            self.reject(text + "\n## " + section + "\n\nDuplicate content.\n")
+        self.reject(text + "\n## objective\n\nDuplicate case-insensitive heading.\n")
+
+    def test_container_schema_markers_never_fall_back_to_legacy(self):
+        text = contract_text()
+        for prefix in ("> ", "- ", "1. ", "+ ", "* ", "12) ", "> - ", "- > ", "  > 1. "):
+            for invalid in (text.replace('"schema": 2', '"schema":'),
+                            text[:text.index("## Objective")], text):
+                with self.subTest(prefix=prefix, invalid=invalid[:100]):
+                    self.reject(invalid.replace("```task-schema-v2", prefix + "```task-schema-v2"))
+
+    def test_container_duplicate_reserved_blocks_fail(self):
+        for prefix in ("> ", "- ", "1. ", "> - ", "1. > "):
+            for marker in ("```task-schema-v2", "~~~task-schema-v3", "``task-schema"):
+                with self.subTest(prefix=prefix, marker=marker):
+                    self.reject(contract_text() + "\n" + prefix + marker + "\n{}\n```\n")
+
+    def test_container_fenced_examples_cannot_supply_semantic_sections(self):
+        text = contract_text()
+        start = text.index("## Objective")
+        # The reported counterexample: all nine H2 headings exist only in a list fence.
+        for opener, indent in (("- ", "  "), ("1. ", "   "), ("> ", "> "),
+                               ("> - ", ">   "), ("- - ", "    ")):
+            for fence in ("```", "~~~~"):
+                example = (opener + fence + "text\n"
+                           + "\n".join(indent + line for line in text[start:].splitlines())
+                           + "\n" + indent + fence + "\n")
+                with self.subTest(opener=opener, fence=fence):
+                    self.reject(text[:start] + example)
+                    # Closing the container fence must expose subsequent real sections.
+                    self.assertEqual(self.parse(text[:start] + example + text[start:]), METADATA)
+
+    def test_container_looking_code_lines_cannot_close_another_fence(self):
+        text = contract_text()
+        start = text.index("## Objective")
+        for opener, closer, indent in (("", "", ""), ("> ", "> ", "> "),
+                                       ("- ", "  ", "  ")):
+            for fake_close in ("- ```", "1. ```", "> ```", "    ```"):
+                example = (opener + "```text\n" + indent + fake_close + "\n"
+                           + "\n".join(indent + line for line in text[start:].splitlines())
+                           + "\n" + closer + "```\n")
+                with self.subTest(opener=opener, fake_close=fake_close):
+                    self.reject(text[:start] + example)
+                    self.assertEqual(self.parse(text[:start] + example + text[start:]), METADATA)
+
+    def test_fenced_and_commented_headings_cannot_supply_sections(self):
+        text = contract_text()
+        block = "## Objective\n\nSynthetic required content."
+        for fence in ("```", "~~~", "````", "   ~~~~~"):
+            self.reject(text.replace(block, fence + "\n" + block + "\n" + fence))
+        self.reject(text.replace(block, "<!--\n" + block + "\n-->"))
+        self.reject(text.replace(block, "<!--\n" + block))
+        # A pseudo closing fence with text must not expose example headings.
+        self.reject(text.replace(block, "```text\n```still-code\n" + block + "\n```"))
+        self.assertEqual(self.parse(text + "\n```text\n" + block + "\n```\n"), METADATA)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -29,15 +29,27 @@ NOTICE = (
     "and conflicts under the repository source precedence."
 )
 LINK = re.compile(r"\[([^\]\n]+)\]\(([^)\s]+)\)")
+TASK_SECTIONS = (
+    "Objective", "In scope", "Out of scope", "Invariants",
+    "Permitted repository scope", "Forbidden repository scope",
+    "Observable acceptance criteria", "Required verification",
+    "Evidence / handoff requirements",
+)
 
 
-def contained_file(repo: Path, source: str) -> Path:
-    """Require canonical relative spelling and containment after resolving symlinks."""
+def relative_path(source: str) -> PurePosixPath:
+    """Check repository-relative spelling without interpreting it as executable input."""
     if not isinstance(source, str) or not source or "\\" in source or ":" in source:
         raise ValueError("invalid repository-relative path")
     relative = PurePosixPath(source)
     if relative.is_absolute() or any(part in ("", ".", "..") for part in source.split("/")):
         raise ValueError("path traversal or non-canonical path")
+    return relative
+
+
+def contained_file(repo: Path, source: str) -> Path:
+    """Require canonical relative spelling and containment after resolving symlinks."""
+    relative_path(source)
     path = (repo / source).resolve(strict=True)
     if not path.is_relative_to(repo) or not path.is_file():
         raise ValueError(f"source is not a repository-contained file: {source}")
@@ -97,6 +109,312 @@ def unique_object(pairs: list[tuple[str, object]]) -> dict:
             raise ValueError(f"duplicate JSON key: {key}")
         result[key] = value
     return result
+
+
+def fence_content(line: str, *, bounded: bool = False,
+                  continuation: int = 0) -> tuple[str, tuple[str, ...], int]:
+    """Expose fences behind whitespace and nested Markdown quote/list prefixes.
+
+    Reserved-marker/ambiguous-parent discovery deliberately exposes all indentation.
+    Fence opening uses bounded indentation: at most three columns before each
+    container or fence, and one to four columns after a list marker. It does not
+    make a container's schema block or headings canonical TASK declarations.
+    """
+    line = line.expandtabs(4)
+    indentation = len(line) - len(line.lstrip(" "))
+    if bounded and indentation > continuation + 3:
+        return line, (), indentation
+    continuation = max(0, continuation - indentation)
+    line = line.lstrip(" ")
+    containers = []
+    # Five or more spaces after a list marker leave indented code after its
+    # one-column padding, rather than becoming unlimited fence indentation.
+    spaces = r"(?: {1,4}(?! )| (?= {4}))" if bounded else r" +"
+    while prefix := re.match(rf"(?:> ?|[-+*]{spaces}|[0-9]{{1,9}}[.)]{spaces})", line):
+        kind = "quote" if line.startswith(">") else "list"
+        containers.append(kind)
+        if kind == "list":
+            indentation += prefix.end()
+            continuation = 0
+        line = line[prefix.end():]
+        extra = len(line) - len(line.lstrip(" "))
+        indentation += extra
+        if bounded and extra > continuation + 3:
+            break
+        continuation = max(0, continuation - extra)
+        line = line.lstrip(" ")
+    return line, tuple(containers), indentation
+
+
+def schema_markers(text: str) -> list[int]:
+    return [number for number, line in enumerate(text.splitlines())
+            if re.match(r"^[`~]+[ \t]*task-schema", fence_content(line)[0], re.IGNORECASE)]
+
+
+def parent_link(text: str, *, strict: bool = False) -> tuple[str, str]:
+    """Use active declarations for v2, preserving raw-line legacy extraction."""
+    if strict:
+        parents = [line for _, line in active_markdown_lines(text.splitlines())
+                   if fence_content(line)[0].startswith("Parent implementation item:")]
+    else:
+        parents = [line for line in text.splitlines()
+                   if re.match(r"^ {0,3}Parent implementation item:", line)]
+    parent = re.fullmatch(
+        r" {0,3}Parent implementation item: \[(IMP-[0-9]{3})\]\(([^)\s]+)\)",
+        parents[0] if len(parents) == 1 else "",
+    )
+    if parent is None:
+        raise ValueError("missing, duplicate or malformed active parent IMP link" if strict
+                         else "missing, duplicate or malformed parent IMP link")
+    imp_id, target = parent.groups()
+    if strict and target != f"../implementation/tasks/{imp_id}.md":
+        raise ValueError("v2 parent IMP link must use the canonical matching path")
+    return imp_id, target
+
+
+def task_contract(text: str, task_id: str, imp_id: str) -> dict | None:
+    """Strict opt-in v2 syntax validation; None preserves the legacy contract.
+
+    This checks declarations, not authorization, dependency eligibility, section
+    meaning, scope, GitHub evidence or independent acceptance. No TASK order is used.
+    """
+    lines = text.splitlines()
+    markers = schema_markers(text)
+    if not markers:
+        return None
+    if markers != [2] or lines[1] != "" or lines[2] != "```task-schema-v2":
+        raise ValueError("expected one task-schema-v2 block immediately after TASK heading")
+    try:
+        end = lines.index("```", 3)
+    except ValueError:
+        raise ValueError("unclosed task-schema-v2 metadata block") from None
+    metadata = json.loads("\n".join(lines[3:end]), object_pairs_hook=unique_object)
+    fields = {"schema", "task", "imp", "title", "owner", "baseline_main_sha", "dependencies"}
+    if not isinstance(metadata, dict) or set(metadata) != fields:
+        raise ValueError("v2 metadata must have exactly schema/task/imp/title/owner/baseline_main_sha/dependencies")
+    if type(metadata["schema"]) is not int or metadata["schema"] != 2:
+        raise ValueError("unsupported TASK schema; expected integer 2")
+    if parent_link(text, strict=True)[0] != imp_id:
+        raise ValueError("v2 parent IMP identity mismatch")
+    for field, expected, pattern in (("task", task_id, r"TASK-[0-9]{4}"),
+                                     ("imp", imp_id, r"IMP-[0-9]{3}")):
+        value = metadata[field]
+        if not isinstance(value, str) or not re.fullmatch(pattern, value) or value != expected:
+            raise ValueError(f"v2 {field} identity mismatch or invalid ID")
+    title = metadata["title"]
+    if not isinstance(title, str) or not title.strip() or title != title.strip() or "\n" in title or "\r" in title:
+        raise ValueError("v2 title must be a nonempty single-line string without surrounding whitespace")
+    if not re.fullmatch(rf"# {re.escape(task_id)} [—–-] {re.escape(title)}", lines[0]):
+        raise ValueError("v2 title must match the TASK identity heading")
+    if metadata["owner"] not in ("CODEX", "ANTIGRAVITY"):
+        raise ValueError("v2 primary owner must be exactly CODEX or ANTIGRAVITY")
+    baseline = metadata["baseline_main_sha"]
+    if not isinstance(baseline, str) or not re.fullmatch(r"[0-9a-f]{40}", baseline):
+        raise ValueError("v2 baseline_main_sha must be an exact 40-character lowercase hex SHA")
+    dependencies = metadata["dependencies"]
+    if dependencies != "none":
+        if not isinstance(dependencies, list) or not dependencies:
+            raise ValueError("v2 dependencies must be explicit 'none' or a nonempty array")
+        seen = set()
+        for dependency in dependencies:
+            if isinstance(dependency, str) and re.fullmatch(r"TASK-[0-9]{4}", dependency):
+                key = ("task", dependency)
+                if dependency == task_id:
+                    raise ValueError("v2 TASK cannot depend on itself")
+            elif isinstance(dependency, dict) and set(dependency) == {"contract", "requirement"}:
+                relative_path(dependency["contract"])
+                if "#" in dependency["contract"] or "?" in dependency["contract"]:
+                    raise ValueError("v2 contract path must not have a query or fragment")
+                requirement = dependency["requirement"]
+                if (not isinstance(requirement, str) or not requirement.strip()
+                        or requirement != requirement.strip() or "\n" in requirement or "\r" in requirement):
+                    raise ValueError("v2 contract prerequisite requires a nonempty single-line requirement")
+                key = ("contract", dependency["contract"])
+            else:
+                raise ValueError("v2 dependency must be TASK-#### or a contract/requirement object")
+            if key in seen:
+                raise ValueError("duplicate v2 dependency declaration")
+            seen.add(key)
+    required_sections(text)
+    return metadata
+
+
+def markdown_lines(lines: list[str]):
+    """Scan comments, code spans and fences together, preserving source line numbers.
+
+    Yield comment-free content and a declaration view (None inside fences). Code
+    spans remain content but are masked in the declaration view. Literal comment
+    markers in either kind of code never affect comment or fence state.
+    """
+    fence = None
+    comment = False
+    span_end = None
+    list_context = None
+
+    def fence_marker(line: str) -> bool:
+        nonlocal fence
+        content, containers, indentation = fence_content(
+            line, bounded=fence is None,
+            continuation=list_context[1] if list_context is not None else 0,
+        )
+        marker = re.match(r"^(`{3,}|~{3,})(.*)$", content)
+        if marker is None:
+            return False
+        run, suffix = marker.groups()
+        if fence is None:
+            # List items continue by indentation; quote markers continue explicitly.
+            fence = (run, tuple(kind for kind in containers if kind == "quote"),
+                     list_context[1] + 3 if list_context is not None else 3,
+                     list_context[1] if list_context is not None else 0)
+        elif (containers == fence[1] and run[0] == fence[0][0]
+              and indentation <= fence[2] and len(run) >= len(fence[0])
+              and not suffix.strip()):
+            fence = None
+        return True
+
+    def fence_continues(line: str) -> bool:
+        # A container fence ends with its container, even without a closing run.
+        # Only quote prefixes/indentation are structural here; list-looking code
+        # inside an existing fence remains literal.
+        remaining = line.expandtabs(4)
+        indentation = 0
+        for _ in fence[1]:
+            indentation += len(remaining) - len(remaining.lstrip(" "))
+            remaining = remaining.lstrip(" ")
+            if not remaining.startswith(">"):
+                return False
+            remaining = remaining[1:]
+            if remaining.startswith(" "):
+                remaining = remaining[1:]
+        indentation += len(remaining) - len(remaining.lstrip(" "))
+        return not remaining.strip() or indentation >= fence[3]
+
+    def closing_span(number: int, column: int, length: int):
+        # Match an exact backtick run, including multiline paragraph spans. Block
+        # boundaries end inline parsing; an unmatched run is ordinary text.
+        quotes = tuple(kind for kind in fence_content(lines[number])[1] if kind == "quote")
+        for end_number in range(number, len(lines)):
+            candidate = lines[end_number]
+            if end_number > number:
+                content, containers, _ = fence_content(candidate)
+                if (not candidate.strip() or containers != quotes
+                        or re.match(r"^(?:`{3,}|~{3,}|#{1,6}[ \t]|<!--)", content)
+                        or re.fullmatch(r"(?:[-*_][ \t]*){3,}|=+[ \t]*", content)):
+                    break
+            for run in re.finditer(r"`+", candidate):
+                if end_number == number and run.start() < column:
+                    continue
+                if len(run[0]) == length:
+                    return end_number, run.end()
+        return None
+
+    for number, line in enumerate(lines):
+        if fence is not None and not fence_continues(line):
+            fence = None
+        if fence is None and not comment and span_end is None:
+            # Remember list content indentation across blank/continuation lines.
+            # Dedented prose or a different quote container ends that allowance.
+            _, containers, indentation = fence_content(line)
+            quotes = tuple(kind for kind in containers if kind == "quote")
+            if list_context is not None and line.strip() and (
+                    quotes != list_context[0] or indentation < list_context[1]):
+                list_context = None
+            content, containers, indentation = fence_content(
+                line, bounded=True,
+                continuation=list_context[1] if list_context is not None else 0,
+            )
+            if "list" in containers and not content.startswith("    "):
+                list_context = (quotes, indentation)
+        # Block fences take precedence over inline syntax, including their info
+        # strings. A fence-looking line inside a real comment is still comment.
+        if not comment and span_end is None and fence_marker(line):
+            yield number, line, None
+            continue
+        if fence is not None:
+            yield number, line, None
+            continue
+        # Indented code is literal; its backticks/comments must not change later
+        # prose state. Keep the declaration view for strict ambiguous-parent checks.
+        if not comment and span_end is None and fence_content(
+                line, bounded=True,
+                continuation=list_context[1] if list_context is not None else 0,
+        )[0].startswith("    "):
+            yield number, line, line
+            continue
+        visible = []
+        active = []
+        column = 0
+        # Fence contents bypass inline/comment processing entirely. Outside a
+        # fence, process comments and spans in source order before finding fences.
+        while column < len(line):
+            if comment:
+                end = line.find("-->", column)
+                stop = len(line) if end < 0 else end + 3
+                visible.append(" " * (stop - column))
+                active.append(" " * (stop - column))
+                column = stop
+                comment = end < 0
+            elif span_end is not None:
+                stop = span_end[1] if number == span_end[0] else len(line)
+                visible.append(line[column:stop])
+                active.append("x" * (stop - column))
+                column = stop
+                if number == span_end[0]:
+                    span_end = None
+            elif line.startswith("<!--", column):
+                comment = True
+            elif line[column] == "\\" and column + 1 < len(line):
+                visible.append(line[column:column + 2])
+                active.append(line[column:column + 2])
+                column += 2
+            elif line[column] == "`":
+                run = re.match(r"`+", line[column:])[0]
+                span_end = closing_span(number, column + len(run), len(run))
+                visible.append(run)
+                active.append("x" * len(run) if span_end is not None else run)
+                column += len(run)
+            else:
+                visible.append(line[column])
+                active.append(line[column])
+                column += 1
+        cleaned = "".join(visible)
+        declaration = "".join(active)
+        if fence_marker(declaration):
+            yield number, cleaned, None
+            continue
+        yield number, cleaned, declaration
+
+
+def active_markdown_lines(lines: list[str]):
+    """Use the shared scanner for v2 declarations and headings."""
+    for number, _, declaration in markdown_lines(lines):
+        if declaration is not None:
+            yield number, declaration
+
+
+def required_sections(text: str) -> None:
+    """Require unique nonempty H2 sections; fenced/commented headings are examples."""
+    scanned = list(markdown_lines(text.splitlines()))
+    lines = [line for _, line, _ in scanned]
+    headings = []
+    for number, _, line in scanned:
+        if line is None:
+            continue
+        heading = re.match(r"^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*$", line)
+        if heading:
+            headings.append((number, len(heading[1]), heading[2].casefold()))
+    for section in TASK_SECTIONS:
+        matches = [(number, level) for number, level, title in headings if title == section.casefold()]
+        if len(matches) != 1 or matches[0][1] != 2:
+            raise ValueError(f"v2 requires exactly one level-2 section: {section}")
+        start = matches[0][0]
+        end = next((number for number, level, _ in headings if number > start and level <= 2), len(lines))
+        body = "\n".join(lines[start + 1:end])
+        # Subheadings alone are not semantic content.
+        body = re.sub(r"^ {0,3}#{1,6}[ \t]+.*$", "", body, flags=re.MULTILINE)
+        body = re.sub(r"^ {0,3}(?:`{3,}|~{3,}).*$", "", body, flags=re.MULTILINE)
+        if not body.strip():
+            raise ValueError(f"empty required v2 section: {section}")
 
 
 def routing_manifest(data: bytes, task_id: str, imp_id: str) -> dict:
@@ -185,15 +503,8 @@ def build_packet(repo: Path, task_id: str, decisions: list[str]) -> dict:
     task_data = read(task_source)
     task_text = task_data.decode("utf-8")
     identity(task_text, task_id, "TASK")
-    parents = [line.lstrip(" ") for line in task_text.splitlines()
-               if re.match(r"^ {0,3}Parent implementation item:", line)]
-    parent = re.fullmatch(
-        r"Parent implementation item: \[(IMP-[0-9]{3})\]\(([^)\s]+)\)",
-        parents[0] if len(parents) == 1 else "",
-    )
-    if parent is None:
-        raise ValueError("missing, duplicate or malformed parent IMP link")
-    imp_id, target = parent.groups()
+    imp_id, target = parent_link(task_text, strict=bool(schema_markers(task_text)))
+    task_contract(task_text, task_id, imp_id)
     imp_source = f"docs/implementation/tasks/{imp_id}.md"
     if linked_path(repo, task_source, target) != imp_source:
         raise ValueError("parent IMP link identity mismatch")
@@ -297,11 +608,19 @@ def main() -> int:
     parser.add_argument("task", help="one explicit TASK-#### ID")
     parser.add_argument("decisions", nargs="*", help="additional explicit D-### IDs")
     parser.add_argument("--repo", type=Path, default=ROOT, help="data worktree root; tooling stays trusted")
+    parser.add_argument("--validate-only", action="store_true",
+                        help="validate the work order/context sources and emit a compact syntax result")
     args = parser.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     try:
         packet = build_packet(args.repo, args.task, args.decisions)
+        if args.validate_only:
+            # Reuse the packet's validated, snapshotted sources and legacy link checks.
+            imp_id = Path(packet["imp"]["source"]).stem
+            metadata = task_contract(packet["task"]["text"], args.task, imp_id)
+            packet = {"task": args.task, "imp": imp_id,
+                      "schema": 2 if metadata is not None else "legacy", "metadata": metadata}
         output = json.dumps(packet, ensure_ascii=False, indent=2, sort_keys=True)
     except (OSError, UnicodeError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
         print(f"task-context: {error}", file=sys.stderr)

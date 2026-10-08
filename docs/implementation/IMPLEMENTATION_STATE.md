@@ -10,9 +10,10 @@ Historical state evidence is preserved in the
 
 ## Active operator assignments
 
-- CODEX: [IMP-088](tasks/IMP-088.md) / [TASK-0045](../tasks/TASK-0045.md), Phase-3
-  core repository constitution dependency-eligibility correction and fresh owner
-  verification only. No integration/next-phase authority.
+- CODEX: [IMP-088](tasks/IMP-088.md) / [TASK-0047](../tasks/TASK-0047.md), first
+  Phase-4 TASK schema-v2 parsing/compatibility slice and factual TASK-0045 closeout.
+  Authorized implementation, local verification, one PR and exact-head CI only.
+  No self-certification, merge, Phase-5 or successor authority.
 - ANTIGRAVITY: IMP-014 / TASK-0044, separate client administration UI candidate;
   work order is on its candidate branch. The
   [transition record](../tasks/TASK-0045.md#transition-compatibility) preserves its
@@ -20,16 +21,15 @@ Historical state evidence is preserved in the
 
 ## Manual blockers
 
-- TASK-0045 remains PR_REVIEW + BLOCKED pending fresh independent certification
-  of the dependency-eligibility correction in a fresh reviewer execution context;
-  its implementation conversation cannot supply that certification or integrate it.
 - PR #52 has a human-approved superseded/conflicting disposition. Remote mutation
   requires a separate action; this assignment preserves its history and does not
   reuse its colliding TASK identity.
 
 ## Next operator action
 
-After the Phase-3 candidate and exact-head CI are available, assign independent
-adversarial review of the exact final SHA in a fresh context. Do not start Phase 4,
-Phase 5, trusted-main integration or another TASK in the implementation session.
+After TASK-0047's candidate and exact-head CI are available, assign independent
+review of the exact final SHA in a fresh context distinct from implementation.
+That review must include parser fail-closed behavior, legacy compatibility and
+factual TASK-0045 reconciliation. Do not merge, start Phase 5 or allocate another
+TASK in this implementation session.
 Preserve TASK-0044's separate assignment and existing gates.

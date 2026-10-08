@@ -54,8 +54,9 @@ prose, to reconstruct current state. Do not mass-rewrite completed records.
 | [TASK-0041](TASK-0041.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Polish responsive HRIS login experience |
 | [TASK-0042](TASK-0042.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Align Vaadin route authorization with persisted permission authorities |
 | [TASK-0043](TASK-0043.md) | [IMP-088](../implementation/tasks/IMP-088.md) | Complete; POST_MERGE_VERIFIED | Independent Codex and Antigravity implementation lanes |
-| [TASK-0045](TASK-0045.md) | [IMP-088](../implementation/tasks/IMP-088.md) | PR_REVIEW + BLOCKED; fresh independent certification pending | Establish the core AIDD repository constitution |
+| [TASK-0045](TASK-0045.md) | [IMP-088](../implementation/tasks/IMP-088.md) | COMPLETE closeout carried by TASK-0047; effective on reconciliation merge | Establish the core AIDD repository constitution |
 | [TASK-0046](TASK-0046.md) | [IMP-014](../implementation/tasks/IMP-014.md) | Complete; POST_MERGE_VERIFIED | Stabilize Vaadin request ownership in route-authority test harness |
+| [TASK-0047](TASK-0047.md) | [IMP-088](../implementation/tasks/IMP-088.md) | PR_REVIEW; independent review required | Implement TASK schema-v2 parsing and compatibility validation |
 
 IMP-001 predates TASK convention. Frozen backlog parents are IMP-001 through IMP-086;
 IMP-087/088 are separately authorized maintenance parents. Use
@@ -72,10 +73,11 @@ its earlier handoff text remains historical.
 
 ## TASK schema version 2 (prospective specification)
 
-Phase 3 specifies the contract; strict automated validation begins prospectively
-in Phase 4. It does not implement a v2 parser, change task-context.py or implement
-assignment/dependency/scope automation. Before cutover use current compatible
-heading/parent-link syntax. [TASK-0045](TASK-0045.md) itself remains legacy-compatible.
+Phase 3 specifies the contract; [TASK-0047](TASK-0047.md) implements the first
+prospective Phase-4 parsing/compatibility slice in the existing `task-context.py`.
+Keep the compatible identity heading/parent-link syntax below. TASK-0045 remains
+legacy-compatible. Assignment/dependency-eligibility/scope automation and Phase-5
+CI/PR/trusted-main enforcement are separately authorized future work.
 
 Machine-readable metadata is deliberately small:
 
@@ -89,7 +91,7 @@ Machine-readable metadata is deliberately small:
 | Baseline main SHA | Exact full protected-main commit defining the assignment baseline. |
 | Dependencies | Explicit TASK IDs/contract prerequisites or explicit `none`; numbering is not dependency. |
 
-Serialization/parser details are Phase 4 work. Required semantic sections are:
+Serialization/parser details are defined below. Required semantic sections are:
 
 | Section | Required meaning |
 | --- | --- |
@@ -121,6 +123,79 @@ Legacy work orders remain readable and valid under their applicable contracts;
 historical records become v2 only by explicit migration. No mass rewrite or
 retroactive v2 gates. Active-candidate grandfathering is recorded in
 [TASK-0045 transition compatibility](TASK-0045.md#transition-compatibility).
+
+### V2 serialization and local validation
+
+A v2 TASK retains its first-line `# TASK-#### - Title` identity and exactly one
+`Parent implementation item: [IMP-###](../implementation/tasks/IMP-###.md)` line.
+For v2, this declaration must be active, outside HTML comments, code spans and
+fenced examples. Comment markers inside code are literal and cannot hide or expose
+declarations or headings.
+Duplicate or ambiguous active declarations fail; the canonical link, metadata IMP
+and linked parent identity must agree. Legacy extraction remains compatible.
+After the identity heading, one blank line and one unindented fenced block with
+the exact opening marker `task-schema-v2` carry the following JSON object.
+[TASK-0047](TASK-0047.md) is the first actual work order in this format.
+
+````text
+# TASK-0047 - Implement TASK schema-v2 parsing and compatibility validation
+
+```task-schema-v2
+{
+  "schema": 2,
+  "task": "TASK-0047",
+  "imp": "IMP-088",
+  "title": "Implement TASK schema-v2 parsing and compatibility validation",
+  "owner": "CODEX",
+  "baseline_main_sha": "14018990bc15fc62814412a3be821a3822b762ab",
+  "dependencies": ["TASK-0045"]
+}
+```
+
+Parent implementation item: [IMP-088](../implementation/tasks/IMP-088.md)
+````
+
+The block closes with an unindented line of exactly three backticks. The reserved
+`task-schema` fence namespace opts into strict parsing: unsupported/misplaced/
+duplicate/malformed markers never fall back to legacy. Do not put additional
+schema-fenced examples in a TASK. Ordinary legacy prose mentioning schema v2 does
+not opt in. Legacy TASKs without such a fence retain compatibility parsing.
+
+The object has exactly the seven fields shown; field order/JSON indentation are
+irrelevant. Duplicate keys at any object level, unknown fields, malformed JSON and
+wrong types fail. `schema` is integer 2, identities use ASCII digits of exactly
+four/three places and match heading/parent, and title is a nonempty single-line
+string matching the heading. Owner is one string, exactly CODEX or ANTIGRAVITY.
+Baseline is exactly 40 lowercase hexadecimal characters for this Git SHA-1
+repository; syntax validation does not establish protected-main provenance.
+
+Dependencies are either the string `"none"` or a nonempty JSON array. Entries are
+exact `TASK-####` strings or objects with exactly `contract` and `requirement`:
+for example `{"contract": "docs/tasks/README.md", "requirement": "Approved Phase-3 TASK contract"}`.
+Contract paths use canonical repository-relative forward-slash spelling without
+traversal, query or fragment; requirement is a nonempty single-line string.
+Duplicate TASK IDs/contract paths and self-dependencies fail. Do not mix `none`
+with entries. Array order is preserved; no predecessor is inferred from numbering.
+Dependency syntax does not prove existence, approval, baseline containment or CI;
+independent inspection under execution Section 3 still establishes eligibility.
+
+Each required semantic section in the table is a unique level-2 heading with
+nonempty content. Heading names match case-insensitively; fenced/commented examples
+cannot supply a required heading, and comments/subheadings alone are not content.
+The parser verifies presence, not semantic adequacy, authorization or scope.
+
+```text
+python tools/task-context.py TASK-0047 --validate-only
+python tools/task-context.py TASK-0047
+python tools/task-context.py TASK-0045 --validate-only
+```
+
+Both commands validate identity, linked existing parent/backlink and optional
+routing manifest/context sources using the same read-only snapshot checks.
+`--validate-only` emits one compact JSON syntax result with task/imp/schema/metadata;
+legacy reports `schema: "legacy"` and `metadata: null`. Failure produces a nonzero
+exit, stderr diagnostic and no JSON. Default context-packet shape/version/hashes
+are unchanged for legacy and v2. No new GitHub checks or enforcement are wired.
 
 ## IMP contract
 
